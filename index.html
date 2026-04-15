@@ -1556,27 +1556,29 @@
         }
 
         function drawAntenna(x, y, antenna, scale, selected) {
-            // Range circle
-            ctx.strokeStyle = selected ? '#60a5fa' : '#3b82f6';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([3, 3]);
-            const range = 15 * scale;
-            ctx.beginPath();
-            ctx.arc(x, y, range, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // Range circle (más sutil)
+            if (selected) {
+                ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                const range = 15 * scale;
+                ctx.beginPath();
+                ctx.arc(x, y, range, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
 
-            // Antenna icon - bigger and more visible
-            const size = Math.max(12, 1.2 * scale);
+            // Antena más pequeña
+            const size = Math.max(6, 0.6 * scale);
             
-            // Draw directional antenna shape or omni circle
+            // Dibujar antena direccional o omnidireccional
             if (antenna.type !== 'omni') {
-                // Directional antenna: draw triangle pointing in the direction
+                // Antena direccional: triángulo apuntando en la dirección
                 const angleRad = (antenna.angle - 90) * Math.PI / 180;
-                const arrowLength = size * 2.5;
-                const arrowWidth = size * 1.5;
+                const arrowLength = size * 2;
+                const arrowWidth = size * 1.2;
                 
-                // Calculate triangle points
+                // Calcular puntos del triángulo
                 const tipX = x + Math.cos(angleRad) * arrowLength;
                 const tipY = y + Math.sin(angleRad) * arrowLength;
                 const leftX = x + Math.cos(angleRad + Math.PI * 0.7) * arrowWidth;
@@ -1592,57 +1594,22 @@
                 ctx.closePath();
                 ctx.fill();
                 
-                // Add antenna name label
-                ctx.fillStyle = '#e2e8f0';
-                ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.fillText(antenna.name, x, y - size - 10);
+                // Punto de rotación INVISIBLE en la punta (solo para lógica)
+                // No se dibuja nada aquí
                 
-                // DRAW ROTATION HANDLE AT TIP
-                if (selected) {
-                    ctx.fillStyle = '#FF4500'; // Orange-red to highlight
-                    ctx.beginPath();
-                    ctx.arc(tipX, tipY, Math.max(6, 0.8 * scale), 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Optional: guide line from center to tip
-                    ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
-                    ctx.lineWidth = 1;
-                    ctx.setLineDash([2, 2]);
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(tipX, tipY);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-            } else {
-                // Omni antenna: draw circle with dot
-                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = 'white';
-                ctx.font = `bold ${Math.max(8, size * 0.8)}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('A', x, y);
-                
-                // Label
-                ctx.fillStyle = '#e2e8f0';
-                ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
-                ctx.fillText(antenna.name, x, y - size - 10);
-            }
-
-            // Direction indicator line for non-omni antennas
-            if (antenna.type !== 'omni') {
-                const angleRad = (antenna.angle - 90) * Math.PI / 180;
-                ctx.strokeStyle = '#fbbf24';
-                ctx.lineWidth = 2;
+                // Línea de dirección más fina
+                ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.cos(angleRad) * size * 3, y + Math.sin(angleRad) * size * 3);
+                ctx.lineTo(tipX, tipY);
                 ctx.stroke();
+            } else {
+                // Antena omni: círculo pequeño con punto
+                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
+                ctx.fill();
             }
             
             // Selection highlight
