@@ -580,7 +580,7 @@
                 <canvas id="mainCanvas"></canvas>
                 <div class="canvas-overlay">
                     <span style="background: rgba(17,24,39,0.8); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8;">
-                        🖱️ Click para colocar | Scroll para zoom | Arrastrar antenas | 🔄 Mantén pulsado sobre antena direccional para rotar
+                        🖱️ Click para colocar | Scroll para zoom | Arrastrar desde el centro | 🔄 Click en la punta (🔴) para rotar
                     </span>
                 </div>
                 <div class="zoom-controls">
@@ -892,26 +892,34 @@
                 return;
             }
 
-            // Check for rotation on antenna body (when selected and in select mode)
+            // Check for rotation or drag on antenna (when in select mode)
             if (state.tools.current === 'select' && state.selectedAntenna !== null) {
                 const a = state.antennas[state.selectedAntenna];
                 const s = worldToScreen(a.x, a.y);
                 const scale = s.scale;
                 
-                // Check if clicking on the antenna body (for rotation)
-                const distToAntenna = Math.sqrt((sx - s.x) ** 2 + (sy - s.y) ** 2);
-                const antennaRadius = Math.max(15, 1.5 * scale);
+                // Calculate the tip position (front of antenna)
+                const angleRad = (a.angle - 90) * Math.PI / 180;
+                const tipDist = Math.max(20, 2.5 * scale); // Distance from center to tip
+                const tipX = s.x + Math.cos(angleRad) * tipDist;
+                const tipY = s.y + Math.sin(angleRad) * tipDist;
                 
-                if (distToAntenna < antennaRadius && a.type !== 'omni') {
+                // Check if clicking on the TIP (for rotation)
+                const distToTip = Math.sqrt((sx - tipX) ** 2 + (sy - tipY) ** 2);
+                const tipRadius = Math.max(8, 1.0 * scale);
+                
+                if (distToTip < tipRadius && a.type !== 'omni') {
                     state.isRotating = true;
                     state.rotationCenter = { x: a.x, y: a.y };
                     document.getElementById('statusText').textContent = '🔄 Rotando antena - Mueve el ratón';
                     return;
                 }
                 
-                // Check for antenna drag
-                const dist = Math.sqrt((world.x - a.x) ** 2 + (world.y - a.y) ** 2);
-                if (dist < 2) {
+                // Check for antenna drag (clicking on the center/body)
+                const distToCenter = Math.sqrt((sx - s.x) ** 2 + (sy - s.y) ** 2);
+                const bodyRadius = Math.max(15, 1.5 * scale);
+                
+                if (distToCenter < bodyRadius) {
                     state.isDragging = true;
                     state.dragOffset = { x: world.x - a.x, y: world.y - a.y };
                     document.getElementById('statusText').textContent = '✋ Arrastrando antena - Suelta para colocar';
@@ -1589,6 +1597,24 @@
                 ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.fillText(antenna.name, x, y - size - 10);
+                
+                // DRAW ROTATION HANDLE AT TIP
+                if (selected) {
+                    ctx.fillStyle = '#FF4500'; // Orange-red to highlight
+                    ctx.beginPath();
+                    ctx.arc(tipX, tipY, Math.max(6, 0.8 * scale), 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Optional: guide line from center to tip
+                    ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([2, 2]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(tipX, tipY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
             } else {
                 // Omni antenna: draw circle with dot
                 ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
