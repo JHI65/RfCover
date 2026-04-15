@@ -476,16 +476,35 @@
                 <div class="form-group">
                     <label>Seleccionar Antena</label>
                     <select id="antennaSelect">
+                        <!-- Genéricas -->
                         <option value="omni_5dbi">Omni 5 dBi (Genérica)</option>
                         <option value="omni_9dbi">Omni 9 dBi (Genérica)</option>
                         <option value="panel_14dbi">Panel 14 dBi (Genérica)</option>
                         <option value="direccional_21dbi">Direccional 21 dBi (Genérica)</option>
-                        <option value="cisco_air_ant251204">Cisco AIR-ANT251204-01</option>
-                        <option value="ruckus_2_7_2_0144">Ruckus 2.7.2.0144</option>
-                        <option value="ubiquiti_am_2g15">Ubiquiti AM-2G15</option>
-                        <option value="ubiquiti_ap_5ac_gen2">Ubiquiti AP-5AC-Gen2</option>
-                        <option value="huawei_ap7052dn">Huawei AP7052DN</option>
-                        <option value="aruba_ap515">Aruba AP-515</option>
+                        
+                        <!-- SHURE -->
+                        <optgroup label="——— SHURE ———"></optgroup>
+                        <option value="shure_ha8089">Shure HA-8089 (Dipolo 1/4 onda)</option>
+                        <option value="shure_ua830wb">Shure UA830WB (Activa 0-180°)</option>
+                        <option value="shure_ua870wb">Shure UA870WB (Direccional 90°)</option>
+                        <option value="shure_ua874wb">Shure UA874WB (Direccional 90° UHF)</option>
+                        <option value="shure_pa805wb">Shure PA805WB (Panel plano)</option>
+                        <option value="shure_pa820wb">Shure PA820WB (Panel activo)</option>
+                        <option value="shure_uah880wb">Shure UAH880WB (Híbrida activa)</option>
+                        <option value="shure_ua8100wb">Shure UA8100WB (Log-periódica)</option>
+                        <option value="shure_an800b">Shure AN/800B (Dipolo medio)</option>
+                        
+                        <!-- SENNHEISER -->
+                        <optgroup label="——— SENNHEISER ———"></optgroup>
+                        <option value="sennheiser_a50cp">Sennheiser A 50 CP (Circular polarizada)</option>
+                        <option value="sennheiser_abg4">Sennheiser ABG 4 (Dipolo 1/4 onda)</option>
+                        <option value="sennheiser_aa5d">Sennheiser AA 5 D (Dipolo plegable)</option>
+                        <option value="sennheiser_l6000">Sennheiser L 6000 (Log-periódica)</option>
+                        <option value="sennheiser_adp_uhf">Sennheiser ADP-UHF (Direccional UHF)</option>
+                        <option value="sennheiser_ac4200">Sennheiser AC 4200 (Activa omnidireccional)</option>
+                        <option value="sennheiser_ac4210">Sennheiser AC 4210 (Activa direccional)</option>
+                        <option value="sennheiser_ac4220">Sennheiser AC 4220 (Activa panel)</option>
+                        <option value="sennheiser_ac4230">Sennheiser AC 4230 (Activa Yagi)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -636,16 +655,33 @@
         };
 
         const ANTENNA_DATABASE = {
+            // Genéricas
             omni_5dbi: { name: 'Omni 5 dBi', gain: 5, type: 'omni', beamwidth: 360 },
             omni_9dbi: { name: 'Omni 9 dBi', gain: 9, type: 'omni', beamwidth: 360 },
             panel_14dbi: { name: 'Panel 14 dBi', gain: 14, type: 'panel', beamwidth: 90 },
             direccional_21dbi: { name: 'Direccional 21 dBi', gain: 21, type: 'direccional', beamwidth: 30 },
-            cisco_air_ant251204: { name: 'Cisco AIR-ANT251204-01', gain: 4, type: 'omni', beamwidth: 360 },
-            ruckus_2_7_2_0144: { name: 'Ruckus 2.7.2.0144', gain: 5, type: 'omni', beamwidth: 360 },
-            ubiquiti_am_2g15: { name: 'Ubiquiti AM-2G15', gain: 15, type: 'direccional', beamwidth: 30 },
-            ubiquiti_ap_5ac_gen2: { name: 'Ubiquiti AP-5AC-Gen2', gain: 4, type: 'panel', beamwidth: 360 },
-            huawei_ap7052dn: { name: 'Huawei AP7052DN', gain: 5.3, type: 'omni', beamwidth: 360 },
-            aruba_ap515: { name: 'Aruba AP-515', gain: 5, type: 'omni', beamwidth: 360 }
+            
+            // SHURE - Antenas para sistemas inalámbricos de audio profesional
+            shure_ha8089: { name: 'Shure HA-8089', gain: 2.5, type: 'omni', beamwidth: 360 },
+            shure_ua830wb: { name: 'Shure UA830WB', gain: 5, type: 'omni', beamwidth: 180 },
+            shure_ua870wb: { name: 'Shure UA870WB', gain: 7, type: 'direccional', beamwidth: 90 },
+            shure_ua874wb: { name: 'Shure UA874WB', gain: 7, type: 'direccional', beamwidth: 90 },
+            shure_pa805wb: { name: 'Shure PA805WB', gain: 9, type: 'panel', beamwidth: 120 },
+            shure_pa820wb: { name: 'Shure PA820WB', gain: 11, type: 'panel', beamwidth: 100 },
+            shure_uah880wb: { name: 'Shure UAH880WB', gain: 8, type: 'direccional', beamwidth: 120 },
+            shure_ua8100wb: { name: 'Shure UA8100WB', gain: 10, type: 'direccional', beamwidth: 60 },
+            shure_an800b: { name: 'Shure AN/800B', gain: 3, type: 'omni', beamwidth: 360 },
+            
+            // SENNHEISER - Antenas para sistemas inalámbricos de audio profesional
+            sennheiser_a50cp: { name: 'Sennheiser A 50 CP', gain: 5, type: 'omni', beamwidth: 360 },
+            sennheiser_abg4: { name: 'Sennheiser ABG 4', gain: 2, type: 'omni', beamwidth: 360 },
+            sennheiser_aa5d: { name: 'Sennheiser AA 5 D', gain: 2.5, type: 'omni', beamwidth: 360 },
+            sennheiser_l6000: { name: 'Sennheiser L 6000', gain: 10, type: 'direccional', beamwidth: 60 },
+            sennheiser_adp_uhf: { name: 'Sennheiser ADP-UHF', gain: 6, type: 'direccional', beamwidth: 90 },
+            sennheiser_ac4200: { name: 'Sennheiser AC 4200', gain: 6, type: 'omni', beamwidth: 360 },
+            sennheiser_ac4210: { name: 'Sennheiser AC 4210', gain: 8, type: 'direccional', beamwidth: 90 },
+            sennheiser_ac4220: { name: 'Sennheiser AC 4220', gain: 10, type: 'panel', beamwidth: 120 },
+            sennheiser_ac4230: { name: 'Sennheiser AC 4230', gain: 12, type: 'direccional', beamwidth: 45 }
         };
 
         // ==========================================
