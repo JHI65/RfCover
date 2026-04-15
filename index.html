@@ -904,9 +904,9 @@
                 const tipX = s.x + Math.cos(angleRad) * tipDist;
                 const tipY = s.y + Math.sin(angleRad) * tipDist;
                 
-                // Check if clicking on the TIP (for rotation)
+                // Check if clicking on the TIP (for rotation) - zona de detección más grande
                 const distToTip = Math.sqrt((sx - tipX) ** 2 + (sy - tipY) ** 2);
-                const tipRadius = Math.max(8, 1.0 * scale);
+                const tipRadius = Math.max(15, 3.0 * scale); // Zona de detección más generosa
                 
                 if (distToTip < tipRadius && a.type !== 'omni') {
                     state.isRotating = true;
@@ -917,7 +917,7 @@
                 
                 // Check for antenna drag (clicking on the center/body)
                 const distToCenter = Math.sqrt((sx - s.x) ** 2 + (sy - s.y) ** 2);
-                const bodyRadius = Math.max(15, 1.5 * scale);
+                const bodyRadius = Math.max(12, 2.0 * scale); // Zona del cuerpo más pequeña para priorizar rotación
                 
                 if (distToCenter < bodyRadius) {
                     state.isDragging = true;
