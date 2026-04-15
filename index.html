@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF Coverage Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0e17;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 320px;
+            background: #111827;
+            border-right: 1px solid #1e293b;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a5f, #0f172a);
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.3rem;
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .sidebar-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #3b82f6;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .tool-btn {
+            padding: 8px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tool-btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .tool-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        /* ===== ANTENNA LIST ===== */
+        .antenna-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .antenna-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #1e293b;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+
+        .antenna-item .info {
+            flex: 1;
+        }
+
+        .antenna-item .info .name {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .antenna-item .info .specs {
+            color: #94a3b8;
+            font-size: 0.72rem;
+        }
+
+        .antenna-item .badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-omni { background: #065f46; color: #6ee7b7; }
+        .badge-direccional { background: #7c2d12; color: #fdba74; }
+        .badge-panel { background: #5b21b6; color: #c4b5fd; }
+
+        /* ===== MAIN CANVAS AREA ===== */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        #mainCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: #334155;
+        }
+
+        .status-bar {
+            padding: 8px 20px;
+            background: #111827;
+            border-top: 1px solid #1e293b;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* ===== LEGEND ===== */
+        .legend {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(17, 24, 39, 0.9);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.75rem;
+        }
+
+        .legend h4 {
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .legend-bar {
+            width: 150px;
+            height: 16px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #dc2626, #f59e0b, #22c55e, #16a34a);
+            margin-bottom: 4px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #94a3b8;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 16px;
+            color: #60a5fa;
+        }
+
+        .modal .form-group {
+            margin-bottom: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        /* ===== TOOLTIP ===== */
+        .tooltip {
+            position: absolute;
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            color: #e2e8f0;
+            pointer-events: none;
+            z-index: 500;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>📡 RF Coverage Planner</h1>
+                <p>Diseño y simulación de cobertura RF</p>
+            </div>
+
+            <!-- ESCENARIO -->
+            <div class="sidebar-section">
+                <h3>📐 Escenario</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ancho (m)</label>
+                        <input type="number" id="scenarioWidth" value="50" min="5" max="500">
+                    </div>
+                    <div class="form-group">
+                        <label>Alto (m)</label>
+                        <input type="number" id="scenarioHeight" value="30" min="5" max="500">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Frecuencia (MHz)</label>
+                    <input type="number" id="frequency" value="2400" min="100" max="10000">
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="updateScenario()">🔄 Actualizar Escenario</button>
+            </div>
+
+            <!-- HERRAMIENTAS -->
+            <div class="sidebar-section">
+                <h3>🛠️ Herramientas</h3>
+                <div class="toolbar">
+                    <button class="tool-btn active" data-tool="select" onclick="setTool('select')">🖱️ Seleccionar</button>
+                    <button class="tool-btn" data-tool="wall" onclick="setTool('wall')">🧱 Muro</button>
+                    <button class="tool-btn" data-tool="obstacle" onclick="setTool('obstacle')">📦 Obstáculo</button>
+                    <button class="tool-btn" data-tool="antenna" onclick="setTool('antenna')">📡 Antena</button>
+                    <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')">🗑️ Borrar</button>
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="clearAll()">🗑️ Limpiar Todo</button>
+            </div>
+
+            <!-- OBSTÁCULOS -->
+            <div class="sidebar-section">
+                <h3>🧱 Tipo de Obstáculo</h3>
+                <div class="form-group">
+                    <label>Material</label>
+                    <select id="wallMaterial">
+                        <option value="drywall">Pladur / Drywall (3 dB)</option>
+                        <option value="wood">Madera (5 dB)</option>
+                        <option value="brick" selected>Ladrillo (8 dB)</option>
+                        <option value="concrete">Hormigón (12 dB)</option>
+                        <option value="reinforced_concrete">Hormigón armado (15 dB)</option>
+                        <option value="glass">Cristal (2 dB)</option>
+                        <option value="metal">Metal (20 dB)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Altura (m)</label>
+                        <input type="number" id="wallHeight" value="3" min="0.5" max="10" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Espesor (m)</label>
+                        <input type="number" id="wallThickness" value="0.2" min="0.05" max="2" step="0.05">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANTENAS -->
+            <div class="sidebar-section">
+                <h3>📡 Antenas</h3>
+                <div class="form-group">
+                    <label>Seleccionar Antena</label>
+                    <select id="antennaSelect">
+                        <option value="omni_5dbi">Omni 5 dBi (Genérica)</option>
+                        <option value="omni_9dbi">Omni 9 dBi (Genérica)</option>
+                        <option value="panel_14dbi">Panel 14 dBi (Genérica)</option>
+                        <option value="direccional_21dbi">Direccional 21 dBi (Genérica)</option>
+                        <option value="cisco_air_ant251204">Cisco AIR-ANT251204-01</option>
+                        <option value="ruckus_2_7_2_0144">Ruckus 2.7.2.0144</option>
+                        <option value="ubiquiti_am_2g15">Ubiquiti AM-2G15</option>
+                        <option value="ubiquiti_ap_5ac_gen2">Ubiquiti AP-5AC-Gen2</option>
+                        <option value="huawei_ap7052dn">Huawei AP7052DN</option>
+                        <option value="aruba_ap515">Aruba AP-515</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Potencia TX (dBm)</label>
+                    <input type="number" id="txPower" value="20" min="-10" max="30" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Altura antena (m)</label>
+                    <input type="number" id="antennaHeight" value="3" min="0.5" max="15" step="0.1">
+                </div>
+                <button class="btn btn-success btn-sm" onclick="openAntennaModal()">➕ Añadir Antena al Mapa</button>
+            </div>
+
+            <!-- ANTENAS COLOCADAS -->
+            <div class="sidebar-section">
+                <h3>📋 Antenas Colocadas</h3>
+                <div class="antenna-list" id="placedAntennas">
+                    <p style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 12px;">
+                        No hay antenas colocadas
+                    </p>
+                </div>
+            </div>
+
+            <!-- CALCULAR -->
+            <div class="sidebar-section">
+                <h3>📊 Cálculo</h3>
+                <div class="form-group">
+                    <label>Modelo de propagación</label>
+                    <select id="propagationModel">
+                        <option value="multiwall">Multi-Wall (Recomendado)</option>
+                        <option value="logdistance">Log-Distance</option>
+                        <option value="fspl">Espacio Libre</option>
+                        <option value="itur">ITU-R P.1238</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resolución (px)</label>
+                    <select id="resolution">
+                        <option value="2">Baja (rápido)</option>
+                        <option value="1" selected>Media</option>
+                        <option value="0.5">Alta (lento)</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="calculateCoverage()">🔥 Calcular Cobertura</button>
+            </div>
+        </div>
+
+        <!-- MAIN AREA -->
+        <div class="main-area">
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="mainCanvas"></canvas>
+                <div class="canvas-overlay">
+                    <span style="background: rgba(17,24,39,0.8); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8;">
+                        🖱️ Click para colocar | Scroll para zoom | Arrastrar para mover
+                    </span>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()">−</button>
+                    <button class="zoom-btn" onclick="resetView()">⌂</button>
+                </div>
+                <div class="legend">
+                    <h4>RSSI (dBm)</h4>
+                    <div class="legend-bar"></div>
+                    <div class="legend-labels">
+                        <span>-90</span>
+                        <span>-70</span>
+                        <span>-50</span>
+                        <span>-30</span>
+                    </div>
+                </div>
+            </div>
+            <div class="status-bar">
+                <span id="statusText">Listo - Selecciona una herramienta y haz click en el mapa</span>
+                <span id="coordsText">X: 0 m | Y: 0 m</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANTENA -->
+    <div class="modal-overlay" id="antennaModal">
+        <div class="modal">
+            <h2>📡 Colocar Antena</h2>
+            <div class="form-group">
+                <label>Nombre de la antena</label>
+                <input type="text" id="antennaName" placeholder="Ej: AP-Planta1-01">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Posición X (m)</label>
+                    <input type="number" id="antennaX" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Posición Y (m)</label>
+                    <input type="number" id="antennaY" step="0.1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Orientación (°)</label>
+                    <input type="number" id="antennaAngle" value="0" min="0" max="360">
+                </div>
+                <div class="form-group">
+                    <label>Canal</label>
+                    <input type="number" id="antennaChannel" value="1" min="1" max="14">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="placeAntenna()">✅ Colocar</button>
+                <button class="btn btn-danger" onclick="closeAntennaModal()">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN GLOBAL
+        // ==========================================
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+
+        let state = {
+            scenario: { width: 50, height: 30 },
+            tools: { current: 'select' },
+            walls: [],
+            obstacles: [],
+            antennas: [],
+            coverage: null,
+            zoom: 1,
+            pan: { x: 0, y: 0 },
+            isDrawing: false,
+            drawStart: null,
+            selectedAntenna: null,
+            mousePos: { x: 0, y: 0 }
+        };
+
+        const WALL_MATERIALS = {
+            drywall: { loss: 3, color: '#a78bfa', label: 'Pladur' },
+            wood: { loss: 5, color: '#92400e', label: 'Madera' },
+            brick: { loss: 8, color: '#b45309', label: 'Ladrillo' },
+            concrete: { loss: 12, color: '#6b7280', label: 'Hormigón' },
+            reinforced_concrete: { loss: 15, color: '#4b5563', label: 'Hormigón Armado' },
+            glass: { loss: 2, color: '#93c5fd', label: 'Cristal' },
+            metal: { loss: 20, color: '#d1d5db', label: 'Metal' }
+        };
+
+        const ANTENNA_DATABASE = {
+            omni_5dbi: { name: 'Omni 5 dBi', gain: 5, type: 'omni', beamwidth: 360 },
+            omni_9dbi: { name: 'Omni 9 dBi', gain: 9, type: 'omni', beamwidth: 360 },
+            panel_14dbi: { name: 'Panel 14 dBi', gain: 14, type: 'panel', beamwidth: 90 },
+            direccional_21dbi: { name: 'Direccional 21 dBi', gain: 21, type: 'direccional', beamwidth: 30 },
+            cisco_air_ant251204: { name: 'Cisco AIR-ANT251204-01', gain: 4, type: 'omni', beamwidth: 360 },
+            ruckus_2_7_2_0144: { name: 'Ruckus 2.7.2.0144', gain: 5, type: 'omni', beamwidth: 360 },
+            ubiquiti_am_2g15: { name: 'Ubiquiti AM-2G15', gain: 15, type: 'direccional', beamwidth: 30 },
+            ubiquiti_ap_5ac_gen2: { name: 'Ubiquiti AP-5AC-Gen2', gain: 4, type: 'panel', beamwidth: 360 },
+            huawei_ap7052dn: { name: 'Huawei AP7052DN', gain: 5.3, type: 'omni', beamwidth: 360 },
+            aruba_ap515: { name: 'Aruba AP-515', gain: 5, type: 'omni', beamwidth: 360 }
+        };
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            draw();
+        }
+
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+
+        // ==========================================
+        // TRANSFORMACIONES DE COORDENADAS
+        // ==========================================
+        function worldToScreen(wx, wy) {
+            const scale = Math.min(
+                (canvas.width - 80) / state.scenario.width,
+                (canvas.height - 80) / state.scenario.height
+            ) * state.zoom;
+            const offsetX = (canvas.width - state.scenario.width * scale) / 2 + state.pan.x;
+            const offsetY = (canvas.height - state.scenario.height * scale) / 2 + state.pan.y;
+            return {
+                x: offsetX + wx * scale,
+                y: offsetY + wy * scale,
+                scale: scale
+            };
+        }
+
+        function screenToWorld(sx, sy) {
+            const scale = Math.min(
+                (canvas.width - 80) / state.scenario.width,
+                (canvas.height - 80) / state.scenario.height
+            ) * state.zoom;
+            const offsetX = (canvas.width - state.scenario.width * scale) / 2 + state.pan.x;
+            const offsetY = (canvas.height - state.scenario.height * scale) / 2 + state.pan.y;
+            return {
+                x: (sx - offsetX) / scale,
+                y: (sy - offsetY) / scale
+            };
+        }
+
+        // ==========================================
+        // EVENTOS DE RATÓN
+        // ==========================================
+        function onMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+            const world = screenToWorld(sx, sy);
+
+            if (e.button === 2) {
+                state.isDrawing = false;
+                return;
+            }
+
+            if (state.tools.current === 'wall' || state.tools.current === 'obstacle') {
+                state.isDrawing = true;
+                state.drawStart = { x: world.x, y: world.y, sx, sy };
+            } else if (state.tools.current === 'antenna') {
+                document.getElementById('antennaX').value = world.x.toFixed(1);
+                document.getElementById('antennaY').value = world.y.toFixed(1);
+                openAntennaModal();
+            } else if (state.tools.current === 'eraser') {
+                eraseAt(world.x, world.y);
+            } else if (state.tools.current === 'select') {
+                selectAntennaAt(world.x, world.y);
+            }
+        }
+
+        function onMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+            const world = screenToWorld(sx, sy);
+
+            state.mousePos = { x: world.x, y: world.y };
+            document.getElementById('coordsText').textContent = `X: ${world.x.toFixed(1)} m | Y: ${world.y.toFixed(1)} m`;
+
+            if (state.isDrawing && state.drawStart) {
+                draw();
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                const start = worldToScreen(state.drawStart.x, state.drawStart.y);
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(sx, sy);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function onMouseUp(e) {
+            if (state.isDrawing && state.drawStart) {
+                const rect = canvas.getBoundingClientRect();
+                const sx = e.clientX - rect.left;
+                const sy = e.clientY - rect.top;
+                const world = screenToWorld(sx, sy);
+
+                if (state.tools.current === 'wall') {
+                    addWall(state.drawStart.x, state.drawStart.y, world.x, world.y);
+                } else if (state.tools.current === 'obstacle') {
+                    addObstacle(
+                        Math.min(state.drawStart.x, world.x),
+                        Math.min(state.drawStart.y, world.y),
+                        Math.abs(world.x - state.drawStart.x),
+                        Math.abs(world.y - state.drawStart.y)
+                    );
+                }
+
+                state.isDrawing = false;
+                state.drawStart = null;
+                draw();
+            }
+        }
+
+        function onWheel(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            state.zoom = Math.max(0.2, Math.min(10, state.zoom * delta));
+            draw();
+        }
+
+        // ==========================================
+        // HERRAMIENTAS
+        // ==========================================
+        function setTool(tool) {
+            state.tools.current = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tool === tool);
+            });
+            const toolNames = {
+                select: '🖱️ Modo selección - Click en una antena para seleccionarla',
+                wall: '🧱 Modo muro - Click y arrastra para dibujar un muro',
+                obstacle: '📦 Modo obstáculo - Click y arrastra para crear un obstáculo',
+                antenna: '📡 Modo antena - Click para colocar una antena',
+                eraser: '🗑️ Modo borrador - Click en un elemento para eliminarlo'
+            };
+            document.getElementById('statusText').textContent = toolNames[tool];
+        }
+
+        function addWall(x1, y1, x2, y2) {
+            const material = document.getElementById('wallMaterial').value;
+            const height = parseFloat(document.getElementById('wallHeight').value);
+            const thickness = parseFloat(document.getElementById('wallThickness').value);
+
+            state.walls.push({
+                x1, y1, x2, y2,
+                material,
+                loss: WALL_MATERIALS[material].loss,
+                height,
+                thickness,
+                color: WALL_MATERIALS[material].color
+            });
+            document.getElementById('statusText').textContent = `✅ Muro añadido (${WALL_MATERIALS[material].label}, ${WALL_MATERIALS[material].loss} dB)`;
+        }
+
+        function addObstacle(x, y, w, h) {
+            const material = document.getElementById('wallMaterial').value;
+            const height = parseFloat(document.getElementById('wallHeight').value);
+
+            state.obstacles.push({
+                x, y, w, h,
+                material,
+                loss: WALL_MATERIALS[material].loss,
+                height,
+                color: WALL_MATERIALS[material].color
+            });
+            document.getElementById('statusText').textContent = `✅ Obstáculo añadido (${w.toFixed(1)}m x ${h.toFixed(1)}m)`;
+        }
+
+        function eraseAt(wx, wy) {
+            // Check antennas
+            for (let i = state.antennas.length - 1; i >= 0; i--) {
+                const a = state.antennas[i];
+                const dist = Math.sqrt((wx - a.x) ** 2 + (wy - a.y) ** 2);
+                if (dist < 1.5) {
+                    state.antennas.splice(i, 1);
+                    document.getElementById('statusText').textContent = `🗑️ Antena "${a.name}" eliminada`;
+                    updateAntennaList();
+                    draw();
+                    return;
+                }
+            }
+            // Check walls
+            for (let i = state.walls.length - 1; i >= 1 >= 0; i--) {
+                const w = state.walls[i];
+                if (distPointToSegment(wx, wy, w.x1, w.y1, w.x2, w.y2) < 1) {
+                    state.walls.splice(i, 1);
+                    document.getElementById('statusText').textContent = '🗑️ Muro eliminado';
+                    draw();
+                    return;
+                }
+            }
+            // Check obstacles
+            for (let i = state.obstacles.length - 1; i >= 0; i--) {
+                const o = state.obstacles[i];
+                if (wx >= o.x && wx <= o.x + o.w && wy >= o.y && wy <= o.y + o.h) {
+                    state.obstacles.splice(i, 1);
+                    document.getElementById('statusText').textContent = '🗑️ Obstáculo eliminado';
+                    draw();
+                    return;
+                }
+            }
+        }
+
+        function distPointToSegment(px, py, x1, y1, x2, y2) {
+            const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = lenSq !== 0 ? dot / lenSq : -1;
+            param = Math.max(0, Math.min(1, param));
+            const xx = x1 + param * C, yy = y1 + param * D;
+            return Math.sqrt((px - xx) ** 2 + (py - yy) ** 2);
+        }
+
+        function selectAntennaAt(wx, wy) {
+            for (let i = state.antennas.length - 1; i >= 0; i--) {
+                const a = state.antennas[i];
+                const dist = Math.sqrt((wx - a.x) ** 2 + (wy - a.y) ** 2);
+                if (dist < 1.5) {
+                    state.selectedAntenna = i;
+                    document.getElementById('statusText').textContent = `📡 Seleccionada: ${a.name}`;
+                    draw();
+                    return;
+                }
+            }
+            state.selectedAntenna = null;
+            draw();
+        }
+
+        // ==========================================
+        // ANTENAS
+        // ==========================================
+        function openAntennaModal() {
+            document.getElementById('antennaModal').classList.add('active');
+            const sel = document.getElementById('antennaSelect');
+            const ant = ANTENNA_DATABASE[sel.value];
+            document.getElementById('antennaName').value = ant.name;
+        }
+
+        function closeAntennaModal() {
+            document.getElementById('antennaModal').classList.remove('active');
+        }
+
+        function placeAntenna() {
+            const sel = document.getElementById('antennaSelect');
+            const ant = ANTENNA_DATABASE[sel.value];
+            const name = document.getElementById('antennaName').value || ant.name;
+            const x = parseFloat(document.getElementById('antennaX').value);
+            const y = parseFloat(document.getElementById('antennaY').value);
+            const angle = parseFloat(document.getElementById('antennaAngle').value);
+            const channel = parseInt(document.getElementById('antennaChannel').value);
+            const txPower = parseFloat(document.getElementById('txPower').value);
+            const height = parseFloat(document.getElementById('antennaHeight').value);
+
+            state.antennas.push({
+                name, x, y, angle, channel, txPower, height,
+                gain: ant.gain,
+                type: ant.type,
+                beamwidth: ant.beamwidth,
+                key: sel.value
+            });
+
+            closeAntennaModal();
+            updateAntennaList();
+            draw();
+            document.getElementById('statusText').textContent = `✅ Antena "${name}" colocada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
+        }
+
+        function updateAntennaList() {
+            const container = document.getElementById('placedAntennas');
+            if (state.antennas.length === 0) {
+                container.innerHTML = '<p style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 12px;">No hay antenas colocadas</p>';
+                return;
+            }
+            container.innerHTML = state.antennas.map((a, i) => `
+                <div class="antenna-item">
+                    <div class="info">
+                        <div class="name">${a.name}</div>
+                        <div class="specs">${a.gain} dBi | ${a.txPower} dBm | Ch ${a.channel}</div>
+                    </div>
+                    <span class="badge badge-${a.type}">${a.type}</span>
+                    <button class="btn btn-danger btn-sm" style="width:auto; margin-left: 8px; padding: 4px 8px;" onclick="removeAntenna(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeAntenna(index) {
+            state.antennas.splice(index, 1);
+            updateAntennaList();
+            draw();
+        }
+
+        // ==========================================
+        // CÁLCULO DE COBERTURA
+        // ==========================================
+        function calculateCoverage() {
+            const model = document.getElementById('propagationModel').value;
+            const resolution = parseFloat(document.getElementById('resolution').value);
+            const freq = parseFloat(document.getElementById('frequency').value);
+
+            if (state.antennas.length === 0) {
+                alert('⚠️ Coloca al menos una antena antes de calcular la cobertura');
+                return;
+            }
+
+            document.getElementById('statusText').textContent = '⏳ Calculando cobertura...';
+
+            setTimeout(() => {
+                const width = state.scenario.width;
+                const height = state.scenario.height;
+
+                state.coverage = {
+                    width, height, resolution,
+                    data: new Float32Array(Math.ceil(width / resolution) * Math.ceil(height / resolution)),
+                    model
+                };
+
+                for (let ix = 0; ix < Math.ceil(width / resolution); ix++) {
+                    for (let iy = 0; iy < Math.ceil(height / resolution); iy++) {
+                        const px = (ix + 0.5) * resolution;
+                        const py = (iy + 0.5) * resolution;
+                        let maxRSSI = -100;
+
+                        for (const antenna of state.antennas) {
+                            let rssi = calculateRSSI(px, py, antenna, freq, model);
+                            if (rssi > maxRSSI) maxRSSI = rssi;
+                        }
+
+                        state.coverage.data[iy * Math.ceil(width / resolution) + ix] = maxRSSI;
+                    }
+                }
+
+                draw();
+                document.getElementById('statusText').textContent = '✅ Cobertura calculada correctamente';
+            }, 50);
+        }
+
+        function calculateRSSI(px, py, antenna, freq, model) {
+            const dist = Math.sqrt((px - antenna.x) ** 2 + (py - antenna.y) ** 2);
+            if (dist < 0.5) return antenna.txPower + antenna.gain - 30;
+
+            let pathLoss = 0;
+
+            switch (model) {
+                case 'fspl':
+                    pathLoss = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
+                    break;
+
+                case 'logdistance':
+                    const PL0 = 20 * Math.log10(1) + 20 * Math.log10(freq) + 32.44;
+                    const n = 2.5;
+                    pathLoss = PL0 + 10 * n * Math.log10(dist);
+                    break;
+
+                case 'multiwall':
+                    pathLoss = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
+                    const walls = getWallCrossings(antenna.x, antenna.y, px, py);
+                    for (const wall of walls) {
+                        pathLoss += wall.loss;
+                    }
+                    const n_walls = walls.length;
+                    if (n_walls > 0) {
+                        pathLoss += 10 * 1.5 * Math.log10(dist);
+                    }
+                    break;
+
+                case 'itur':
+                    const PL0_itur = 20 * Math.log10(1) + 20 * Math.log10(freq) + 32.44;
+                    const n_itur = 2.0;
+                    const d_ref = 1;
+                    pathLoss = PL0_itur + 10 * n_itur * Math.log10(dist / d_ref);
+                    const walls_itur = getWallCrossings(antenna.x, antenna.y, px, py);
+                    pathLoss += walls_itur.reduce((sum, w) => sum + w.loss, 0);
+                    break;
+            }
+
+            // Antenna pattern
+            const angleDeg = Math.atan2(py - antenna.y, px - antenna.x) * 180 / Math.PI;
+            let adjustedAngle = ((angleDeg - antenna.angle) % 360 + 360) % 360;
+            if (adjustedAngle > 180) adjustedAngle = 360 - adjustedAngle;
+
+            let patternLoss = 0;
+            if (antenna.type !== 'omni') {
+                const halfBeam = antenna.beamwidth / 2;
+                if (adjustedAngle > halfBeam) {
+                    patternLoss = 20 * Math.log10(Math.max(0.1, 1 - (adjustedAngle - halfBeam) / (180 - halfBeam)));
+                }
+            }
+
+            const rssi = antenna.txPower + antenna.gain - pathLoss + patternLoss;
+            return Math.max(-100, Math.min(0, rssi));
+        }
+
+        function getWallCrossings(x1, y1, x2, y2) {
+            const crossings = [];
+
+            for (const wall of state.walls) {
+                if (lineSegmentsIntersect(x1, y1, x2, y2, wall.x1, wall.y1, wall.x2, wall.y2)) {
+                    crossings.push(wall);
+                }
+            }
+
+            for (const obs of state.obstacles) {
+                const corners = [
+                    [obs.x, obs.y], [obs.x + obs.w, obs.y],
+                    [obs.x + obs.w, obs.y + obs.h], [obs.x, obs.y + obs.h]
+                ];
+                for (let i = 0; i < 4; i++) {
+                    const j = (i + 1) % 4;
+                    if (lineSegmentsIntersect(x1, y1, x2, y2, corners[i][0], corners[i][1], corners[j][0], corners[j][1])) {
+                        crossings.push({ loss: obs.loss });
+                        break;
+                    }
+                }
+
+                if (isPointInRect((x1 + x2) / 2, (y1 + y2) / 2, obs.x, obs.y, obs.w, obs.h)) {
+                    crossings.push({ loss: obs.loss });
+                }
+            }
+
+            return crossings;
+        }
+
+        function lineSegmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.abs(denom) < 1e-10) return false;
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+            return t > 0 && t < 1 && u > 0 && u < 1;
+        }
+
+        function isPointInRect(px, py, rx, ry, rw, rh) {
+            return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+        }
+
+        // ==========================================
+        // RENDERIZADO
+        // ==========================================
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Grid
+            drawGrid();
+
+            // Scenario border
+            const scenario = worldToScreen(0, 0);
+            const scenario2 = worldToScreen(state.scenario.width, state.scenario.height);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(scenario.x, scenario.y, scenario2.x - scenario.x, scenario2.y - scenario.y);
+
+            // Coverage heatmap
+            if (state.coverage) {
+                drawCoverage();
+            }
+
+            // Walls
+            for (const wall of state.walls) {
+                const s1 = worldToScreen(wall.x1, wall.y1);
+                const s2 = worldToScreen(wall.x2, wall.y2);
+                ctx.strokeStyle = wall.color;
+                ctx.lineWidth = Math.max(2, wall.thickness * s1.scale);
+                ctx.beginPath();
+                ctx.moveTo(s1.x, s1.y);
+                ctx.lineTo(s2.x, s2.y);
+                ctx.stroke();
+            }
+
+            // Obstacles
+            for (const obs of state.obstacles) {
+                const s1 = worldToScreen(obs.x, obs.y);
+                const s2 = worldToScreen(obs.x + obs.w, obs.y + obs.h);
+                ctx.fillStyle = obs.color + '40';
+                ctx.fillRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
+                ctx.strokeStyle = obs.color;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
+            }
+
+            // Antennas
+            for (let i = 0; i < state.antennas.length; i++) {
+                const a = state.antennas[i];
+                const s = worldToScreen(a.x, a.y);
+                drawAntenna(s.x, s.y, a, s.scale, i === state.selectedAntenna);
+            }
+        }
+
+        function drawGrid() {
+            const gridSpacing = 5;
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x <= state.scenario.width; x += gridSpacing) {
+                const s = worldToScreen(x, 0);
+                const s2 = worldToScreen(x, state.scenario.height);
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s2.x, s2.y);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y <= state.scenario.height; y += gridSpacing) {
+                const s = worldToScreen(0, y);
+                const s2 = worldToScreen(state.scenario.width, y);
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s2.x, s2.y);
+                ctx.stroke();
+            }
+
+            // Labels
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px sans-serif';
+            for (let x = 0; x <= state.scenario.width; x += 10) {
+                const s = worldToScreen(x, 0);
+                ctx.fillText(x + 'm', s.x + 2, s.y - 4);
+            }
+            for (let y = 0; y <= state.scenario.height; y += 10) {
+                const s = worldToScreen(0, y);
+                ctx.fillText(y + 'm', s.x + 2, s.y + 12);
+            }
+        }
+
+        function drawCoverage() {
+            const cov = state.coverage;
+            const cols = Math.ceil(cov.width / cov.resolution);
+
+            for (let ix = 0; ix < cols; ix++) {
+                for (let iy = 0; iy < Math.ceil(cov.height / cov.resolution); iy++) {
+                    const rssi = cov.data[iy * cols + ix];
+                    if (rssi < -95) continue;
+
+                    const color = rssiToColor(rssi);
+                    const px = worldToScreen(ix * cov.resolution, iy * cov.resolution);
+                    const size = cov.resolution * px.scale;
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(px.x, px.y, size + 1, size + 1);
+                }
+            }
+        }
+
+        function rssiToColor(rssi) {
+            if (rssi >= -30) return '#16a34a';
+            if (rssi >= -50) return '#22c55e';
+            if (rssi >= -60) return '#84cc16';
+            if (rssi >= -65) return '#eab308';
+            if (rssi >= -70) return '#f59e0b';
+            if (rssi >= -75) return '#f97316';
+            if (rssi >= -80) return '#ef4444';
+            if (rssi >= -85) return '#dc2626';
+            if (rssi >= -90) return '#b91c1c';
+            return 'transparent';
+        }
+
+        function drawAntenna(x, y, antenna, scale, selected) {
+            // Range circle
+            ctx.strokeStyle = selected ? '#60a5fa' : '#3b82f6';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            const range = 15 * scale;
+            ctx.beginPath();
+            ctx.arc(x, y, range, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Antenna icon
+            const size = Math.max(8, 0.8 * scale);
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${Math.max(8, size * 0.8)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', x, y);
+
+            // Label
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
+            ctx.fillText(antenna.name, x, y - size - 8);
+
+            // Direction indicator
+            if (antenna.type !== 'omni') {
+                const angleRad = (antenna.angle - 90) * Math.PI / 180;
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(angleRad) * size * 2, y + Math.sin(angleRad) * size * 2);
+                ctx.stroke();
+            }
+        }
+
+        // ==========================================
+        // ZOOM Y PAN
+        // ==========================================
+        function zoomIn() {
+            state.zoom = Math.min(10, state.zoom * 1.2);
+            draw();
+        }
+
+        function zoomOut() {
+            state.zoom = Math.max(0.2, state.zoom * 0.8);
+            draw();
+        }
+
+        function resetView() {
+            state.zoom = 1;
+            state.pan = { x: 0, y: 0 };
+            draw();
+        }
+
+        // ==========================================
+        // UTILIDADES
+        // ==========================================
+        function updateScenario() {
+            state.scenario.width = parseFloat(document.getElementById('scenarioWidth').value);
+            state.scenario.height = parseFloat(document.getElementById('scenarioHeight').value);
+            state.coverage = null;
+            draw();
+            document.getElementById('statusText').textContent = `✅ Escenario actualizado: ${state.scenario.width}m x ${state.scenario.height}m`;
+        }
+
+        function clearAll() {
+            if (confirm('¿Estás seguro de que quieres limpiar todo?')) {
+                state.walls = [];
+                state.obstacles = [];
+                state.antennas = [];
+                state.coverage = null;
+                updateAntennaList();
+                draw();
+                document.getElementById('statusText').textContent = '🗑️ Todo limpio';
+            }
+        }
+
+        // ==========================================
+        // INICIAR
+        // ==========================================
+        init();
+    </script>
+</body>
+</html>
