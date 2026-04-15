@@ -416,16 +416,12 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Ancho (m)</label>
-                        <input type="number" id="scenarioWidth" value="50" min="5" max="500">
+                        <input type="number" id="scenarioWidth" value="18" min="5" max="500">
                     </div>
                     <div class="form-group">
-                        <label>Alto (m)</label>
-                        <input type="number" id="scenarioHeight" value="30" min="5" max="500">
+                        <label>Profundidad (m)</label>
+                        <input type="number" id="scenarioHeight" value="13" min="5" max="500">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Frecuencia (MHz)</label>
-                    <input type="number" id="frequency" value="2400" min="100" max="10000">
                 </div>
                 <button class="btn btn-primary btn-sm" onclick="updateScenario()">🔄 Actualizar Escenario</button>
             </div>
@@ -475,7 +471,7 @@
                 <h3>📡 Antenas</h3>
                 <div class="form-group">
                     <label>Seleccionar Antena</label>
-                    <select id="antennaSelect">
+                    <select id="antennaSelect" onchange="updateAntennaFreqRange()">
                         <!-- Genéricas -->
                         <option value="omni_5dbi">Omni 5 dBi (Genérica)</option>
                         <option value="omni_9dbi">Omni 9 dBi (Genérica)</option>
@@ -508,12 +504,38 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Rango de Frecuencia</label>
+                    <select id="antennaFreqRange" onchange="calculateAvgFrequency()">
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Frec. Mín (MHz)</label>
+                        <input type="number" id="freqMin" value="470" min="50" max="6000" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Frec. Máx (MHz)</label>
+                        <input type="number" id="freqMax" value="952" min="50" max="6000" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Frecuencia Promedio (MHz)</label>
+                    <input type="number" id="avgFrequency" value="711" readonly style="background: #0f172a; color: #94a3b8;">
+                </div>
+                <div class="form-group">
                     <label>Potencia TX (dBm)</label>
                     <input type="number" id="txPower" value="20" min="-10" max="30" step="1">
                 </div>
-                <div class="form-group">
-                    <label>Altura antena (m)</label>
-                    <input type="number" id="antennaHeight" value="3" min="0.5" max="15" step="0.1">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Altura antena (m)</label>
+                        <input type="number" id="antennaHeight" value="3" min="0.5" max="15" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Inclinación vert. (°)</label>
+                        <input type="number" id="antennaTilt" value="0" min="-90" max="90" step="1">
+                    </div>
                 </div>
                 <button class="btn btn-success btn-sm" onclick="openAntennaModal()">➕ Añadir Antena al Mapa</button>
             </div>
@@ -558,7 +580,7 @@
                 <canvas id="mainCanvas"></canvas>
                 <div class="canvas-overlay">
                     <span style="background: rgba(17,24,39,0.8); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8;">
-                        🖱️ Click para colocar | Scroll para zoom | Arrastrar antenas | 🔄 Mantén pulsado en el handle para rotar
+                        🖱️ Click para colocar | Scroll para zoom | Arrastrar antenas | 🔄 Mantén pulsado sobre antena direccional para rotar
                     </span>
                 </div>
                 <div class="zoom-controls">
@@ -612,6 +634,22 @@
                     <input type="number" id="antennaChannel" value="1" min="1" max="14">
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Altura (m)</label>
+                    <input type="number" id="modalAntennaHeight" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Inclinación vert. (°)</label>
+                    <input type="number" id="modalAntennaTilt" value="0" min="-90" max="90" step="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Frec. Promedio (MHz)</label>
+                    <input type="number" id="modalAvgFrequency" readonly style="background: #0f172a; color: #94a3b8;">
+                </div>
+            </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" onclick="placeAntenna()">✅ Colocar</button>
                 <button class="btn btn-danger" onclick="closeAntennaModal()">❌ Cancelar</button>
@@ -630,7 +668,7 @@
         const container = document.getElementById('canvasContainer');
 
         let state = {
-            scenario: { width: 50, height: 30 },
+            scenario: { width: 18, height: 13 },
             tools: { current: 'select' },
             walls: [],
             obstacles: [],
@@ -657,6 +695,37 @@
             reinforced_concrete: { loss: 15, color: '#4b5563', label: 'Hormigón Armado' },
             glass: { loss: 2, color: '#93c5fd', label: 'Cristal' },
             metal: { loss: 20, color: '#d1d5db', label: 'Metal' }
+        };
+
+        // Rangos de frecuencia para antenas SHURE y SENNHEISER (MHz)
+        const ANTENNA_FREQ_RANGES = {
+            // SHURE - Sistemas inalámbricos de audio profesional
+            shure_ha8089: { min: 470, max: 952 },
+            shure_ua830wb: { min: 470, max: 952 },
+            shure_ua870wb: { min: 470, max: 952 },
+            shure_ua874wb: { min: 470, max: 952 },
+            shure_pa805wb: { min: 470, max: 952 },
+            shure_pa820wb: { min: 470, max: 952 },
+            shure_uah880wb: { min: 470, max: 952 },
+            shure_ua8100wb: { min: 470, max: 952 },
+            shure_an800b: { min: 470, max: 952 },
+            
+            // SENNHEISER - Sistemas inalámbricos de audio profesional
+            sennheiser_a50cp: { min: 470, max: 952 },
+            sennheiser_abg4: { min: 470, max: 952 },
+            sennheiser_aa5d: { min: 470, max: 952 },
+            sennheiser_l6000: { min: 470, max: 952 },
+            sennheiser_adp_uhf: { min: 470, max: 952 },
+            sennheiser_ac4200: { min: 470, max: 952 },
+            sennheiser_ac4210: { min: 470, max: 952 },
+            sennheiser_ac4220: { min: 470, max: 952 },
+            sennheiser_ac4230: { min: 470, max: 952 },
+            
+            // Genéricas
+            omni_5dbi: { min: 470, max: 952 },
+            omni_9dbi: { min: 470, max: 952 },
+            panel_14dbi: { min: 470, max: 952 },
+            direccional_21dbi: { min: 470, max: 952 }
         };
 
         const ANTENNA_DATABASE = {
@@ -700,6 +769,8 @@
             canvas.addEventListener('mouseup', onMouseUp);
             canvas.addEventListener('wheel', onWheel);
             canvas.addEventListener('contextmenu', e => e.preventDefault());
+            updateAntennaFreqRange();
+            calculateAvgFrequency();
             draw();
         }
 
@@ -707,6 +778,74 @@
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             draw();
+        }
+
+        // ==========================================
+        // GESTIÓN DE FRECUENCIAS
+        // ==========================================
+        function updateAntennaFreqRange() {
+            const sel = document.getElementById('antennaSelect');
+            const range = ANTENNA_FREQ_RANGES[sel.value];
+            const freqRangeSel = document.getElementById('antennaFreqRange');
+            
+            // Guardar selección actual de custom
+            const currentCustom = freqRangeSel.value === 'custom';
+            
+            // Limpiar opciones excepto custom
+            freqRangeSel.innerHTML = '<option value="custom">Personalizado</option>';
+            
+            // Añadir presets comunes para audio profesional
+            const presets = [
+                { label: 'UHF TV (470-862 MHz)', min: 470, max: 862 },
+                { label: 'Wireless Mic (470-952 MHz)', min: 470, max: 952 },
+                { label: 'Band IV (470-582 MHz)', min: 470, max: 582 },
+                { label: 'Band V (582-862 MHz)', min: 582, max: 862 },
+                { label: '900 MHz Band (863-952 MHz)', min: 863, max: 952 }
+            ];
+            
+            presets.forEach(p => {
+                if (p.min >= range.min && p.max <= range.max) {
+                    const opt = document.createElement('option');
+                    opt.value = `${p.min}-${p.max}`;
+                    opt.textContent = p.label;
+                    freqRangeSel.appendChild(opt);
+                }
+            });
+            
+            // Si hay un preset que coincide exactamente con el rango de la antena, seleccionarlo
+            const exactMatch = presets.find(p => p.min === range.min && p.max === range.max);
+            if (exactMatch && !currentCustom) {
+                freqRangeSel.value = `${range.min}-${range.max}`;
+            } else if (currentCustom || !exactMatch) {
+                freqRangeSel.value = 'custom';
+            }
+            
+            // Actualizar inputs de frecuencia
+            document.getElementById('freqMin').value = range.min;
+            document.getElementById('freqMax').value = range.max;
+            calculateAvgFrequency();
+        }
+
+        function calculateAvgFrequency() {
+            const freqRangeSel = document.getElementById('antennaFreqRange');
+            let freqMin, freqMax;
+            
+            if (freqRangeSel.value === 'custom') {
+                freqMin = parseFloat(document.getElementById('freqMin').value);
+                freqMax = parseFloat(document.getElementById('freqMax').value);
+            } else {
+                const [min, max] = freqRangeSel.value.split('-').map(Number);
+                freqMin = min;
+                freqMax = max;
+                document.getElementById('freqMin').value = freqMin;
+                document.getElementById('freqMax').value = freqMax;
+            }
+            
+            const avg = (freqMin + freqMax) / 2;
+            document.getElementById('avgFrequency').value = Math.round(avg);
+            
+            // También actualizar el valor en el modal si está abierto
+            document.getElementById('modalAvgFrequency').value = Math.round(avg);
         }
 
         // ==========================================
@@ -753,33 +892,26 @@
                 return;
             }
 
-            // Check for rotation handle click first (right-click on selected antenna)
-            if (state.selectedAntenna !== null && e.button === 0) {
+            // Check for rotation on antenna body (when selected and in select mode)
+            if (state.tools.current === 'select' && state.selectedAntenna !== null) {
                 const a = state.antennas[state.selectedAntenna];
                 const s = worldToScreen(a.x, a.y);
                 const scale = s.scale;
-                const handleDist = 1.5 * scale;
                 
-                // Calculate rotation handle position
-                const angleRad = (a.angle - 90) * Math.PI / 180;
-                const handleX = s.x + Math.cos(angleRad) * handleDist * 2;
-                const handleY = s.y + Math.sin(angleRad) * handleDist * 2;
+                // Check if clicking on the antenna body (for rotation)
+                const distToAntenna = Math.sqrt((sx - s.x) ** 2 + (sy - s.y) ** 2);
+                const antennaRadius = Math.max(15, 1.5 * scale);
                 
-                const distToHandle = Math.sqrt((sx - handleX) ** 2 + (sy - handleY) ** 2);
-                
-                if (distToHandle < 15) {
+                if (distToAntenna < antennaRadius && a.type !== 'omni') {
                     state.isRotating = true;
                     state.rotationCenter = { x: a.x, y: a.y };
                     document.getElementById('statusText').textContent = '🔄 Rotando antena - Mueve el ratón';
                     return;
                 }
-            }
-
-            // Check for antenna drag (in select mode)
-            if (state.tools.current === 'select' && state.selectedAntenna !== null) {
-                const a = state.antennas[state.selectedAntenna];
+                
+                // Check for antenna drag
                 const dist = Math.sqrt((world.x - a.x) ** 2 + (world.y - a.y) ** 2);
-                if (dist < 1.5) {
+                if (dist < 2) {
                     state.isDragging = true;
                     state.dragOffset = { x: world.x - a.x, y: world.y - a.y };
                     document.getElementById('statusText').textContent = '✋ Arrastrando antena - Suelta para colocar';
@@ -1015,6 +1147,9 @@
             // Only auto-fill name if creating new antenna (not editing)
             if (window.editingAntennaIndex === undefined || window.editingAntennaIndex === null) {
                 document.getElementById('antennaName').value = ant.name;
+                document.getElementById('modalAntennaHeight').value = document.getElementById('antennaHeight').value;
+                document.getElementById('modalAntennaTilt').value = document.getElementById('antennaTilt').value;
+                document.getElementById('modalAvgFrequency').value = document.getElementById('avgFrequency').value;
             }
         }
 
@@ -1034,13 +1169,15 @@
             const angle = parseFloat(document.getElementById('antennaAngle').value);
             const channel = parseInt(document.getElementById('antennaChannel').value);
             const txPower = parseFloat(document.getElementById('txPower').value);
-            const height = parseFloat(document.getElementById('antennaHeight').value);
+            const height = parseFloat(document.getElementById('modalAntennaHeight').value) || parseFloat(document.getElementById('antennaHeight').value);
+            const tilt = parseFloat(document.getElementById('modalAntennaTilt').value) || 0;
+            const avgFreq = parseFloat(document.getElementById('modalAvgFrequency').value) || 711;
 
             // Check if we're editing an existing antenna
             if (window.editingAntennaIndex !== undefined && window.editingAntennaIndex !== null) {
                 // Update existing antenna
                 state.antennas[window.editingAntennaIndex] = {
-                    name, x, y, angle, channel, txPower, height,
+                    name, x, y, angle, channel, txPower, height, tilt, freq: avgFreq,
                     gain: ant.gain,
                     type: ant.type,
                     beamwidth: ant.beamwidth,
@@ -1052,7 +1189,7 @@
             } else {
                 // Create new antenna
                 state.antennas.push({
-                    name, x, y, angle, channel, txPower, height,
+                    name, x, y, angle, channel, txPower, height, tilt, freq: avgFreq,
                     gain: ant.gain,
                     type: ant.type,
                     beamwidth: ant.beamwidth,
@@ -1096,10 +1233,15 @@
             document.getElementById('antennaAngle').value = Math.round(a.angle);
             document.getElementById('antennaChannel').value = a.channel;
             document.getElementById('txPower').value = a.txPower;
-            document.getElementById('antennaHeight').value = a.height;
+            document.getElementById('modalAntennaHeight').value = a.height || 3;
+            document.getElementById('modalAntennaTilt').value = a.tilt || 0;
+            document.getElementById('modalAvgFrequency').value = a.freq || 711;
             
             // Set the antenna select to the correct model
             document.getElementById('antennaSelect').value = a.key;
+            
+            // Update frequency range dropdown
+            updateAntennaFreqRange();
             
             // Store that we're editing, not creating new
             window.editingAntennaIndex = index;
@@ -1142,7 +1284,6 @@
         function calculateCoverage(silent = false) {
             const model = document.getElementById('propagationModel').value;
             const resolution = parseFloat(document.getElementById('resolution').value);
-            const freq = parseFloat(document.getElementById('frequency').value);
 
             if (state.antennas.length === 0) {
                 state.coverage = null;
@@ -1171,6 +1312,8 @@
                         let maxRSSI = -100;
 
                         for (const antenna of state.antennas) {
+                            // Use antenna's own frequency if available, otherwise use a default
+                            const freq = antenna.freq || 711;
                             let rssi = calculateRSSI(px, py, antenna, freq, model);
                             if (rssi > maxRSSI) maxRSSI = rssi;
                         }
@@ -1415,51 +1558,65 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Antenna icon
-            const size = Math.max(8, 0.8 * scale);
-            ctx.fillStyle = '#3b82f6';
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
+            // Antenna icon - bigger and more visible
+            const size = Math.max(12, 1.2 * scale);
+            
+            // Draw directional antenna shape or omni circle
+            if (antenna.type !== 'omni') {
+                // Directional antenna: draw triangle pointing in the direction
+                const angleRad = (antenna.angle - 90) * Math.PI / 180;
+                const arrowLength = size * 2.5;
+                const arrowWidth = size * 1.5;
+                
+                // Calculate triangle points
+                const tipX = x + Math.cos(angleRad) * arrowLength;
+                const tipY = y + Math.sin(angleRad) * arrowLength;
+                const leftX = x + Math.cos(angleRad + Math.PI * 0.7) * arrowWidth;
+                const leftY = y + Math.sin(angleRad + Math.PI * 0.7) * arrowWidth;
+                const rightX = x + Math.cos(angleRad - Math.PI * 0.7) * arrowWidth;
+                const rightY = y + Math.sin(angleRad - Math.PI * 0.7) * arrowWidth;
+                
+                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
+                ctx.beginPath();
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(leftX, leftY);
+                ctx.lineTo(rightX, rightY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Add antenna name label
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(antenna.name, x, y - size - 10);
+            } else {
+                // Omni antenna: draw circle with dot
+                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${Math.max(8, size * 0.8)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('A', x, y);
+                
+                // Label
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
+                ctx.fillText(antenna.name, x, y - size - 10);
+            }
 
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${Math.max(8, size * 0.8)}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('A', x, y);
-
-            // Label
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = `${Math.max(9, 0.7 * scale)}px sans-serif`;
-            ctx.fillText(antenna.name, x, y - size - 8);
-
-            // Direction indicator
+            // Direction indicator line for non-omni antennas
             if (antenna.type !== 'omni') {
                 const angleRad = (antenna.angle - 90) * Math.PI / 180;
-                ctx.strokeStyle = '#f59e0b';
+                ctx.strokeStyle = '#fbbf24';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.cos(angleRad) * size * 2, y + Math.sin(angleRad) * size * 2);
+                ctx.lineTo(x + Math.cos(angleRad) * size * 3, y + Math.sin(angleRad) * size * 3);
                 ctx.stroke();
-                
-                // Draw rotation handle when selected
-                if (selected) {
-                    const handleDist = 1.5 * scale;
-                    const handleX = x + Math.cos(angleRad) * handleDist * 2;
-                    const handleY = y + Math.sin(angleRad) * handleDist * 2;
-                    
-                    ctx.fillStyle = '#f59e0b';
-                    ctx.beginPath();
-                    ctx.arc(handleX, handleY, 6, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = 'white';
-                    ctx.font = 'bold 10px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('🔄', handleX, handleY);
-                }
             }
             
             // Selection highlight
@@ -1468,7 +1625,7 @@
                 ctx.lineWidth = 2;
                 ctx.setLineDash([4, 2]);
                 ctx.beginPath();
-                ctx.arc(x, y, size + 8, 0, Math.PI * 2);
+                ctx.arc(x, y, size + 10, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
