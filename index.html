@@ -558,7 +558,7 @@
                 <canvas id="mainCanvas"></canvas>
                 <div class="canvas-overlay">
                     <span style="background: rgba(17,24,39,0.8); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8;">
-                        🖱️ Click para colocar | Scroll para zoom | Arrastrar para mover
+                        🖱️ Click para colocar | Scroll para zoom | Arrastrar antenas | 🔄 Mantén pulsado en el handle para rotar
                     </span>
                 </div>
                 <div class="zoom-controls">
@@ -641,7 +641,11 @@
             isDrawing: false,
             drawStart: null,
             selectedAntenna: null,
-            mousePos: { x: 0, y: 0 }
+            mousePos: { x: 0, y: 0 },
+            isDragging: false,
+            dragOffset: { x: 0, y: 0 },
+            isRotating: false,
+            rotationCenter: null
         };
 
         const WALL_MATERIALS = {
@@ -748,6 +752,40 @@
                 return;
             }
 
+            // Check for rotation handle click first (right-click on selected antenna)
+            if (state.selectedAntenna !== null && e.button === 0) {
+                const a = state.antennas[state.selectedAntenna];
+                const s = worldToScreen(a.x, a.y);
+                const scale = s.scale;
+                const handleDist = 1.5 * scale;
+                
+                // Calculate rotation handle position
+                const angleRad = (a.angle - 90) * Math.PI / 180;
+                const handleX = s.x + Math.cos(angleRad) * handleDist * 2;
+                const handleY = s.y + Math.sin(angleRad) * handleDist * 2;
+                
+                const distToHandle = Math.sqrt((sx - handleX) ** 2 + (sy - handleY) ** 2);
+                
+                if (distToHandle < 15) {
+                    state.isRotating = true;
+                    state.rotationCenter = { x: a.x, y: a.y };
+                    document.getElementById('statusText').textContent = '🔄 Rotando antena - Mueve el ratón';
+                    return;
+                }
+            }
+
+            // Check for antenna drag (in select mode)
+            if (state.tools.current === 'select' && state.selectedAntenna !== null) {
+                const a = state.antennas[state.selectedAntenna];
+                const dist = Math.sqrt((world.x - a.x) ** 2 + (world.y - a.y) ** 2);
+                if (dist < 1.5) {
+                    state.isDragging = true;
+                    state.dragOffset = { x: world.x - a.x, y: world.y - a.y };
+                    document.getElementById('statusText').textContent = '✋ Arrastrando antena - Suelta para colocar';
+                    return;
+                }
+            }
+
             if (state.tools.current === 'wall' || state.tools.current === 'obstacle') {
                 state.isDrawing = true;
                 state.drawStart = { x: world.x, y: world.y, sx, sy };
@@ -771,6 +809,29 @@
             state.mousePos = { x: world.x, y: world.y };
             document.getElementById('coordsText').textContent = `X: ${world.x.toFixed(1)} m | Y: ${world.y.toFixed(1)} m`;
 
+            // Handle rotation
+            if (state.isRotating && state.rotationCenter) {
+                const dx = sx - (worldToScreen(state.rotationCenter.x, state.rotationCenter.y)).x;
+                const dy = sy - (worldToScreen(state.rotationCenter.x, state.rotationCenter.y)).y;
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+                angle = ((angle % 360) + 360) % 360;
+                
+                state.antennas[state.selectedAntenna].angle = Math.round(angle);
+                document.getElementById('statusText').textContent = `🔄 Rotación: ${Math.round(angle)}°`;
+                draw();
+                return;
+            }
+
+            // Handle dragging
+            if (state.isDragging && state.selectedAntenna !== null) {
+                const a = state.antennas[state.selectedAntenna];
+                a.x = Math.max(0, Math.min(state.scenario.width, world.x - state.dragOffset.x));
+                a.y = Math.max(0, Math.min(state.scenario.height, world.y - state.dragOffset.y));
+                document.getElementById('statusText').textContent = `✋ Moviendo: (${a.x.toFixed(1)}, ${a.y.toFixed(1)})`;
+                draw();
+                return;
+            }
+
             if (state.isDrawing && state.drawStart) {
                 draw();
                 ctx.strokeStyle = '#3b82f6';
@@ -786,6 +847,22 @@
         }
 
         function onMouseUp(e) {
+            // End rotation
+            if (state.isRotating) {
+                state.isRotating = false;
+                state.rotationCenter = null;
+                document.getElementById('statusText').textContent = `✅ Rotación completada: ${state.antennas[state.selectedAntenna].angle}°`;
+                return;
+            }
+
+            // End dragging
+            if (state.isDragging) {
+                state.isDragging = false;
+                const a = state.antennas[state.selectedAntenna];
+                document.getElementById('statusText').textContent = `✅ Antena colocada en (${a.x.toFixed(1)}, ${a.y.toFixed(1)})`;
+                return;
+            }
+
             if (state.isDrawing && state.drawStart) {
                 const rect = canvas.getBoundingClientRect();
                 const sx = e.clientX - rect.left;
@@ -931,11 +1008,18 @@
             document.getElementById('antennaModal').classList.add('active');
             const sel = document.getElementById('antennaSelect');
             const ant = ANTENNA_DATABASE[sel.value];
-            document.getElementById('antennaName').value = ant.name;
+            
+            // Only auto-fill name if creating new antenna (not editing)
+            if (window.editingAntennaIndex === undefined || window.editingAntennaIndex === null) {
+                document.getElementById('antennaName').value = ant.name;
+            }
         }
 
         function closeAntennaModal() {
             document.getElementById('antennaModal').classList.remove('active');
+            // Reset editing state when closing modal
+            window.editingAntennaIndex = null;
+            document.querySelector('#antennaModal h2').textContent = '📡 Colocar Antena';
         }
 
         function placeAntenna() {
@@ -949,18 +1033,34 @@
             const txPower = parseFloat(document.getElementById('txPower').value);
             const height = parseFloat(document.getElementById('antennaHeight').value);
 
-            state.antennas.push({
-                name, x, y, angle, channel, txPower, height,
-                gain: ant.gain,
-                type: ant.type,
-                beamwidth: ant.beamwidth,
-                key: sel.value
-            });
+            // Check if we're editing an existing antenna
+            if (window.editingAntennaIndex !== undefined && window.editingAntennaIndex !== null) {
+                // Update existing antenna
+                state.antennas[window.editingAntennaIndex] = {
+                    name, x, y, angle, channel, txPower, height,
+                    gain: ant.gain,
+                    type: ant.type,
+                    beamwidth: ant.beamwidth,
+                    key: sel.value
+                };
+                window.editingAntennaIndex = null;
+                document.querySelector('#antennaModal h2').textContent = '📡 Colocar Antena';
+                document.getElementById('statusText').textContent = `✅ Antena "${name}" actualizada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
+            } else {
+                // Create new antenna
+                state.antennas.push({
+                    name, x, y, angle, channel, txPower, height,
+                    gain: ant.gain,
+                    type: ant.type,
+                    beamwidth: ant.beamwidth,
+                    key: sel.value
+                });
+                document.getElementById('statusText').textContent = `✅ Antena "${name}" colocada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
+            }
 
             closeAntennaModal();
             updateAntennaList();
             draw();
-            document.getElementById('statusText').textContent = `✅ Antena "${name}" colocada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
         }
 
         function updateAntennaList() {
@@ -970,15 +1070,38 @@
                 return;
             }
             container.innerHTML = state.antennas.map((a, i) => `
-                <div class="antenna-item">
+                <div class="antenna-item" onclick="selectAndEditAntenna(${i})" style="cursor: pointer;">
                     <div class="info">
                         <div class="name">${a.name}</div>
-                        <div class="specs">${a.gain} dBi | ${a.txPower} dBm | Ch ${a.channel}</div>
+                        <div class="specs">${a.gain} dBi | ${a.txPower} dBm | Ch ${a.channel} | ${a.angle}°</div>
                     </div>
                     <span class="badge badge-${a.type}">${a.type}</span>
-                    <button class="btn btn-danger btn-sm" style="width:auto; margin-left: 8px; padding: 4px 8px;" onclick="removeAntenna(${i})">✕</button>
+                    <button class="btn btn-danger btn-sm" style="width:auto; margin-left: 8px; padding: 4px 8px;" onclick="event.stopPropagation(); removeAntenna(${i})">✕</button>
                 </div>
             `).join('');
+        }
+
+        function selectAndEditAntenna(index) {
+            state.selectedAntenna = index;
+            const a = state.antennas[index];
+            
+            // Open modal with current values for editing
+            document.getElementById('antennaName').value = a.name;
+            document.getElementById('antennaX').value = a.x.toFixed(1);
+            document.getElementById('antennaY').value = a.y.toFixed(1);
+            document.getElementById('antennaAngle').value = Math.round(a.angle);
+            document.getElementById('antennaChannel').value = a.channel;
+            document.getElementById('txPower').value = a.txPower;
+            document.getElementById('antennaHeight').value = a.height;
+            
+            // Set the antenna select to the correct model
+            document.getElementById('antennaSelect').value = a.key;
+            
+            // Store that we're editing, not creating new
+            window.editingAntennaIndex = index;
+            
+            openAntennaModal();
+            document.querySelector('#antennaModal h2').textContent = '📡 Editar Antena';
         }
 
         function removeAntenna(index) {
@@ -1288,6 +1411,35 @@
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + Math.cos(angleRad) * size * 2, y + Math.sin(angleRad) * size * 2);
                 ctx.stroke();
+                
+                // Draw rotation handle when selected
+                if (selected) {
+                    const handleDist = 1.5 * scale;
+                    const handleX = x + Math.cos(angleRad) * handleDist * 2;
+                    const handleY = y + Math.sin(angleRad) * handleDist * 2;
+                    
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(handleX, handleY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('🔄', handleX, handleY);
+                }
+            }
+            
+            // Selection highlight
+            if (selected) {
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 2]);
+                ctx.beginPath();
+                ctx.arc(x, y, size + 8, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
         }
 
