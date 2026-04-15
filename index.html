@@ -645,7 +645,8 @@
             isDragging: false,
             dragOffset: { x: 0, y: 0 },
             isRotating: false,
-            rotationCenter: null
+            rotationCenter: null,
+            coverageUpdateTimeout: null
         };
 
         const WALL_MATERIALS = {
@@ -819,6 +820,7 @@
                 state.antennas[state.selectedAntenna].angle = Math.round(angle);
                 document.getElementById('statusText').textContent = `🔄 Rotación: ${Math.round(angle)}°`;
                 draw();
+                scheduleCoverageUpdate();
                 return;
             }
 
@@ -829,6 +831,7 @@
                 a.y = Math.max(0, Math.min(state.scenario.height, world.y - state.dragOffset.y));
                 document.getElementById('statusText').textContent = `✋ Moviendo: (${a.x.toFixed(1)}, ${a.y.toFixed(1)})`;
                 draw();
+                scheduleCoverageUpdate();
                 return;
             }
 
@@ -1061,6 +1064,7 @@
             closeAntennaModal();
             updateAntennaList();
             draw();
+            scheduleCoverageUpdate();
         }
 
         function updateAntennaList() {
@@ -1106,24 +1110,49 @@
 
         function removeAntenna(index) {
             state.antennas.splice(index, 1);
+            if (state.selectedAntenna === index) {
+                state.selectedAntenna = null;
+            } else if (state.selectedAntenna !== null && state.selectedAntenna > index) {
+                state.selectedAntenna--;
+            }
             updateAntennaList();
             draw();
+            scheduleCoverageUpdate();
         }
 
         // ==========================================
         // CÁLCULO DE COBERTURA
         // ==========================================
-        function calculateCoverage() {
+        function scheduleCoverageUpdate() {
+            if (state.antennas.length === 0) {
+                state.coverage = null;
+                draw();
+                return;
+            }
+            
+            if (state.coverageUpdateTimeout) {
+                clearTimeout(state.coverageUpdateTimeout);
+            }
+            
+            state.coverageUpdateTimeout = setTimeout(() => {
+                calculateCoverage(true);
+            }, 150);
+        }
+        
+        function calculateCoverage(silent = false) {
             const model = document.getElementById('propagationModel').value;
             const resolution = parseFloat(document.getElementById('resolution').value);
             const freq = parseFloat(document.getElementById('frequency').value);
 
             if (state.antennas.length === 0) {
-                alert('⚠️ Coloca al menos una antena antes de calcular la cobertura');
+                state.coverage = null;
+                draw();
                 return;
             }
 
-            document.getElementById('statusText').textContent = '⏳ Calculando cobertura...';
+            if (!silent) {
+                document.getElementById('statusText').textContent = '⏳ Calculando cobertura...';
+            }
 
             setTimeout(() => {
                 const width = state.scenario.width;
@@ -1151,7 +1180,9 @@
                 }
 
                 draw();
-                document.getElementById('statusText').textContent = '✅ Cobertura calculada correctamente';
+                if (!silent) {
+                    document.getElementById('statusText').textContent = '✅ Cobertura calculada correctamente';
+                }
             }, 50);
         }
 
@@ -1479,6 +1510,7 @@
                 state.obstacles = [];
                 state.antennas = [];
                 state.coverage = null;
+                state.selectedAntenna = null;
                 updateAntennaList();
                 draw();
                 document.getElementById('statusText').textContent = '🗑️ Todo limpio';
