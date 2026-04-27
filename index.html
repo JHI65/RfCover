@@ -436,6 +436,16 @@
                     <button class="tool-btn" data-tool="antenna" onclick="setTool('antenna')">📡 Antena</button>
                     <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')">🗑️ Borrar</button>
                 </div>
+                <div class="form-group" style="margin-top: 12px;">
+                    <label>Modo de Dibujo:</label>
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <button class="tool-btn active" id="drawModeDrag" onclick="setDrawingMode('drag')" style="flex: 1;">✏️ Arrastrar</button>
+                        <button class="tool-btn" id="drawModeClick" onclick="setDrawingMode('click')" style="flex: 1;">👆 Clicks</button>
+                    </div>
+                    <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 6px;" id="drawModeHelp">
+                        Arrastra para dibujar muros/obstáculos
+                    </p>
+                </div>
                 <button class="btn btn-warning btn-sm" onclick="clearAll()">🗑️ Limpiar Todo</button>
             </div>
 
@@ -684,7 +694,9 @@
             dragOffset: { x: 0, y: 0 },
             isRotating: false,
             rotationCenter: null,
-            coverageUpdateTimeout: null
+            coverageUpdateTimeout: null,
+            drawingMode: 'click', // 'drag' o 'click' - modo de dibujo por clicks
+            wallPoints: [] // Para almacenar puntos temporales al dibujar con clicks
         };
 
         const WALL_MATERIALS = {
@@ -769,6 +781,7 @@
             canvas.addEventListener('mouseup', onMouseUp);
             canvas.addEventListener('wheel', onWheel);
             canvas.addEventListener('contextmenu', e => e.preventDefault());
+            canvas.addEventListener('dblclick', onDoubleClick);
             updateAntennaFreqRange();
             calculateAvgFrequency();
             draw();
@@ -888,7 +901,13 @@
             const world = screenToWorld(sx, sy);
 
             if (e.button === 2) {
-                state.isDrawing = false;
+                // Click derecho: cancelar dibujo actual o cerrar pared en modo click
+                if (state.tools.current === 'wall' && state.drawingMode === 'click' && state.wallPoints.length > 0) {
+                    finishWallClickMode();
+                } else {
+                    state.isDrawing = false;
+                    state.wallPoints = [];
+                }
                 return;
             }
 
@@ -927,7 +946,20 @@
                 }
             }
 
-            if (state.tools.current === 'wall' || state.tools.current === 'obstacle') {
+            // Modo de dibujo con clicks para muros y obstáculos
+            if ((state.tools.current === 'wall' || state.tools.current === 'obstacle') && state.drawingMode === 'click') {
+                if (state.wallPoints.length === 0) {
+                    // Primer click: iniciar el muro/obstáculo
+                    state.wallPoints.push({ x: world.x, y: world.y });
+                    state.isDrawing = true;
+                    document.getElementById('statusText').textContent = '👆 Click para añadir puntos, doble click o Enter para finalizar, Click derecho para cancelar';
+                } else {
+                    // Clicks siguientes: añadir puntos
+                    state.wallPoints.push({ x: world.x, y: world.y });
+                    document.getElementById('statusText').textContent = `👆 ${state.wallPoints.length} puntos - Doble click o Enter para finalizar`;
+                }
+                draw();
+            } else if (state.tools.current === 'wall' || state.tools.current === 'obstacle') {
                 state.isDrawing = true;
                 state.drawStart = { x: world.x, y: world.y, sx, sy };
             } else if (state.tools.current === 'antenna') {
@@ -975,7 +1007,33 @@
                 return;
             }
 
-            if (state.isDrawing && state.drawStart) {
+            // Dibujar línea temporal en modo click
+            if (state.isDrawing && state.drawingMode === 'click' && state.wallPoints.length > 0) {
+                draw();
+                // Dibujar líneas entre puntos ya colocados
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                const firstPoint = worldToScreen(state.wallPoints[0].x, state.wallPoints[0].y);
+                ctx.moveTo(firstPoint.x, firstPoint.y);
+                for (let i = 1; i < state.wallPoints.length; i++) {
+                    const pt = worldToScreen(state.wallPoints[i].x, state.wallPoints[i].y);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                // Línea desde el último punto hasta el ratón
+                ctx.lineTo(sx, sy);
+                ctx.stroke();
+                // Dibujar puntos
+                ctx.fillStyle = '#3b82f6';
+                for (let i = 0; i < state.wallPoints.length; i++) {
+                    const pt = worldToScreen(state.wallPoints[i].x, state.wallPoints[i].y);
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.setLineDash([]);
+            } else if (state.isDrawing && state.drawStart) {
                 draw();
                 ctx.strokeStyle = '#3b82f6';
                 ctx.lineWidth = 3;
@@ -1036,6 +1094,62 @@
             draw();
         }
 
+        // Evento de teclado para finalizar dibujo con Enter o Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && state.drawingMode === 'click' && state.wallPoints.length >= 2) {
+                finishWallClickMode();
+            } else if (e.key === 'Escape' && state.wallPoints.length > 0) {
+                state.wallPoints = [];
+                state.isDrawing = false;
+                draw();
+                document.getElementById('statusText').textContent = '❌ Dibujo cancelado';
+            }
+        });
+
+        // Función para manejar doble click en modo click
+        function onDoubleClick(e) {
+            if (state.drawingMode === 'click' && state.wallPoints.length >= 2) {
+                finishWallClickMode();
+            }
+        }
+
+        // Función para finalizar el dibujo en modo click
+        function finishWallClickMode() {
+            if (state.wallPoints.length < 2) {
+                state.wallPoints = [];
+                state.isDrawing = false;
+                draw();
+                return;
+            }
+
+            if (state.tools.current === 'wall') {
+                // Crear múltiples segmentos de muro entre los puntos
+                for (let i = 0; i < state.wallPoints.length - 1; i++) {
+                    addWall(
+                        state.wallPoints[i].x,
+                        state.wallPoints[i].y,
+                        state.wallPoints[i + 1].x,
+                        state.wallPoints[i + 1].y
+                    );
+                }
+            } else if (state.tools.current === 'obstacle') {
+                // Calcular bounding box de todos los puntos
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                for (const pt of state.wallPoints) {
+                    minX = Math.min(minX, pt.x);
+                    minY = Math.min(minY, pt.y);
+                    maxX = Math.max(maxX, pt.x);
+                    maxY = Math.max(maxY, pt.y);
+                }
+                addObstacle(minX, minY, maxX - minX, maxY - minY);
+            }
+
+            state.wallPoints = [];
+            state.isDrawing = false;
+            draw();
+            document.getElementById('statusText').textContent = '✅ Elemento creado con clicks';
+        }
+
         // ==========================================
         // HERRAMIENTAS
         // ==========================================
@@ -1046,12 +1160,31 @@
             });
             const toolNames = {
                 select: '🖱️ Modo selección - Click en una antena para seleccionarla',
-                wall: '🧱 Modo muro - Click y arrastra para dibujar un muro',
-                obstacle: '📦 Modo obstáculo - Click y arrastra para crear un obstáculo',
+                wall: state.drawingMode === 'click' 
+                    ? '🧱 Modo muro - Haz clicks para añadir puntos, Enter/doble click para finalizar' 
+                    : '🧱 Modo muro - Click y arrastra para dibujar un muro',
+                obstacle: state.drawingMode === 'click'
+                    ? '📦 Modo obstáculo - Haz clicks para definir área, Enter para finalizar'
+                    : '📦 Modo obstáculo - Click y arrastra para crear un obstáculo',
                 antenna: '📡 Modo antena - Click para colocar una antena',
                 eraser: '🗑️ Modo borrador - Click en un elemento para eliminarlo'
             };
             document.getElementById('statusText').textContent = toolNames[tool];
+        }
+
+        function setDrawingMode(mode) {
+            state.drawingMode = mode;
+            document.getElementById('drawModeDrag').classList.toggle('active', mode === 'drag');
+            document.getElementById('drawModeClick').classList.toggle('active', mode === 'click');
+            
+            const helpText = {
+                drag: '✏️ Arrastra el ratón para dibujar muros/obstáculos',
+                click: '👆 Haz clicks para añadir puntos, Enter o doble click para finalizar, Escape para cancelar'
+            };
+            document.getElementById('drawModeHelp').textContent = helpText[mode];
+            
+            // Actualizar el mensaje de la herramienta actual
+            setTool(state.tools.current);
         }
 
         function addWall(x1, y1, x2, y2) {
