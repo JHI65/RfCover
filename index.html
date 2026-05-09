@@ -1,1676 +1,2390 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RF Coverage Planner</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RF Coverage Planner</title>
+<style>
+:root {
+  --bg: #1a1a1a;
+  --panel: #222;
+  --panel-dark: #1c1c1c;
+  --panel-hdr: #2a2a2a;
+  --border: #333;
+  --border-lt: #3d3d3d;
+  --text: #bbb;
+  --text-dim: #666;
+  --text-bright: #ddd;
+  --accent: #4a7fc0;
+  --danger: #c04a4a;
+  --input-bg: #1a1a1a;
+  --input-bd: #3a3a3a;
+  --btn-bg: #2d2d2d;
+  --btn-hv: #393939;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; font-size:12px; }
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #0a0e17;
-            color: #e0e0e0;
-            overflow: hidden;
-            height: 100vh;
-        }
+/* NAV */
+.top-nav { height:34px; background:#141414; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 10px; gap:0; flex-shrink:0; }
+.nav-brand { font-size:13px; font-weight:600; color:var(--text-bright); margin-right:20px; }
+.nav-tab { height:34px; padding:0 14px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:12px; cursor:pointer; }
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active { color:var(--text-bright); border-bottom-color:var(--accent); }
+.nav-status { margin-left:auto; font-size:10px; color:var(--text-dim); }
 
-        .app-container {
-            display: flex;
-            height: 100vh;
-        }
+/* LAYOUT */
+.main-layout { display:flex; height:calc(100vh - 34px); }
 
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 320px;
-            background: #111827;
-            border-right: 1px solid #1e293b;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
+/* LEFT PANEL */
+.left-panel { width:280px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
 
-        .sidebar-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #1e3a5f, #0f172a);
-            border-bottom: 1px solid #1e293b;
-        }
+.sec-hdr { padding:5px 8px; background:var(--panel-hdr); border-bottom:1px solid var(--border); font-size:10px; font-weight:600; color:var(--text); text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.sec-hdr-btns { display:flex; gap:3px; }
+.sec-hdr-btn { width:18px; height:18px; background:var(--btn-bg); border:1px solid var(--border); border-radius:2px; color:var(--text-dim); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.sec-hdr-btn:hover { background:var(--btn-hv); color:var(--text); }
 
-        .sidebar-header h1 {
-            font-size: 1.3rem;
-            color: #60a5fa;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+/* ELEMENTS TABLE */
+.el-table-wrap { overflow:auto; flex:0 0 auto; max-height:220px; }
+.el-table { width:100%; border-collapse:collapse; }
+.el-table th { padding:3px 5px; background:#232323; border-bottom:1px solid var(--border); font-size:10px; font-weight:600; color:var(--text-dim); text-align:left; position:sticky; top:0; white-space:nowrap; z-index:1; }
+.el-table td { padding:2px 5px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; white-space:nowrap; }
+.el-table tr:hover td { background:rgba(255,255,255,0.03); }
+.el-table tr.sel td { background:rgba(74,127,192,0.15); }
+.el-name { color:var(--text-bright); cursor:pointer; max-width:80px; overflow:hidden; text-overflow:ellipsis; display:block; }
+.shp-icon { font-size:10px; color:var(--text-dim); }
+.type-sel { background:transparent; border:none; color:#6ab; font-size:10px; cursor:pointer; outline:none; max-width:68px; }
+.type-sel option { background:var(--panel); color:var(--text); }
+.ico-btn { width:18px; height:16px; background:transparent; border:1px solid transparent; border-radius:2px; color:var(--text-dim); font-size:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+.ico-btn:hover { background:var(--btn-bg); border-color:var(--border); color:var(--text); }
+.ico-btn.on { color:var(--accent); }
+.ico-btn.on-lock { color:#c8a030; }
+.col-swatch { width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid rgba(255,255,255,0.15); cursor:pointer; vertical-align:middle; }
 
-        .sidebar-header p {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
+/* SELECTED PANEL */
+.sel-panel { flex:1; display:flex; flex-direction:column; min-height:0; border-bottom:1px solid var(--border); }
+.tab-bar { display:flex; background:var(--panel-hdr); border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
+.tab-btn { padding:5px 8px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:10px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--text-bright); border-bottom-color:var(--accent); }
+.tab-body { flex:1; overflow-y:auto; padding:8px; }
 
-        .sidebar-section {
-            padding: 16px 20px;
-            border-bottom: 1px solid #1e293b;
-        }
+/* PROP INPUTS */
+.pg { margin-bottom:8px; }
+.pl { font-size:9px; color:var(--text-dim); margin-bottom:2px; text-transform:uppercase; letter-spacing:.05em; }
+.pi { width:100%; padding:3px 5px; background:var(--input-bg); border:1px solid var(--input-bd); border-radius:2px; color:var(--text-bright); font-size:11px; outline:none; }
+.pi:focus { border-color:var(--accent); }
+.pr { display:flex; gap:5px; }
+.pr .pg { flex:1; }
+.vlist { display:flex; flex-direction:column; gap:3px; margin-top:2px; }
+.vrow { display:flex; align-items:center; gap:3px; }
+.vlbl { font-size:9px; color:var(--text-dim); width:18px; flex-shrink:0; }
+.vi { flex:1; padding:2px 4px; background:var(--input-bg); border:1px solid var(--input-bd); border-radius:2px; color:var(--text-bright); font-size:10px; outline:none; }
+.vi:focus { border-color:var(--accent); }
+.dim-msg { font-size:10px; color:var(--text-dim); line-height:1.5; }
 
-        .sidebar-section h3 {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8;
-            margin-bottom: 12px;
-        }
+/* COMMENTS */
+.comments-sec { flex-shrink:0; }
+.comment-ta { width:100%; background:var(--input-bg); border:none; border-top:1px solid var(--border); color:var(--text); font-size:10px; padding:5px 8px; resize:none; height:44px; outline:none; font-family:inherit; }
 
-        .form-group {
-            margin-bottom: 12px;
-        }
+/* CENTER */
+.center { flex:1; display:flex; flex-direction:column; min-width:0; background:#111; }
+.view-tabs-bar { height:26px; background:var(--panel-hdr); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 6px; flex-shrink:0; }
+.view-tab { padding:3px 10px; background:transparent; border:none; border-radius:2px; color:var(--text-dim); font-size:11px; cursor:pointer; }
+.view-tab:hover { color:var(--text); background:rgba(255,255,255,0.04); }
+.view-tab.active { color:var(--text-bright); background:rgba(255,255,255,0.07); }
+.canvas-info { margin-left:auto; font-size:9px; color:var(--text-dim); }
 
-        .form-group label {
-            display: block;
-            font-size: 0.78rem;
-            color: #cbd5e1;
-            margin-bottom: 4px;
-        }
+.top-view { flex:1; position:relative; overflow:hidden; border-bottom:1px solid var(--border); min-height:0; }
+#topCanvas { position:absolute; top:0; left:0; cursor:default; }
+.canvas-coords { position:absolute; bottom:5px; right:8px; font-size:9px; color:rgba(255,255,255,0.3); pointer-events:none; }
 
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px 12px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #e2e8f0;
-            font-size: 0.85rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+.profile-hdr { height:22px; background:var(--panel-hdr); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 8px; font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; flex-shrink:0; }
+.profile-view { height:160px; flex-shrink:0; position:relative; overflow:hidden; }
+#profileCanvas { position:absolute; top:0; left:0; }
 
-        .form-group input:focus, .form-group select:focus {
-            border-color: #3b82f6;
-        }
+/* RIGHT PANEL */
+.right-panel { width:160px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; }
+.r-sec { border-bottom:1px solid var(--border); }
+.r-hdr { padding:5px 8px; background:var(--panel-hdr); border-bottom:1px solid var(--border); font-size:9px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; }
 
-        .form-row {
-            display: flex;
-            gap: 8px;
-        }
+.shape-btn { width:100%; padding:6px 8px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text); font-size:11px; cursor:pointer; text-align:left; display:flex; align-items:center; gap:7px; }
+.shape-btn:hover { background:rgba(255,255,255,0.05); }
+.shape-btn svg { width:18px; height:13px; flex-shrink:0; }
 
-        .form-row .form-group {
-            flex: 1;
-        }
+.tool-grid { display:grid; grid-template-columns:1fr 1fr; }
+.tool-btn { padding:6px 5px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); border-right:1px solid rgba(255,255,255,0.04); color:var(--text); font-size:10px; cursor:pointer; text-align:left; display:flex; align-items:center; gap:3px; }
+.tool-btn:hover { background:rgba(255,255,255,0.05); }
+.tool-btn:nth-child(even) { border-right:none; }
+.tool-btn.danger { color:var(--danger); }
 
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-        }
+.origin-body { padding:7px 8px; display:flex; flex-direction:column; gap:4px; }
+.orow { display:flex; align-items:center; gap:5px; }
+.olbl { font-size:10px; color:var(--text-dim); width:12px; }
+.oi { flex:1; padding:2px 4px; background:var(--input-bg); border:1px solid var(--input-bd); border-radius:2px; color:var(--text-bright); font-size:10px; outline:none; }
+.ounit { font-size:9px; color:var(--text-dim); }
+.origin-btn { width:100%; padding:5px; background:var(--btn-bg); border:1px solid var(--border-lt,#3d3d3d); border-radius:2px; color:var(--text); font-size:10px; cursor:pointer; margin-top:2px; }
+.origin-btn:hover { background:var(--btn-hv); }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-        }
+/* scrollbar */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--panel); }
+::-webkit-scrollbar-thumb { background:#444; border-radius:2px; }
 
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
-            transform: translateY(-1px);
-        }
+/* antenna section (Antenas tab) */
+.ant-panel { display:none; flex:1; flex-direction:column; overflow-y:auto; }
+.ant-panel.visible { display:flex; }
+.venue-panel { display:flex; flex:1; flex-direction:column; overflow:hidden; }
+.venue-panel.hidden { display:none; }
 
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
+/* hidden color input hack */
+.color-input-hidden { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
 
-        .btn-success:hover {
-            background: linear-gradient(135deg, #34d399, #10b981);
-            transform: translateY(-1px);
-        }
+/* antenna right panel */
+.ant-right { display:none; flex-direction:column; }
+.ant-right.visible { display:flex; }
+.venue-right { display:flex; flex-direction:column; }
+.venue-right.hidden { display:none; }
 
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
+/* place-mode cursor */
+.top-view.placing { cursor:crosshair; }
 
-        .btn-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
+/* RACKS TAB */
+.rack-group-item { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:6px; cursor:pointer; }
+.rack-group-item:hover { background:rgba(255,255,255,0.03); }
+.rack-group-item.sel { background:rgba(74,127,192,0.15); }
+.rack-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:1px solid rgba(255,255,255,0.2); }
+.rack-group-name { flex:1; font-size:11px; color:var(--text-bright); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.type-badge { font-size:9px; padding:1px 4px; border-radius:2px; background:rgba(74,127,192,0.25); color:#6ab; border:1px solid rgba(74,127,192,0.3); flex-shrink:0; }
+.type-badge.iem { background:rgba(74,180,120,0.2); color:#6bc4a0; border-color:rgba(74,180,120,0.3); }
+.type-badge.mic { background:rgba(180,140,74,0.2); color:#c4a060; border-color:rgba(180,140,74,0.3); }
+.type-badge.bp  { background:rgba(140,74,180,0.2); color:#a060c4; border-color:rgba(140,74,180,0.3); }
+.rack-mute { width:18px; height:16px; background:transparent; border:1px solid transparent; border-radius:2px; color:var(--text-dim); font-size:10px; cursor:pointer; flex-shrink:0; }
+.rack-mute:hover { background:var(--btn-bg); border-color:var(--border); color:var(--text); }
+.rack-mute.muted { color:#c04a4a; }
+.loss-display { padding:5px 7px; background:#1a1a1a; border:1px solid var(--border); border-radius:3px; font-size:10px; color:var(--text-dim); font-family:monospace; line-height:1.6; }
+.loss-display .loss-val { color:var(--text-bright); }
+.freq-chip { display:inline-block; padding:1px 4px; background:rgba(74,127,192,0.15); border:1px solid rgba(74,127,192,0.25); border-radius:2px; font-size:9px; color:#7ab; font-family:monospace; }
+.rack-ch-row { padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:5px; }
+.rack-ch-num { width:20px; font-size:10px; color:var(--text-dim); flex-shrink:0; }
+.rack-ch-name { flex:1; padding:2px 4px; background:var(--input-bg); border:1px solid var(--input-bd); border-radius:2px; color:var(--text-bright); font-size:10px; outline:none; min-width:0; }
+.rack-ch-name:focus { border-color:var(--accent); }
+#rackView { display:none; flex:1; flex-direction:column; overflow:hidden; background:#111; }
+#rackView.visible { display:flex; }
+.rack-canvas-wrap { flex:1; position:relative; min-height:0; border-bottom:1px solid var(--border); }
+.rack-conn-wrap { height:180px; flex-shrink:0; position:relative; }
+#rackCanvas { position:absolute; top:0; left:0; }
+#connCanvas { position:absolute; top:0; left:0; }
+.rack-empty-msg { display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--text-dim); font-size:12px; }
+.rack-right-form { display:flex; flex-direction:column; gap:4px; padding:6px 8px; }
+.rack-action-btn { width:100%; padding:5px 8px; border-radius:2px; border:1px solid var(--border-lt); font-size:11px; cursor:pointer; }
+.rack-action-btn.primary { background:rgba(74,127,192,0.25); border-color:rgba(74,127,192,0.5); color:#6ab; }
+.rack-action-btn.primary:hover { background:rgba(74,127,192,0.4); }
+.rack-action-btn.secondary { background:var(--btn-bg); color:var(--text); }
+.rack-action-btn.secondary:hover { background:var(--btn-hv); }
+.rack-action-btn.danger { background:rgba(192,74,74,0.2); border-color:rgba(192,74,74,0.4); color:#c06060; }
+.rack-action-btn.danger:hover { background:rgba(192,74,74,0.35); }
+.rack-detail-tabs { display:flex; background:var(--panel-hdr); border-bottom:1px solid var(--border); flex-shrink:0; }
+.rack-tab-btn { padding:4px 8px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:10px; cursor:pointer; }
+.rack-tab-btn:hover { color:var(--text); }
+.rack-tab-btn.active { color:var(--text-bright); border-bottom-color:var(--accent); }
 
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.78rem;
-        }
+/* antenna item in list */
+.ant-item { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:flex-start; gap:5px; cursor:pointer; }
+.ant-item:hover { background:rgba(255,255,255,0.03); }
+.ant-item.sel { background:rgba(74,127,192,0.15); }
+.ant-item-info { flex:1; min-width:0; }
+.ant-item-name { font-size:11px; color:var(--text-bright); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ant-item-specs { font-size:9px; color:var(--text-dim); margin-top:1px; }
+.ant-rm { width:16px; height:16px; flex-shrink:0; background:transparent; border:none; color:var(--text-dim); font-size:11px; cursor:pointer; }
+.ant-rm:hover { color:var(--danger); }
 
-        /* ===== TOOLBAR ===== */
-        .toolbar {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-
-        .tool-btn {
-            padding: 8px 12px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #cbd5e1;
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .tool-btn:hover {
-            background: #334155;
-            border-color: #475569;
-        }
-
-        .tool-btn.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-        }
-
-        /* ===== ANTENNA LIST ===== */
-        .antenna-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .antenna-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: #1e293b;
-            border-radius: 6px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-        }
-
-        .antenna-item .info {
-            flex: 1;
-        }
-
-        .antenna-item .info .name {
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-
-        .antenna-item .info .specs {
-            color: #94a3b8;
-            font-size: 0.72rem;
-        }
-
-        .antenna-item .badge {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .badge-omni { background: #065f46; color: #6ee7b7; }
-        .badge-direccional { background: #7c2d12; color: #fdba74; }
-        .badge-panel { background: #5b21b6; color: #c4b5fd; }
-
-        /* ===== MAIN CANVAS AREA ===== */
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .canvas-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-            background: #0f172a;
-        }
-
-        #mainCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        .canvas-overlay {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .zoom-controls {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .zoom-btn {
-            width: 36px;
-            height: 36px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #cbd5e1;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .zoom-btn:hover {
-            background: #334155;
-        }
-
-        .status-bar {
-            padding: 8px 20px;
-            background: #111827;
-            border-top: 1px solid #1e293b;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* ===== LEGEND ===== */
-        .legend {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            background: rgba(17, 24, 39, 0.9);
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.75rem;
-        }
-
-        .legend h4 {
-            margin-bottom: 8px;
-            color: #cbd5e1;
-        }
-
-        .legend-bar {
-            width: 150px;
-            height: 16px;
-            border-radius: 4px;
-            background: linear-gradient(to right, #dc2626, #f59e0b, #22c55e, #16a34a);
-            margin-bottom: 4px;
-        }
-
-        .legend-labels {
-            display: flex;
-            justify-content: space-between;
-            color: #94a3b8;
-        }
-
-        /* ===== MODAL ===== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 24px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal h2 {
-            margin-bottom: 16px;
-            color: #60a5fa;
-        }
-
-        .modal .form-group {
-            margin-bottom: 14px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .modal-actions .btn {
-            flex: 1;
-        }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 3px;
-        }
-
-        /* ===== TOOLTIP ===== */
-        .tooltip {
-            position: absolute;
-            background: rgba(17, 24, 39, 0.95);
-            border: 1px solid #334155;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 0.78rem;
-            color: #e2e8f0;
-            pointer-events: none;
-            z-index: 500;
-            display: none;
-        }
-    </style>
+.place-banner { padding:5px 8px; background:rgba(74,127,192,0.2); border-bottom:1px solid rgba(74,127,192,0.3); font-size:10px; color:#6ab; display:none; }
+.place-banner.visible { display:block; }
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h1>📡 RF Coverage Planner</h1>
-                <p>Diseño y simulación de cobertura RF</p>
-            </div>
+<nav class="top-nav">
+  <div class="nav-brand">📡 RF Coverage Planner</div>
+  <button class="nav-tab active" onclick="switchTab('venue',this)">Venue</button>
+  <button class="nav-tab" onclick="switchTab('antenas',this)">Antenas</button>
+  <button class="nav-tab" onclick="switchTab('cobertura',this)">Cobertura</button>
+  <button class="nav-tab" onclick="switchTab('racks',this)">Racks</button>
+  <div class="nav-status" id="navStatus">Listo</div>
+</nav>
 
-            <!-- ESCENARIO -->
-            <div class="sidebar-section">
-                <h3>📐 Escenario</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Ancho (m)</label>
-                        <input type="number" id="scenarioWidth" value="18" min="5" max="500">
-                    </div>
-                    <div class="form-group">
-                        <label>Profundidad (m)</label>
-                        <input type="number" id="scenarioHeight" value="13" min="5" max="500">
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="updateScenario()">🔄 Actualizar Escenario</button>
-            </div>
-
-            <!-- HERRAMIENTAS -->
-            <div class="sidebar-section">
-                <h3>🛠️ Herramientas</h3>
-                <div class="toolbar">
-                    <button class="tool-btn active" data-tool="select" onclick="setTool('select')">🖱️ Seleccionar</button>
-                    <button class="tool-btn" data-tool="wall" onclick="setTool('wall')">🧱 Muro</button>
-                    <button class="tool-btn" data-tool="obstacle" onclick="setTool('obstacle')">📦 Obstáculo</button>
-                    <button class="tool-btn" data-tool="antenna" onclick="setTool('antenna')">📡 Antena</button>
-                    <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')">🗑️ Borrar</button>
-                </div>
-                <button class="btn btn-warning btn-sm" onclick="clearAll()">🗑️ Limpiar Todo</button>
-            </div>
-
-            <!-- OBSTÁCULOS -->
-            <div class="sidebar-section">
-                <h3>🧱 Tipo de Obstáculo</h3>
-                <div class="form-group">
-                    <label>Material</label>
-                    <select id="wallMaterial">
-                        <option value="drywall">Pladur / Drywall (3 dB)</option>
-                        <option value="wood">Madera (5 dB)</option>
-                        <option value="brick" selected>Ladrillo (8 dB)</option>
-                        <option value="concrete">Hormigón (12 dB)</option>
-                        <option value="reinforced_concrete">Hormigón armado (15 dB)</option>
-                        <option value="glass">Cristal (2 dB)</option>
-                        <option value="metal">Metal (20 dB)</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Altura (m)</label>
-                        <input type="number" id="wallHeight" value="3" min="0.5" max="10" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>Espesor (m)</label>
-                        <input type="number" id="wallThickness" value="0.2" min="0.05" max="2" step="0.05">
-                    </div>
-                </div>
-            </div>
-
-            <!-- ANTENAS -->
-            <div class="sidebar-section">
-                <h3>📡 Antenas</h3>
-                <div class="form-group">
-                    <label>Seleccionar Antena</label>
-                    <select id="antennaSelect" onchange="updateAntennaFreqRange()">
-                        <!-- Genéricas -->
-                        <option value="omni_5dbi">Omni 5 dBi (Genérica)</option>
-                        <option value="omni_9dbi">Omni 9 dBi (Genérica)</option>
-                        <option value="panel_14dbi">Panel 14 dBi (Genérica)</option>
-                        <option value="direccional_21dbi">Direccional 21 dBi (Genérica)</option>
-                        
-                        <!-- SHURE -->
-                        <optgroup label="——— SHURE ———"></optgroup>
-                        <option value="shure_ha8089">Shure HA-8089 (Dipolo 1/4 onda)</option>
-                        <option value="shure_ua830wb">Shure UA830WB (Activa 0-180°)</option>
-                        <option value="shure_ua870wb">Shure UA870WB (Direccional 90°)</option>
-                        <option value="shure_ua874wb">Shure UA874WB (Direccional 90° UHF)</option>
-                        <option value="shure_pa805wb">Shure PA805WB (Panel plano)</option>
-                        <option value="shure_pa820wb">Shure PA820WB (Panel activo)</option>
-                        <option value="shure_uah880wb">Shure UAH880WB (Híbrida activa)</option>
-                        <option value="shure_ua8100wb">Shure UA8100WB (Log-periódica)</option>
-                        <option value="shure_an800b">Shure AN/800B (Dipolo medio)</option>
-                        
-                        <!-- SENNHEISER -->
-                        <optgroup label="——— SENNHEISER ———"></optgroup>
-                        <option value="sennheiser_a50cp">Sennheiser A 50 CP (Circular polarizada)</option>
-                        <option value="sennheiser_abg4">Sennheiser ABG 4 (Dipolo 1/4 onda)</option>
-                        <option value="sennheiser_aa5d">Sennheiser AA 5 D (Dipolo plegable)</option>
-                        <option value="sennheiser_l6000">Sennheiser L 6000 (Log-periódica)</option>
-                        <option value="sennheiser_adp_uhf">Sennheiser ADP-UHF (Direccional UHF)</option>
-                        <option value="sennheiser_ac4200">Sennheiser AC 4200 (Activa omnidireccional)</option>
-                        <option value="sennheiser_ac4210">Sennheiser AC 4210 (Activa direccional)</option>
-                        <option value="sennheiser_ac4220">Sennheiser AC 4220 (Activa panel)</option>
-                        <option value="sennheiser_ac4230">Sennheiser AC 4230 (Activa Yagi)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Rango de Frecuencia</label>
-                    <select id="antennaFreqRange" onchange="calculateAvgFrequency()">
-                        <option value="custom">Personalizado</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Frec. Mín (MHz)</label>
-                        <input type="number" id="freqMin" value="470" min="50" max="6000" step="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Frec. Máx (MHz)</label>
-                        <input type="number" id="freqMax" value="952" min="50" max="6000" step="1">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Frecuencia Promedio (MHz)</label>
-                    <input type="number" id="avgFrequency" value="711" readonly style="background: #0f172a; color: #94a3b8;">
-                </div>
-                <div class="form-group">
-                    <label>Potencia TX (dBm)</label>
-                    <input type="number" id="txPower" value="20" min="-10" max="30" step="1">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Altura antena (m)</label>
-                        <input type="number" id="antennaHeight" value="3" min="0.5" max="15" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>Inclinación vert. (°)</label>
-                        <input type="number" id="antennaTilt" value="0" min="-90" max="90" step="1">
-                    </div>
-                </div>
-                <button class="btn btn-success btn-sm" onclick="openAntennaModal()">➕ Añadir Antena al Mapa</button>
-            </div>
-
-            <!-- ANTENAS COLOCADAS -->
-            <div class="sidebar-section">
-                <h3>📋 Antenas Colocadas</h3>
-                <div class="antenna-list" id="placedAntennas">
-                    <p style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 12px;">
-                        No hay antenas colocadas
-                    </p>
-                </div>
-            </div>
-
-            <!-- CALCULAR -->
-            <div class="sidebar-section">
-                <h3>📊 Cálculo</h3>
-                <div class="form-group">
-                    <label>Modelo de propagación</label>
-                    <select id="propagationModel">
-                        <option value="multiwall">Multi-Wall (Recomendado)</option>
-                        <option value="logdistance">Log-Distance</option>
-                        <option value="fspl">Espacio Libre</option>
-                        <option value="itur">ITU-R P.1238</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Resolución (px)</label>
-                    <select id="resolution">
-                        <option value="2">Baja (rápido)</option>
-                        <option value="1" selected>Media</option>
-                        <option value="0.5">Alta (lento)</option>
-                    </select>
-                </div>
-                <button class="btn btn-success" onclick="calculateCoverage()">🔥 Calcular Cobertura</button>
-            </div>
+<div class="main-layout">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="venue-panel" id="venuePanel">
+      <!-- All elements -->
+      <div style="border-bottom:1px solid var(--border); flex-shrink:0;">
+        <div class="sec-hdr">
+          All elements
+          <div class="sec-hdr-btns">
+            <button class="sec-hdr-btn" title="Add" onclick="showAddMenu(event)">+</button>
+            <button class="sec-hdr-btn">&gt;&gt;</button>
+          </div>
         </div>
-
-        <!-- MAIN AREA -->
-        <div class="main-area">
-            <div class="canvas-container" id="canvasContainer">
-                <canvas id="mainCanvas"></canvas>
-                <div class="canvas-overlay">
-                    <span style="background: rgba(17,24,39,0.8); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8;">
-                        🖱️ Click para colocar | Scroll para zoom | Arrastrar desde el centro | 🔄 Click en la punta (🔴) para rotar
-                    </span>
-                </div>
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()">+</button>
-                    <button class="zoom-btn" onclick="zoomOut()">−</button>
-                    <button class="zoom-btn" onclick="resetView()">⌂</button>
-                </div>
-                <div class="legend">
-                    <h4>RSSI (dBm)</h4>
-                    <div class="legend-bar"></div>
-                    <div class="legend-labels">
-                        <span>-90</span>
-                        <span>-70</span>
-                        <span>-50</span>
-                        <span>-30</span>
-                    </div>
-                </div>
-            </div>
-            <div class="status-bar">
-                <span id="statusText">Listo - Selecciona una herramienta y haz click en el mapa</span>
-                <span id="coordsText">X: 0 m | Y: 0 m</span>
-            </div>
+        <div class="el-table-wrap">
+          <table class="el-table">
+            <thead>
+              <tr>
+                <th>Name</th><th></th><th>Type</th><th>Color</th><th>Show</th><th>Lock</th><th>Tr.</th>
+              </tr>
+            </thead>
+            <tbody id="elTableBody"></tbody>
+          </table>
         </div>
+      </div>
+
+      <!-- Selected elements / Measurements -->
+      <div class="sel-panel">
+        <div class="sec-hdr">Selected elements / Measurements</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="setSelTab('sel',this)">Selected elements</button>
+          <button class="tab-btn" onclick="setSelTab('meas',this)">Measurements</button>
+        </div>
+        <div class="tab-body" id="selTabBody">
+          <p class="dim-msg">Note: Detailed information can only be provided when a venue element has been selected.</p>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="comments-sec" style="flex-shrink:0;">
+        <div class="sec-hdr">Comments</div>
+        <textarea class="comment-ta" placeholder="Notas sobre el venue..."></textarea>
+      </div>
     </div>
 
-    <!-- MODAL ANTENA -->
-    <div class="modal-overlay" id="antennaModal">
-        <div class="modal">
-            <h2>📡 Colocar Antena</h2>
-            <div class="form-group">
-                <label>Nombre de la antena</label>
-                <input type="text" id="antennaName" placeholder="Ej: AP-Planta1-01">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Posición X (m)</label>
-                    <input type="number" id="antennaX" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label>Posición Y (m)</label>
-                    <input type="number" id="antennaY" step="0.1">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Orientación (°)</label>
-                    <input type="number" id="antennaAngle" value="0" min="0" max="360">
-                </div>
-                <div class="form-group">
-                    <label>Canal</label>
-                    <input type="number" id="antennaChannel" value="1" min="1" max="14">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Altura (m)</label>
-                    <input type="number" id="modalAntennaHeight" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label>Inclinación vert. (°)</label>
-                    <input type="number" id="modalAntennaTilt" value="0" min="-90" max="90" step="1">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Frec. Promedio (MHz)</label>
-                    <input type="number" id="modalAvgFrequency" readonly style="background: #0f172a; color: #94a3b8;">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="placeAntenna()">✅ Colocar</button>
-                <button class="btn btn-danger" onclick="closeAntennaModal()">❌ Cancelar</button>
-            </div>
+    <!-- ANTENAS tab content (left panel) -->
+    <div class="ant-panel" id="antPanel">
+      <div class="sec-hdr">Antenas colocadas
+        <div class="sec-hdr-btns">
+          <button class="sec-hdr-btn" onclick="setAntPlaceMode()" title="Activar modo colocación">+</button>
         </div>
+      </div>
+      <div id="antListBody" style="overflow-y:auto;flex:1;">
+        <p class="dim-msg" style="padding:8px;">Sin antenas. Configura y pulsa "Colocar Antena" →</p>
+      </div>
     </div>
 
-    <div class="tooltip" id="tooltip"></div>
+    <!-- RACKS tab content (left panel) -->
+    <div class="ant-panel" id="rackPanel">
+      <div class="sec-hdr">System Groups
+        <div class="sec-hdr-btns">
+          <button class="sec-hdr-btn" title="Add group" onclick="focusAddRackGroup()">+</button>
+        </div>
+      </div>
+      <div id="rackListBody" style="overflow-y:auto;flex:0 0 auto;max-height:200px;">
+        <p class="dim-msg" style="padding:8px;">No groups yet. Add one in the right panel.</p>
+      </div>
+      <!-- Detail tabs for selected group -->
+      <div id="rackDetailArea" style="display:none;flex:1;flex-direction:column;min-height:0;border-top:1px solid var(--border);">
+        <div class="rack-detail-tabs">
+          <button class="rack-tab-btn active" onclick="setRackDetailTab('channels',this)">Channels</button>
+          <button class="rack-tab-btn" onclick="setRackDetailTab('wiring',this)">Wiring</button>
+        </div>
+        <div id="rackDetailBody" style="flex:1;overflow-y:auto;padding:0;"></div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        // ==========================================
-        // CONFIGURACIÓN GLOBAL
-        // ==========================================
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
-        const container = document.getElementById('canvasContainer');
+  <!-- CENTER -->
+  <div class="center">
+    <div class="view-tabs-bar">
+      <button class="view-tab active" onclick="setViewMode('edit',this)">Edit</button>
+      <button class="view-tab" onclick="setViewMode('preview',this)">Preview</button>
+      <div class="canvas-info" id="canvasInfo"></div>
+    </div>
+    <div class="top-view" id="topViewCont">
+      <canvas id="topCanvas" tabindex="0"></canvas>
+      <div class="canvas-coords" id="topCoords">X: 0.0 m | Y: 0.0 m</div>
+    </div>
+    <div class="profile-hdr" id="profileHdr">Profile view</div>
+    <div class="profile-view" id="profileViewCont">
+      <canvas id="profileCanvas"></canvas>
+      <div class="canvas-coords" id="profileCoords">Y: 0.0 m | Z: 0.0 m</div>
+    </div>
 
-        let state = {
-            scenario: { width: 18, height: 13 },
-            tools: { current: 'select' },
-            walls: [],
-            obstacles: [],
-            antennas: [],
-            coverage: null,
-            zoom: 1,
-            pan: { x: 0, y: 0 },
-            isDrawing: false,
-            drawStart: null,
-            selectedAntenna: null,
-            mousePos: { x: 0, y: 0 },
-            isDragging: false,
-            dragOffset: { x: 0, y: 0 },
-            isRotating: false,
-            rotationCenter: null,
-            coverageUpdateTimeout: null
-        };
+    <!-- RACKS center view -->
+    <div id="rackView">
+      <div class="rack-canvas-wrap" id="rackCanvasWrap">
+        <canvas id="rackCanvas"></canvas>
+        <div class="rack-empty-msg" id="rackEmptyMsg">Add a system group to see the rack diagram.</div>
+      </div>
+      <div style="height:22px;background:var(--panel-hdr);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 8px;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;">
+        Signal chain diagram
+      </div>
+      <div class="rack-conn-wrap" id="rackConnWrap">
+        <canvas id="connCanvas"></canvas>
+      </div>
+    </div>
+  </div>
 
-        const WALL_MATERIALS = {
-            drywall: { loss: 3, color: '#a78bfa', label: 'Pladur' },
-            wood: { loss: 5, color: '#92400e', label: 'Madera' },
-            brick: { loss: 8, color: '#b45309', label: 'Ladrillo' },
-            concrete: { loss: 12, color: '#6b7280', label: 'Hormigón' },
-            reinforced_concrete: { loss: 15, color: '#4b5563', label: 'Hormigón Armado' },
-            glass: { loss: 2, color: '#93c5fd', label: 'Cristal' },
-            metal: { loss: 20, color: '#d1d5db', label: 'Metal' }
-        };
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
 
-        // Rangos de frecuencia para antenas SHURE y SENNHEISER (MHz)
-        const ANTENNA_FREQ_RANGES = {
-            // SHURE - Sistemas inalámbricos de audio profesional
-            shure_ha8089: { min: 470, max: 952 },
-            shure_ua830wb: { min: 470, max: 952 },
-            shure_ua870wb: { min: 470, max: 952 },
-            shure_ua874wb: { min: 470, max: 952 },
-            shure_pa805wb: { min: 470, max: 952 },
-            shure_pa820wb: { min: 470, max: 952 },
-            shure_uah880wb: { min: 470, max: 952 },
-            shure_ua8100wb: { min: 470, max: 952 },
-            shure_an800b: { min: 470, max: 952 },
-            
-            // SENNHEISER - Sistemas inalámbricos de audio profesional
-            sennheiser_a50cp: { min: 470, max: 952 },
-            sennheiser_abg4: { min: 470, max: 952 },
-            sennheiser_aa5d: { min: 470, max: 952 },
-            sennheiser_l6000: { min: 470, max: 952 },
-            sennheiser_adp_uhf: { min: 470, max: 952 },
-            sennheiser_ac4200: { min: 470, max: 952 },
-            sennheiser_ac4210: { min: 470, max: 952 },
-            sennheiser_ac4220: { min: 470, max: 952 },
-            sennheiser_ac4230: { min: 470, max: 952 },
-            
-            // Genéricas
-            omni_5dbi: { min: 470, max: 952 },
-            omni_9dbi: { min: 470, max: 952 },
-            panel_14dbi: { min: 470, max: 952 },
-            direccional_21dbi: { min: 470, max: 952 }
-        };
+    <!-- ANTENNA RIGHT PANEL -->
+    <div class="ant-right" id="antRightPanel">
+      <div class="r-sec">
+        <div class="r-hdr">Modelo de antena</div>
+        <div style="padding:6px 8px;display:flex;flex-direction:column;gap:5px;">
+          <div><div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Modelo</div>
+            <select class="pi" id="antModel" style="font-size:10px;" onchange="onAntModelChange()">
+              <optgroup label="─ Genéricas ─">
+                <option value="omni_2.5_360">Omni 2.5 dBi</option>
+                <option value="omni_5_360">Omni 5 dBi</option>
+                <option value="omni_9_360">Omni 9 dBi</option>
+                <option value="panel_9_120">Panel 9 dBi (120°)</option>
+                <option value="panel_14_90">Panel 14 dBi (90°)</option>
+                <option value="dir_10_60">Log-periódica 10 dBi (60°)</option>
+                <option value="dir_21_30">Direccional 21 dBi (30°)</option>
+              </optgroup>
+              <optgroup label="─ Shure ─">
+                <option value="omni_2.5_360">HA-8089 (Dipolo 2.5 dBi)</option>
+                <option value="omni_5_180">UA830WB (Activa 5 dBi)</option>
+                <option value="dir_7_90">UA870WB (Direcc. 7 dBi 90°)</option>
+                <option value="panel_9_120">PA805WB (Panel 9 dBi)</option>
+                <option value="panel_11_100">PA820WB (Panel 11 dBi)</option>
+                <option value="dir_10_60">UA8100WB (Log 10 dBi 60°)</option>
+              </optgroup>
+              <optgroup label="─ Sennheiser ─">
+                <option value="omni_5_360">A 50 CP (Omni 5 dBi)</option>
+                <option value="omni_2_360">ABG 4 (Dipolo 2 dBi)</option>
+                <option value="dir_10_60">L 6000 (Log 10 dBi 60°)</option>
+                <option value="panel_10_120">AC 4220 (Panel 10 dBi)</option>
+                <option value="dir_12_45">AC 4230 (Yagi 12 dBi 45°)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="pr">
+            <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">TX (dBm)</div>
+              <input class="pi" type="number" id="antTx" value="20" min="-10" max="30" step="1" style="font-size:10px;">
+            </div>
+            <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Altura (m)</div>
+              <input class="pi" type="number" id="antHeight" value="3" min="0.5" max="15" step="0.5" style="font-size:10px;">
+            </div>
+          </div>
+          <div class="pr">
+            <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Ángulo (°)</div>
+              <input class="pi" type="number" id="antAngle" value="0" min="0" max="360" step="5" style="font-size:10px;">
+            </div>
+            <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Frec (MHz)</div>
+              <input class="pi" type="number" id="antFreq" value="711" min="50" max="6000" step="1" style="font-size:10px;">
+            </div>
+          </div>
+          <button class="origin-btn" id="placeModeBtn" onclick="setAntPlaceMode()" style="background:rgba(74,127,192,0.25);border-color:#4a7fc0;color:#6ab;">
+            📡 Colocar Antena
+          </button>
+          <div class="place-banner" id="placeBanner">Click en el mapa para colocar · ESC para cancelar</div>
+        </div>
+      </div>
+      <div class="r-sec">
+        <div class="r-hdr">Herramientas</div>
+        <div class="tool-grid">
+          <button class="tool-btn" onclick="zoomIn()">🔍 Zoom in</button>
+          <button class="tool-btn" onclick="zoomOut()">🔎 Zoom out</button>
+          <button class="tool-btn danger" onclick="delSelAnt()">✕ Delete</button>
+          <button class="tool-btn" onclick="clearAllAnts()">🗑 Clear all</button>
+        </div>
+      </div>
+    </div>
 
-        const ANTENNA_DATABASE = {
-            // Genéricas
-            omni_5dbi: { name: 'Omni 5 dBi', gain: 5, type: 'omni', beamwidth: 360 },
-            omni_9dbi: { name: 'Omni 9 dBi', gain: 9, type: 'omni', beamwidth: 360 },
-            panel_14dbi: { name: 'Panel 14 dBi', gain: 14, type: 'panel', beamwidth: 90 },
-            direccional_21dbi: { name: 'Direccional 21 dBi', gain: 21, type: 'direccional', beamwidth: 30 },
-            
-            // SHURE - Antenas para sistemas inalámbricos de audio profesional
-            shure_ha8089: { name: 'Shure HA-8089', gain: 2.5, type: 'omni', beamwidth: 360 },
-            shure_ua830wb: { name: 'Shure UA830WB', gain: 5, type: 'omni', beamwidth: 180 },
-            shure_ua870wb: { name: 'Shure UA870WB', gain: 7, type: 'direccional', beamwidth: 90 },
-            shure_ua874wb: { name: 'Shure UA874WB', gain: 7, type: 'direccional', beamwidth: 90 },
-            shure_pa805wb: { name: 'Shure PA805WB', gain: 9, type: 'panel', beamwidth: 120 },
-            shure_pa820wb: { name: 'Shure PA820WB', gain: 11, type: 'panel', beamwidth: 100 },
-            shure_uah880wb: { name: 'Shure UAH880WB', gain: 8, type: 'direccional', beamwidth: 120 },
-            shure_ua8100wb: { name: 'Shure UA8100WB', gain: 10, type: 'direccional', beamwidth: 60 },
-            shure_an800b: { name: 'Shure AN/800B', gain: 3, type: 'omni', beamwidth: 360 },
-            
-            // SENNHEISER - Antenas para sistemas inalámbricos de audio profesional
-            sennheiser_a50cp: { name: 'Sennheiser A 50 CP', gain: 5, type: 'omni', beamwidth: 360 },
-            sennheiser_abg4: { name: 'Sennheiser ABG 4', gain: 2, type: 'omni', beamwidth: 360 },
-            sennheiser_aa5d: { name: 'Sennheiser AA 5 D', gain: 2.5, type: 'omni', beamwidth: 360 },
-            sennheiser_l6000: { name: 'Sennheiser L 6000', gain: 10, type: 'direccional', beamwidth: 60 },
-            sennheiser_adp_uhf: { name: 'Sennheiser ADP-UHF', gain: 6, type: 'direccional', beamwidth: 90 },
-            sennheiser_ac4200: { name: 'Sennheiser AC 4200', gain: 6, type: 'omni', beamwidth: 360 },
-            sennheiser_ac4210: { name: 'Sennheiser AC 4210', gain: 8, type: 'direccional', beamwidth: 90 },
-            sennheiser_ac4220: { name: 'Sennheiser AC 4220', gain: 10, type: 'panel', beamwidth: 120 },
-            sennheiser_ac4230: { name: 'Sennheiser AC 4230', gain: 12, type: 'direccional', beamwidth: 45 }
-        };
+    <!-- COBERTURA RIGHT PANEL -->
+    <div class="ant-right" id="covRightPanel">
+      <div class="r-sec">
+        <div class="r-hdr">Cálculo de cobertura</div>
+        <div style="padding:6px 8px;display:flex;flex-direction:column;gap:5px;">
+          <div><div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Modelo de propagación</div>
+            <select class="pi" id="covModel" style="font-size:10px;">
+              <option value="multiwall">Multi-Wall (recomendado)</option>
+              <option value="logdist">Log-Distance (n=2.5)</option>
+              <option value="fspl">Espacio Libre (FSPL)</option>
+            </select>
+          </div>
+          <div><div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Resolución</div>
+            <select class="pi" id="covRes" style="font-size:10px;">
+              <option value="2">Baja – 2 m (rápido)</option>
+              <option value="1" selected>Media – 1 m</option>
+              <option value="0.5">Alta – 0.5 m (lento)</option>
+            </select>
+          </div>
+          <div><div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Altura receptor (m)</div>
+            <input class="pi" type="number" id="covRxH" value="1.2" step="0.1" style="font-size:10px;">
+          </div>
+          <button class="origin-btn" style="background:rgba(74,160,100,0.3);border-color:#4aa060;color:#6aba80;margin-top:2px;" onclick="calculateCoverage()">
+            🔥 Calcular Cobertura
+          </button>
+          <button class="origin-btn" onclick="clearCoverage()" style="font-size:10px;">✕ Limpiar mapa</button>
+        </div>
+      </div>
+      <div class="r-sec">
+        <div class="r-hdr">Leyenda RSSI</div>
+        <div style="padding:7px 8px;">
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:9px;color:var(--text-dim);">
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(22,163,74,0.7);display:inline-block;border-radius:1px;"></span>&gt; −50 dBm (Excelente)</div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(132,204,22,0.7);display:inline-block;border-radius:1px;"></span>−60 a −50 dBm (Buena)</div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(234,179,8,0.7);display:inline-block;border-radius:1px;"></span>−65 a −60 dBm (Aceptable)</div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(249,115,22,0.7);display:inline-block;border-radius:1px;"></span>−70 a −65 dBm (Débil)</div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(239,68,68,0.7);display:inline-block;border-radius:1px;"></span>−80 a −70 dBm (Marginal)</div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:10px;background:rgba(120,20,20,0.7);display:inline-block;border-radius:1px;"></span>&lt; −80 dBm (Sin cobertura)</div>
+          </div>
+        </div>
+      </div>
+      <div class="r-sec">
+        <div class="r-hdr">Herramientas</div>
+        <div class="tool-grid">
+          <button class="tool-btn" onclick="zoomIn()">🔍 Zoom in</button>
+          <button class="tool-btn" onclick="zoomOut()">🔎 Zoom out</button>
+        </div>
+      </div>
+    </div>
 
-        // ==========================================
-        // INICIALIZACIÓN
-        // ==========================================
-        function init() {
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            canvas.addEventListener('mousedown', onMouseDown);
-            canvas.addEventListener('mousemove', onMouseMove);
-            canvas.addEventListener('mouseup', onMouseUp);
-            canvas.addEventListener('wheel', onWheel);
-            canvas.addEventListener('contextmenu', e => e.preventDefault());
-            updateAntennaFreqRange();
-            calculateAvgFrequency();
-            draw();
+    <!-- VENUE RIGHT PANEL -->
+    <div class="venue-right" id="venueRightPanel">
+    <div class="r-sec">
+      <div class="r-hdr">Add venue element</div>
+      <button class="shape-btn" onclick="addEl('triangular')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="9,1 17,12 1,12"/></svg>
+        Triangular
+      </button>
+      <button class="shape-btn" onclick="addEl('quadrangular')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="16" height="11"/></svg>
+        Quadrangular
+      </button>
+      <button class="shape-btn" onclick="addEl('arc')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 12 A8 8 0 0 1 1 4 L9 4 Z"/></svg>
+        Arc segment
+      </button>
+      <button class="shape-btn" onclick="addEl('superelliptic')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="16" height="11" rx="4"/></svg>
+        Superelliptic
+      </button>
+    </div>
+
+    <div class="r-sec">
+      <div class="r-hdr">Tools</div>
+      <div class="tool-grid">
+        <button class="tool-btn" onclick="zoomIn()">🔍 Zoom in</button>
+        <button class="tool-btn" onclick="zoomOut()">🔎 Zoom out</button>
+        <button class="tool-btn" onclick="dupSel()">⊞ Duplicate</button>
+        <button class="tool-btn" onclick="mirrorSel('y')">⇅ Mirror y</button>
+        <button class="tool-btn" onclick="mirrorSel('x')">⇆ Mirror x</button>
+        <button class="tool-btn" onclick="doUndo()">↩ Undo</button>
+        <button class="tool-btn" onclick="doRedo()">↪ Redo</button>
+        <button class="tool-btn danger" onclick="delSel()">✕ Delete</button>
+      </div>
+    </div>
+
+    <div class="r-sec">
+      <div class="r-hdr">Move origin ✛</div>
+      <div class="origin-body">
+        <div class="orow"><span class="olbl">x:</span><input class="oi" id="oxIn" type="number" value="0" step="0.1"><span class="ounit">m</span></div>
+        <div class="orow"><span class="olbl">y:</span><input class="oi" id="oyIn" type="number" value="0" step="0.1"><span class="ounit">m</span></div>
+        <div class="orow"><span class="olbl">z:</span><input class="oi" id="ozIn" type="number" value="0" step="0.1"><span class="ounit">m</span></div>
+        <button class="origin-btn" onclick="moveOrigin()">✛ Move origin</button>
+      </div>
+    </div>
+    </div><!-- end venueRightPanel -->
+
+    <!-- RACKS RIGHT PANEL -->
+    <div class="ant-right" id="rackRightPanel">
+      <div class="r-sec">
+        <div class="r-hdr">Add System Group</div>
+        <div class="rack-right-form">
+          <div class="pg"><div class="pl">Name</div>
+            <input class="pi" type="text" id="rgName" placeholder="e.g. IEM Pack A" style="font-size:10px;">
+          </div>
+          <div class="pg"><div class="pl">Type</div>
+            <select class="pi" id="rgType" style="font-size:10px;" onchange="filterSplittersByType()">
+              <option value="IEM">IEM</option>
+              <option value="MIC">MIC Wireless</option>
+              <option value="BP">Bodypack</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl">Receiver Model</div>
+            <select class="pi" id="rgModel" style="font-size:10px;">
+              <optgroup label="Shure">
+                <option value="shure_psm300">PSM300</option>
+                <option value="shure_psm900">PSM900</option>
+                <option value="shure_psm1000">PSM1000</option>
+                <option value="shure_ulxd4">ULXD4</option>
+                <option value="shure_ulxd4d">ULXD4D (2ch)</option>
+                <option value="shure_ad4q">AD4Q (4ch)</option>
+              </optgroup>
+              <optgroup label="Sennheiser">
+                <option value="senn_sr2050">SR2050 IEM</option>
+                <option value="senn_ewdx_iem">EW-DX IEM (2ch)</option>
+                <option value="senn_em6000">EM6000 (2ch)</option>
+                <option value="senn_ewdx_hh">EW-DX HH (2ch)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="pr">
+            <div class="pg"><div class="pl"># Channels</div>
+              <input class="pi" type="number" id="rgChannels" value="4" min="1" max="32" style="font-size:10px;">
+            </div>
+            <div class="pg"><div class="pl">Color</div>
+              <input class="pi" type="color" id="rgColor" value="#1a3a6a" style="font-size:10px;padding:1px 3px;height:22px;cursor:pointer;">
+            </div>
+          </div>
+          <div class="pg"><div class="pl">Start Frequency (MHz)</div>
+            <input class="pi" type="number" id="rgFreqStart" value="606.000" step="0.25" style="font-size:10px;">
+          </div>
+          <div class="pg"><div class="pl">Frequency Step</div>
+            <select class="pi" id="rgFreqStep" style="font-size:10px;">
+              <option value="0.25">250 kHz</option>
+              <option value="0.5">500 kHz</option>
+              <option value="1">1 MHz</option>
+            </select>
+          </div>
+          <button class="rack-action-btn primary" onclick="addRackGroup()">+ Add Group</button>
+        </div>
+      </div>
+      <div class="r-sec">
+        <div class="r-hdr">Antenna Distribution</div>
+        <div class="rack-right-form">
+          <div class="pg"><div class="pl"># Antenna Runs</div>
+            <select class="pi" id="rgAntRuns" style="font-size:10px;" onchange="updateRackWiringCalc()">
+              <option value="1">1 Run</option>
+              <option value="2">2 Runs</option>
+              <option value="4">4 Runs</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl" id="splitterLabel">Splitter / Combiner</div>
+            <select class="pi" id="rgSplitter" style="font-size:10px;" onchange="updateRackWiringCalc()">
+              <option value="none">— None —</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl">Cable Type</div>
+            <select class="pi" id="rgCableType" style="font-size:10px;" onchange="updateRackWiringCalc()">
+              <option value="RG8">RG8 (0.05 dB/m)</option>
+              <option value="RG58">RG58 (0.2 dB/m)</option>
+              <option value="LMR400">LMR-400 (0.03 dB/m)</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl">Cable Length (m)</div>
+            <input class="pi" type="number" id="rgCableLen" value="10" min="0" max="500" step="0.5" style="font-size:10px;" oninput="updateRackWiringCalc()">
+          </div>
+          <div class="loss-display" id="rackLossDisplay">
+            <span class="loss-val">Cable: - dB | Splitter: - dB | Total: - dB</span>
+          </div>
+        </div>
+      </div>
+      <div class="r-sec">
+        <div class="r-hdr">Tools</div>
+        <div class="rack-right-form">
+          <button class="rack-action-btn secondary" onclick="dupRackGroup()">Duplicate Selected</button>
+          <button class="rack-action-btn danger" onclick="delRackGroup()">Delete Selected</button>
+        </div>
+      </div>
+    </div><!-- end rackRightPanel -->
+  </div>
+</div>
+
+<!-- hidden color picker -->
+<input type="color" id="colorPicker" class="color-input-hidden" onchange="onColorPicked(this.value)">
+
+<script>
+// ====================================================
+// STATE
+// ====================================================
+const S = {
+  els: [],
+  selId: null,
+  nextId: 1,
+  viewMode: 'edit',
+  activeTab: 'venue',
+  selSubTab: 'sel',
+  tv: { zoom: 22, px: 0, py: 0 },
+  pv: { zoom: 22, px: 0, py: 0 },
+  hist: [],
+  histIdx: -1,
+  drag: null,
+  pan: null,
+  colorEditId: null,
+  // Antenas
+  antennas: [],
+  nextAntId: 1,
+  selAntId: null,
+  placingAnt: false,
+  antDrag: null,   // {antId, offX, offY}
+  // Cobertura
+  coverage: null,
+  showCov: false
+};
+
+const TYPES = ['Listening','Obstacle','Stage','Wall','Ceiling'];
+const SHAPE_ICONS = { triangular:'△', quadrangular:'□', arc:'◔', superelliptic:'▭' };
+const PALETTE = ['#6b7280','#4a7a9b','#9b6a4a','#5a9b6a','#7a5a9b','#9b8a4a','#4a9b9b','#9b4a6a'];
+let palIdx = 0;
+
+// ====================================================
+// CANVAS SETUP
+// ====================================================
+const topCanvas    = document.getElementById('topCanvas');
+const topCtx       = topCanvas.getContext('2d');
+const profCanvas   = document.getElementById('profileCanvas');
+const profCtx      = profCanvas.getContext('2d');
+const topCont      = document.getElementById('topViewCont');
+const profCont     = document.getElementById('profileViewCont');
+
+function resize() {
+  topCanvas.width  = topCont.clientWidth;
+  topCanvas.height = topCont.clientHeight;
+  profCanvas.width  = profCont.clientWidth;
+  profCanvas.height = profCont.clientHeight;
+  render();
+  if(S.activeTab==='racks') resizeRackCanvases();
+}
+window.addEventListener('resize', resize);
+
+// ====================================================
+// COORD TRANSFORMS
+// ====================================================
+function w2t(wx, wy) {  // world → top-canvas screen
+  return {
+    x: topCanvas.width/2  + S.tv.px + wx * S.tv.zoom,
+    y: topCanvas.height/2 + S.tv.py - wy * S.tv.zoom
+  };
+}
+function t2w(sx, sy) {  // top-canvas screen → world
+  return {
+    x:  (sx - topCanvas.width/2  - S.tv.px) / S.tv.zoom,
+    y: -(sy - topCanvas.height/2 - S.tv.py) / S.tv.zoom
+  };
+}
+function w2p(wy, wz) {  // world (y,z) → profile screen
+  return {
+    x: profCanvas.width/2  + S.pv.px + wy * S.pv.zoom,
+    y: profCanvas.height/2 + S.pv.py - wz * S.pv.zoom
+  };
+}
+
+// ====================================================
+// SHAPE GEOMETRY
+// ====================================================
+function getPoints(el, n=60) {
+  switch(el.shape) {
+    case 'quadrangular': return el.verts;
+    case 'triangular':   return el.verts;
+    case 'arc': {
+      const {cx,cy,ri,ro,sa,sw} = el;
+      const pts = [];
+      const steps = Math.max(16, Math.abs(sw));
+      const a0 = sa * Math.PI/180, a1 = (sa+sw) * Math.PI/180;
+      if (ri > 0.01) {
+        for(let i=0;i<=steps;i++) { const a=a0+(a1-a0)*i/steps; pts.push({x:cx+Math.cos(a)*ro, y:cy+Math.sin(a)*ro}); }
+        for(let i=steps;i>=0;i--) { const a=a0+(a1-a0)*i/steps; pts.push({x:cx+Math.cos(a)*ri, y:cy+Math.sin(a)*ri}); }
+      } else {
+        pts.push({x:cx,y:cy});
+        for(let i=0;i<=steps;i++) { const a=a0+(a1-a0)*i/steps; pts.push({x:cx+Math.cos(a)*ro, y:cy+Math.sin(a)*ro}); }
+      }
+      return pts;
+    }
+    case 'superelliptic': {
+      const {cx,cy,a,b,exp} = el;
+      const pts=[];
+      for(let i=0;i<n;i++) {
+        const t=2*Math.PI*i/n;
+        const c=Math.cos(t), s=Math.sin(t);
+        pts.push({
+          x: cx + Math.sign(c)*a*Math.pow(Math.abs(c), 2/exp),
+          y: cy + Math.sign(s)*b*Math.pow(Math.abs(s), 2/exp)
+        });
+      }
+      return pts;
+    }
+  }
+  return [];
+}
+
+function getHandles(el) {
+  if(el.verts) return el.verts.map((v,i)=>({...v,vi:i}));
+  if(el.shape==='arc') {
+    const {cx,cy,ro,sa,sw}=el;
+    const a0=sa*Math.PI/180, a1=(sa+sw)*Math.PI/180, am=(a0+a1)/2;
+    return [
+      {x:cx, y:cy, vi:-1, label:'C'},
+      {x:cx+Math.cos(a0)*ro, y:cy+Math.sin(a0)*ro, vi:-2, label:'A'},
+      {x:cx+Math.cos(a1)*ro, y:cy+Math.sin(a1)*ro, vi:-3, label:'B'},
+      {x:cx+Math.cos(am)*ro, y:cy+Math.sin(am)*ro, vi:-4, label:'R'}
+    ];
+  }
+  if(el.shape==='superelliptic') {
+    const {cx,cy,a,b}=el;
+    return [
+      {x:cx+a, y:cy, vi:-1, label:'+X'},
+      {x:cx-a, y:cy, vi:-2, label:'-X'},
+      {x:cx,   y:cy+b, vi:-3, label:'+Y'},
+      {x:cx,   y:cy-b, vi:-4, label:'-Y'}
+    ];
+  }
+  return [];
+}
+
+function centroid(pts) {
+  if(!pts.length) return {x:0,y:0};
+  return { x:pts.reduce((s,p)=>s+p.x,0)/pts.length, y:pts.reduce((s,p)=>s+p.y,0)/pts.length };
+}
+
+function ptInPoly(px,py,poly) {
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++) {
+    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+    if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+
+function hex2rgba(hex,a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ====================================================
+// ELEMENT CREATION
+// ====================================================
+function addEl(shape) {
+  saveHist();
+  const color = PALETTE[palIdx++ % PALETTE.length];
+  const el = { id:S.nextId++, name:defName(shape), shape, type:'Listening', color, show:true, locked:false, transp:false, z:0, h:0 };
+
+  switch(shape) {
+    case 'quadrangular':
+      el.verts=[{x:-12,y:9},{x:12,y:9},{x:12,y:-9},{x:-12,y:-9}];
+      break;
+    case 'triangular':
+      el.verts=[{x:0,y:9},{x:10,y:-5},{x:-10,y:-5}];
+      break;
+    case 'arc':
+      el.cx=0; el.cy=0; el.ri=0; el.ro=14; el.sa=-90; el.sw=180;
+      break;
+    case 'superelliptic':
+      el.cx=0; el.cy=0; el.a=18; el.b=11; el.exp=4;
+      break;
+  }
+
+  S.els.push(el);
+  S.selId = el.id;
+  refreshAll();
+  setStatus(`"${el.name}" añadido`);
+}
+
+function defName(shape) {
+  const base = {triangular:'Triangle',quadrangular:'Floor',arc:'Arc Corner',superelliptic:'Arena'}[shape]||shape;
+  const cnt = S.els.filter(e=>e.shape===shape).length;
+  return cnt===0 ? base : `${base} ${cnt+1}`;
+}
+
+// ====================================================
+// SHAPE OPERATIONS
+// ====================================================
+function delSel() {
+  if(!S.selId) return;
+  saveHist();
+  S.els = S.els.filter(e=>e.id!==S.selId);
+  S.selId=null;
+  refreshAll();
+}
+
+function dupSel() {
+  if(!S.selId) return;
+  const orig=S.els.find(e=>e.id===S.selId);
+  if(!orig) return;
+  saveHist();
+  const clone=JSON.parse(JSON.stringify(orig));
+  clone.id=S.nextId++;
+  clone.name=orig.name+' Copy';
+  offset(clone, 5, -4);
+  S.els.push(clone);
+  S.selId=clone.id;
+  refreshAll();
+}
+
+function offset(el, dx, dy) {
+  if(el.verts) el.verts=el.verts.map(v=>({x:v.x+dx,y:v.y+dy}));
+  if('cx' in el) { el.cx+=dx; el.cy+=dy; }
+}
+
+function mirrorSel(axis) {
+  const el=S.els.find(e=>e.id===S.selId);
+  if(!el||el.locked) return;
+  saveHist();
+  if(el.verts) {
+    if(axis==='x') el.verts=el.verts.map(v=>({x:-v.x,y:v.y}));
+    else           el.verts=el.verts.map(v=>({x:v.x,y:-v.y}));
+  }
+  if('cx' in el) {
+    if(axis==='x') { el.cx=-el.cx; if('sa' in el) el.sa=180-el.sa-el.sw; }
+    else           { el.cy=-el.cy; if('sa' in el) el.sa=-el.sa-el.sw; }
+  }
+  refreshAll();
+}
+
+function moveOrigin() {
+  const dx=parseFloat(document.getElementById('oxIn').value)||0;
+  const dy=parseFloat(document.getElementById('oyIn').value)||0;
+  saveHist();
+  S.els.forEach(e=>offset(e,-dx,-dy));
+  render();
+}
+
+// ====================================================
+// HISTORY
+// ====================================================
+function saveHist() {
+  const snap=JSON.stringify(S.els);
+  S.hist=S.hist.slice(0,S.histIdx+1);
+  S.hist.push(snap);
+  S.histIdx=S.hist.length-1;
+}
+function doUndo() {
+  if(S.histIdx<=0) return;
+  S.histIdx--;
+  S.els=JSON.parse(S.hist[S.histIdx]);
+  S.selId=null;
+  refreshAll();
+}
+function doRedo() {
+  if(S.histIdx>=S.hist.length-1) return;
+  S.histIdx++;
+  S.els=JSON.parse(S.hist[S.histIdx]);
+  S.selId=null;
+  refreshAll();
+}
+
+// ====================================================
+// ZOOM
+// ====================================================
+function zoomIn()  { S.tv.zoom=Math.min(200,S.tv.zoom*1.25); render(); }
+function zoomOut() { S.tv.zoom=Math.max(2,  S.tv.zoom*0.8);  render(); }
+
+// ====================================================
+// ANTENNA SYSTEM
+// ====================================================
+const ANT_MODELS = {
+  'omni_2.5_360': { gain:2.5, beamwidth:360, type:'omni' },
+  'omni_2_360':   { gain:2,   beamwidth:360, type:'omni' },
+  'omni_5_360':   { gain:5,   beamwidth:360, type:'omni' },
+  'omni_5_180':   { gain:5,   beamwidth:180, type:'omni' },
+  'omni_9_360':   { gain:9,   beamwidth:360, type:'omni' },
+  'panel_9_120':  { gain:9,   beamwidth:120, type:'panel' },
+  'panel_10_120': { gain:10,  beamwidth:120, type:'panel' },
+  'panel_11_100': { gain:11,  beamwidth:100, type:'panel' },
+  'panel_14_90':  { gain:14,  beamwidth:90,  type:'panel' },
+  'dir_7_90':     { gain:7,   beamwidth:90,  type:'dir' },
+  'dir_10_60':    { gain:10,  beamwidth:60,  type:'dir' },
+  'dir_12_45':    { gain:12,  beamwidth:45,  type:'dir' },
+  'dir_21_30':    { gain:21,  beamwidth:30,  type:'dir' }
+};
+
+function onAntModelChange() { /* could auto-fill freq etc */ }
+
+function setAntPlaceMode() {
+  S.placingAnt = !S.placingAnt;
+  const banner = document.getElementById('placeBanner');
+  const btn    = document.getElementById('placeModeBtn');
+  topCont.classList.toggle('placing', S.placingAnt);
+  banner.classList.toggle('visible', S.placingAnt);
+  btn.style.background = S.placingAnt ? 'rgba(74,127,192,0.5)' : 'rgba(74,127,192,0.25)';
+  setStatus(S.placingAnt ? '📡 Click en el mapa para colocar antena' : 'Listo');
+}
+
+function placeAntAt(wx, wy) {
+  const modelKey = document.getElementById('antModel').value;
+  const model    = ANT_MODELS[modelKey] || ANT_MODELS['omni_5_360'];
+  const tx       = parseFloat(document.getElementById('antTx').value) || 20;
+  const height   = parseFloat(document.getElementById('antHeight').value) || 3;
+  const angle    = parseFloat(document.getElementById('antAngle').value) || 0;
+  const freq     = parseFloat(document.getElementById('antFreq').value) || 711;
+  const n        = S.antennas.length + 1;
+
+  S.antennas.push({
+    id: S.nextAntId++,
+    name: `ANT-${n}`,
+    modelKey,
+    x: wx, y: wy,
+    angle, tx, height, freq,
+    gain: model.gain,
+    beamwidth: model.beamwidth,
+    antType: model.type
+  });
+
+  S.selAntId = S.antennas[S.antennas.length-1].id;
+  updateAntList();
+  render();
+  setStatus(`Antena ANT-${n} colocada en (${wx.toFixed(1)}, ${wy.toFixed(1)})`);
+}
+
+function delSelAnt() {
+  if(!S.selAntId) return;
+  S.antennas = S.antennas.filter(a=>a.id!==S.selAntId);
+  S.selAntId = null;
+  updateAntList(); render();
+}
+
+function clearAllAnts() {
+  if(!S.antennas.length) return;
+  if(!confirm('¿Eliminar todas las antenas?')) return;
+  S.antennas = []; S.selAntId = null;
+  updateAntList(); render();
+}
+
+function updateAntList() {
+  const body = document.getElementById('antListBody');
+  if(!S.antennas.length) {
+    body.innerHTML='<p class="dim-msg" style="padding:8px;">Sin antenas. Configura y pulsa "Colocar Antena" →</p>';
+    return;
+  }
+  const listHtml = S.antennas.map(a=>`
+    <div class="ant-item${a.id===S.selAntId?' sel':''}" onclick="selAnt(${a.id})">
+      <div class="ant-item-info">
+        <div class="ant-item-name">${a.name}</div>
+        <div class="ant-item-specs">${a.gain} dBi · ${a.tx} dBm · ${a.beamwidth}° · ${a.freq} MHz</div>
+        <div class="ant-item-specs">X:${a.x.toFixed(1)} Y:${a.y.toFixed(1)} · ∠${a.angle}°</div>
+      </div>
+      <button class="ant-rm" onclick="event.stopPropagation();rmAnt(${a.id})">✕</button>
+    </div>
+  `).join('');
+
+  // Edit panel for selected antenna
+  const sel=S.antennas.find(a=>a.id===S.selAntId);
+  const editHtml = sel ? `
+    <div style="border-top:1px solid var(--border);padding:7px 8px;background:rgba(74,127,192,0.07);">
+      <div class="pl" style="font-size:9px;color:var(--accent);margin-bottom:5px;">✏ Editando: ${sel.name}</div>
+      <div class="pr" style="gap:4px;margin-bottom:4px;">
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">X (m)</div>
+          <input class="vi" type="number" value="${sel.x.toFixed(2)}" step="0.1" style="width:100%"
+            onchange="updAnt(${sel.id},'x',+this.value)"></div>
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Y (m)</div>
+          <input class="vi" type="number" value="${sel.y.toFixed(2)}" step="0.1" style="width:100%"
+            onchange="updAnt(${sel.id},'y',+this.value)"></div>
+      </div>
+      <div class="pr" style="gap:4px;margin-bottom:4px;">
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Ángulo (°)</div>
+          <input class="vi" type="number" value="${sel.angle}" step="5" style="width:100%"
+            onchange="updAnt(${sel.id},'angle',+this.value)"></div>
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">TX (dBm)</div>
+          <input class="vi" type="number" value="${sel.tx}" step="1" style="width:100%"
+            onchange="updAnt(${sel.id},'tx',+this.value)"></div>
+      </div>
+      <div class="pr" style="gap:4px;margin-bottom:4px;">
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Altura (m)</div>
+          <input class="vi" type="number" value="${sel.height}" step="0.1" style="width:100%"
+            onchange="updAnt(${sel.id},'height',+this.value)"></div>
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Frec (MHz)</div>
+          <input class="vi" type="number" value="${sel.freq}" step="1" style="width:100%"
+            onchange="updAnt(${sel.id},'freq',+this.value)"></div>
+      </div>
+      <div style="font-size:9px;color:var(--text-dim);margin-top:3px;">
+        ↑↓←→ Mover · [ ] Rotar · Shift = fino
+      </div>
+    </div>` : '';
+
+  body.innerHTML = listHtml + editHtml;
+}
+
+function updAnt(id, key, val) {
+  const ant=S.antennas.find(a=>a.id===id); if(!ant) return;
+  if(key==='angle') val=((val%360)+360)%360;
+  ant[key]=val; render();
+}
+
+function updateAntEditPanel() {
+  // Re-render only the edit section without rebuilding the full list
+  updateAntList();
+}
+
+function selAnt(id) { S.selAntId=id; updateAntList(); render(); topCanvas.focus(); }
+function rmAnt(id)  { S.antennas=S.antennas.filter(a=>a.id!==id); if(S.selAntId===id) S.selAntId=null; updateAntList(); render(); }
+
+function drawAntennas(ctx) {
+  for(const a of S.antennas) {
+    const s = w2t(a.x, a.y);
+    const z = S.tv.zoom;
+    const isSel = a.id === S.selAntId;
+
+    // Beam pattern
+    // ant.angle: 0=North(+Y world), 90=East(+X world)
+    // Canvas Y is flipped: fwd in canvas = -(world Y fwd) direction
+    // So canvas angle = -(90 - ant.angle)*PI/180 - PI/2 ... simplifies to (ant.angle-90)*PI/180
+    // But to match calcRSSI (fwdDeg=90-ant.angle in math), the canvas arc needs:
+    // canvas_angle = -(fwdDeg)*PI/180 = -(90-ant.angle)*PI/180 = (ant.angle-90)*PI/180
+    if(a.beamwidth < 360) {
+      const beamR   = Math.max(20, z * 8);
+      const fwdCanvas = (a.angle - 90) * Math.PI / 180;   // forward direction in canvas coords
+      const halfBeam  = a.beamwidth * Math.PI / 360;
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.arc(s.x, s.y, beamR, fwdCanvas - halfBeam, fwdCanvas + halfBeam);
+      ctx.closePath();
+      ctx.fillStyle = isSel ? 'rgba(74,127,192,0.18)' : 'rgba(255,200,50,0.1)';
+      ctx.fill();
+      ctx.strokeStyle = isSel ? 'rgba(74,127,192,0.6)' : 'rgba(255,200,50,0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Forward direction tick
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x + Math.cos(fwdCanvas)*beamR, s.y + Math.sin(fwdCanvas)*beamR);
+      ctx.strokeStyle = isSel ? 'rgba(74,127,192,0.5)' : 'rgba(255,200,50,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else {
+      // Omni: range ring
+      const ringR = Math.max(10, z * 5);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, ringR, 0, Math.PI*2);
+      ctx.strokeStyle = isSel ? 'rgba(74,127,192,0.5)' : 'rgba(255,200,50,0.25)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Body
+    const bodyR = Math.max(5, z * 0.35);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, bodyR, 0, Math.PI*2);
+    ctx.fillStyle = isSel ? '#4a7fc0' : '#e8c040';
+    ctx.fill();
+    ctx.strokeStyle = isSel ? '#fff' : 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = isSel ? '#fff' : '#e8c040';
+    ctx.font = `${Math.max(8, Math.min(11, z*0.4))}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(a.name, s.x, s.y + bodyR + 2);
+  }
+}
+
+// ====================================================
+// COVERAGE CALCULATION
+// ====================================================
+function calculateCoverage() {
+  if(!S.antennas.length) { setStatus('⚠ Añade al menos una antena primero'); return; }
+  const model = document.getElementById('covModel').value;
+  const resM  = parseFloat(document.getElementById('covRes').value) || 1;
+
+  // Bounds from venue elements (or default)
+  let mnX=-35, mxX=35, mnY=-25, mxY=25;
+  for(const el of S.els) {
+    const pts=getPoints(el);
+    for(const p of pts){ mnX=Math.min(mnX,p.x);mxX=Math.max(mxX,p.x);mnY=Math.min(mnY,p.y);mxY=Math.max(mxY,p.y); }
+  }
+  mnX-=3; mxX+=3; mnY-=3; mxY+=3;
+
+  const cols=Math.ceil((mxX-mnX)/resM);
+  const rows=Math.ceil((mxY-mnY)/resM);
+  const data=new Float32Array(cols*rows);
+  setStatus('⏳ Calculando cobertura...');
+
+  // Pre-compute venue polygons for clipping
+  const venuePolys = S.els.filter(e=>e.show && e.type!=='Obstacle' && e.type!=='Wall').map(e=>getPoints(e));
+
+  setTimeout(()=>{
+    for(let ix=0;ix<cols;ix++){
+      for(let iy=0;iy<rows;iy++){
+        const px=mnX+(ix+0.5)*resM;
+        const py=mnY+(iy+0.5)*resM;
+
+        // Only compute inside venue surfaces
+        const insideVenue = venuePolys.length===0 || venuePolys.some(poly=>ptInPoly(px,py,poly));
+        if(!insideVenue){ data[iy*cols+ix]=-120; continue; }
+
+        let best=-120;
+        for(const ant of S.antennas){
+          const r=calcRSSI(px,py,ant,model);
+          if(r>best) best=r;
         }
+        data[iy*cols+ix]=best;
+      }
+    }
+    S.coverage={data,cols,rows,mnX,mnY,resM};
+    S.showCov=true;
+    render();
+    setStatus('✅ Cobertura calculada');
+  }, 30);
+}
 
-        function resizeCanvas() {
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            draw();
+function calcRSSI(px, py, ant, model) {
+  const dx=px-ant.x, dy=py-ant.y;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist<0.2) return ant.tx+ant.gain-20;
+  const freq=ant.freq||711;
+  let pl=0;
+
+  if(model==='fspl') {
+    pl = 20*Math.log10(dist)+20*Math.log10(freq)+32.44;
+  } else if(model==='logdist') {
+    pl = 20*Math.log10(freq)+32.44+10*2.5*Math.log10(Math.max(1,dist));
+  } else { // multiwall
+    pl = 20*Math.log10(dist)+20*Math.log10(freq)+32.44;
+    pl += obstacleAttenuation(ant.x,ant.y,px,py);
+  }
+
+  // Directional pattern
+  // ant.angle convention: 0=North(+Y world), 90=East(+X world)
+  // atan2(dy,dx) convention: 0=East, 90=North → convert: fwdDeg = 90 - ant.angle
+  let patLoss=0;
+  if(ant.beamwidth<360){
+    const ptAngle = Math.atan2(dy, dx)*180/Math.PI;       // angle to target point (math convention)
+    const fwdDeg  = 90 - ant.angle;                        // antenna forward in math convention
+    let diff = ((ptAngle - fwdDeg) % 360 + 360) % 360;    // angular difference [0,360)
+    if(diff > 180) diff = 360 - diff;                      // fold to [0,180]
+    const hb = ant.beamwidth / 2;
+    if(diff > hb) {
+      // Smooth roll-off: 0 at edge of beam, -30 dB at 180°
+      const rolloff = (diff - hb) / (180 - hb);           // 0→1 outside beam
+      patLoss = Math.min(30, 30 * rolloff * rolloff);
+    }
+  }
+  return Math.max(-100, Math.min(0, ant.tx+ant.gain-pl-patLoss));
+}
+
+function obstacleAttenuation(x1,y1,x2,y2) {
+  let loss=0;
+  for(const el of S.els){
+    if(!el.show) continue;
+    if(el.type!=='Obstacle'&&el.type!=='Wall') continue;
+    const pts=getPoints(el);
+    if(rayHitsPoly(x1,y1,x2,y2,pts)) loss+=10;
+  }
+  return loss;
+}
+
+function rayHitsPoly(ax,ay,bx,by,poly) {
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    if(segSeg(ax,ay,bx,by,poly[i].x,poly[i].y,poly[j].x,poly[j].y)) return true;
+  }
+  return false;
+}
+
+function segSeg(ax,ay,bx,by,cx,cy,dx,dy){
+  const d=(bx-ax)*(dy-cy)-(by-ay)*(dx-cx);
+  if(Math.abs(d)<1e-10) return false;
+  const t=((cx-ax)*(dy-cy)-(cy-ay)*(dx-cx))/d;
+  const u=((cx-ax)*(by-ay)-(cy-ay)*(bx-ax))/d;
+  return t>0&&t<1&&u>0&&u<1;
+}
+
+function clearCoverage() { S.coverage=null; S.showCov=false; render(); setStatus('Mapa de cobertura limpiado'); }
+
+function drawCoverageHeatmap(ctx) {
+  if(!S.coverage||!S.showCov) return;
+  const {data,cols,rows,mnX,mnY,resM}=S.coverage;
+  const cellPx=Math.max(1, S.tv.zoom*resM)+0.5;
+  for(let ix=0;ix<cols;ix++){
+    for(let iy=0;iy<rows;iy++){
+      const rssi=data[iy*cols+ix];
+      if(rssi<-95) continue;
+      const col=rssiColor(rssi);
+      if(!col) continue;
+      // iy=0 → world Y = mnY (bottom). Higher iy → higher world Y → lower screen Y.
+      const s=w2t(mnX+ix*resM, mnY+(iy+1)*resM);
+      ctx.fillStyle=col;
+      ctx.fillRect(s.x, s.y, cellPx, cellPx);
+    }
+  }
+}
+
+function rssiColor(v){
+  if(v>= -50) return 'rgba(22,163,74,0.68)';
+  if(v>= -60) return 'rgba(132,204,22,0.68)';
+  if(v>= -65) return 'rgba(234,179,8,0.68)';
+  if(v>= -70) return 'rgba(249,115,22,0.68)';
+  if(v>= -80) return 'rgba(239,68,68,0.65)';
+  if(v>= -90) return 'rgba(120,20,20,0.60)';
+  return null;
+}
+
+// Keyboard controls
+document.addEventListener('keydown', e=>{
+  // ESC cancels place mode
+  if(e.key==='Escape' && S.placingAnt) {
+    S.placingAnt=false;
+    topCont.classList.remove('placing');
+    document.getElementById('placeBanner').classList.remove('visible');
+    document.getElementById('placeModeBtn').style.background='rgba(74,127,192,0.25)';
+    setStatus('Listo'); return;
+  }
+
+  // Antenna move/rotate with keyboard
+  if(S.selAntId && (S.activeTab==='antenas'||S.activeTab==='cobertura')) {
+    const ant=S.antennas.find(a=>a.id===S.selAntId);
+    if(!ant) return;
+    // Don't steal keys when typing in an input
+    if(document.activeElement&&['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    const move=e.shiftKey?0.1:0.5;
+    const rot =e.shiftKey?1:5;
+    let handled=true;
+    switch(e.key){
+      case 'ArrowLeft':  ant.x-=move; break;
+      case 'ArrowRight': ant.x+=move; break;
+      case 'ArrowUp':    ant.y+=move; break;
+      case 'ArrowDown':  ant.y-=move; break;
+      case '[': case '{': ant.angle=(ant.angle-rot+360)%360; break;
+      case ']': case '}': ant.angle=(ant.angle+rot)%360; break;
+      case 'Delete': case 'Backspace': delSelAnt(); break;
+      default: handled=false;
+    }
+    if(handled){
+      e.preventDefault();
+      updateAntList();
+      updateAntEditPanel();
+      render();
+      setStatus(`${ant.name} → X:${ant.x.toFixed(1)} Y:${ant.y.toFixed(1)} Ángulo:${ant.angle}°`);
+    }
+  }
+});
+
+// ====================================================
+// RENDERING - TOP VIEW
+// ====================================================
+function render() { renderTop(); renderProfile(); }
+
+function renderTop() {
+  const ctx=topCtx, W=topCanvas.width, H=topCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+
+  drawGrid(ctx, W, H, S.tv, true);
+  drawOrigin(ctx, W, H, S.tv, true);
+
+  drawCoverageHeatmap(ctx);
+
+  for(const el of S.els) {
+    if(!el.show) continue;
+    drawElTop(ctx, el);
+  }
+  if(S.viewMode==='edit' && S.selId) {
+    const el=S.els.find(e=>e.id===S.selId);
+    if(el&&!el.locked) drawHandlesTop(ctx,el);
+  }
+
+  drawAntennas(ctx);
+}
+
+function drawGrid(ctx, W, H, view, labels) {
+  const z=view.zoom, px=view.px, py=view.py;
+  const cx=W/2+px, cy=H/2+py;
+
+  let gm=1;
+  if(z<4)  gm=20;
+  else if(z<8)  gm=10;
+  else if(z<18) gm=5;
+  else if(z<45) gm=2;
+  else if(z<90) gm=1;
+  else gm=.5;
+
+  const gp=gm*z;
+  const sx=((cx%gp)+gp)%gp, sy=((cy%gp)+gp)%gp;
+
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  for(let x=sx;x<W;x+=gp){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=sy;y<H;y+=gp){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const mg=5, mgp=gp*mg;
+  const msx=((cx%mgp)+mgp)%mgp, msy=((cy%mgp)+mgp)%mgp;
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  for(let x=msx;x<W;x+=mgp){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=msy;y<H;y+=mgp){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  if(!labels) return;
+  ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.font='9px sans-serif';
+  ctx.textAlign='center';
+  const dec=gm<1?1:0;
+  let xv=Math.round((msx-cx)/z/mg)*gm*mg;
+  for(let x=msx;x<W;x+=mgp,xv+=gm*mg) ctx.fillText(xv.toFixed(dec)+'m',x,9);
+  ctx.textAlign='right';
+  let yv=Math.round((cy-msy)/z/mg)*gm*mg;
+  for(let y=msy;y<H;y+=mgp,yv-=gm*mg) ctx.fillText(yv.toFixed(dec)+'m',W-2,y+3);
+}
+
+function drawOrigin(ctx, W, H, view, labels) {
+  const o = view===S.tv ? w2t(0,0) : w2p(0,0);
+  ctx.save();
+  ctx.strokeStyle='rgba(255,200,50,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+  ctx.beginPath();ctx.moveTo(0,o.y);ctx.lineTo(W,o.y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(o.x,0);ctx.lineTo(o.x,H);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,200,50,0.85)';
+  ctx.beginPath();ctx.arc(o.x,o.y,3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawElTop(ctx, el) {
+  const pts=getPoints(el);
+  if(pts.length<2) return;
+  const sp=pts.map(p=>w2t(p.x,p.y));
+  const isSel=el.id===S.selId;
+
+  ctx.beginPath();
+  ctx.moveTo(sp[0].x,sp[0].y);
+  for(let i=1;i<sp.length;i++) ctx.lineTo(sp[i].x,sp[i].y);
+  ctx.closePath();
+
+  ctx.fillStyle=hex2rgba(el.color, el.transp?0.08:0.32);
+  ctx.fill();
+  ctx.strokeStyle=isSel?'#4a7fc0':el.color;
+  ctx.lineWidth=isSel?2:1.5;
+  ctx.stroke();
+
+  // Label
+  const c=centroid(pts), sc=w2t(c.x,c.y);
+  const fs=Math.max(9,Math.min(13,S.tv.zoom*0.55));
+  ctx.fillStyle='rgba(255,255,255,0.65)';
+  ctx.font=`${fs}px sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(el.name, sc.x, sc.y);
+}
+
+function drawHandlesTop(ctx, el) {
+  const handles=getHandles(el);
+  for(const h of handles) {
+    const s=w2t(h.x,h.y);
+    ctx.beginPath();ctx.arc(s.x,s.y,5,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#4a7fc0'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+}
+
+// ====================================================
+// RENDERING - PROFILE VIEW
+// ====================================================
+function renderProfile() {
+  const ctx=profCtx, W=profCanvas.width, H=profCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0e0e0e'; ctx.fillRect(0,0,W,H);
+
+  drawGrid(ctx, W, H, S.pv, false);
+  drawOrigin(ctx, W, H, S.pv, false);
+
+  // Y-axis label
+  ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.font='9px sans-serif';
+  ctx.textAlign='center';
+  for(let v=-60;v<=100;v+=10) {
+    const s=w2p(v,0);
+    if(s.x>0&&s.x<W) ctx.fillText(v+'m',s.x,H-2);
+  }
+  ctx.textAlign='right';
+  for(let v=-5;v<=25;v+=5) {
+    const s=w2p(0,v);
+    if(s.y>0&&s.y<H) ctx.fillText(v+'m',W-2,s.y+3);
+  }
+
+  for(const el of S.els) {
+    if(!el.show) continue;
+    drawElProfile(ctx,el);
+  }
+}
+
+function drawElProfile(ctx, el) {
+  let minY=Infinity, maxY=-Infinity;
+  if(el.verts) { for(const v of el.verts){ minY=Math.min(minY,v.y);maxY=Math.max(maxY,v.y); } }
+  else if(el.shape==='arc') { minY=el.cy-el.ro; maxY=el.cy+el.ro; }
+  else if(el.shape==='superelliptic') { minY=el.cy-el.b; maxY=el.cy+el.b; }
+  if(minY===Infinity) return;
+
+  const z=el.z||0, h=el.h||0;
+  const isSel=el.id===S.selId;
+  ctx.strokeStyle=isSel?'#4a7fc0':el.color;
+
+  if(h>0.01) {
+    const s1=w2p(minY,z+h), s2=w2p(maxY,z);
+    ctx.fillStyle=hex2rgba(el.color,el.transp?0.08:0.28);
+    ctx.fillRect(s1.x,s1.y,s2.x-s1.x,s2.y-s1.y);
+    ctx.lineWidth=isSel?2:1.5;
+    ctx.strokeRect(s1.x,s1.y,s2.x-s1.x,s2.y-s1.y);
+  } else {
+    const s1=w2p(minY,z), s2=w2p(maxY,z);
+    ctx.lineWidth=isSel?3:2;
+    ctx.beginPath();ctx.moveTo(s1.x,s1.y);ctx.lineTo(s2.x,s2.y);ctx.stroke();
+    const tk=4;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(s1.x,s1.y-tk);ctx.lineTo(s1.x,s1.y+tk);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s2.x,s2.y-tk);ctx.lineTo(s2.x,s2.y+tk);ctx.stroke();
+  }
+}
+
+// ====================================================
+// MOUSE EVENTS - TOP CANVAS
+// ====================================================
+topCanvas.addEventListener('contextmenu',e=>e.preventDefault());
+topCanvas.addEventListener('mousedown', onTDown);
+topCanvas.addEventListener('mousemove', onTMove);
+topCanvas.addEventListener('mouseup',   onTUp);
+topCanvas.addEventListener('mouseleave',onTUp);
+topCanvas.addEventListener('wheel',     onTWheel, {passive:false});
+
+function onTDown(e) {
+  const r=topCanvas.getBoundingClientRect();
+  const sx=e.clientX-r.left, sy=e.clientY-r.top;
+  const w=t2w(sx,sy);
+
+  if(e.button===1||(e.button===0&&(e.altKey||e.metaKey))) {
+    S.pan={sx:e.clientX,sy:e.clientY,opx:S.tv.px,opy:S.tv.py};
+    return;
+  }
+
+  // Antenna placement mode
+  if(S.placingAnt && e.button===0) {
+    placeAntAt(w.x, w.y);
+    return;
+  }
+
+  // Antenna interaction (antenas + cobertura tabs)
+  if((S.activeTab==='antenas'||S.activeTab==='cobertura') && e.button===0) {
+    let hit=null;
+    for(let i=S.antennas.length-1;i>=0;i--) {
+      const a=S.antennas[i];
+      const as=w2t(a.x,a.y);
+      if(Math.hypot(sx-as.x,sy-as.y)<Math.max(8,S.tv.zoom*0.5)) { hit=a; break; }
+    }
+    if(hit) {
+      selAnt(hit.id);
+      if(S.activeTab==='antenas') {
+        S.antDrag={antId:hit.id, offX:w.x-hit.x, offY:w.y-hit.y};
+      }
+      return;
+    }
+    S.selAntId=null; updateAntList(); render();
+    S.pan={sx:e.clientX,sy:e.clientY,opx:S.tv.px,opy:S.tv.py};
+    return;
+  }
+
+  // Check handles of selected element
+  if(S.viewMode==='edit'&&S.selId) {
+    const el=S.els.find(e=>e.id===S.selId);
+    if(el&&!el.locked) {
+      const handles=getHandles(el);
+      for(const h of handles) {
+        const hs=w2t(h.x,h.y);
+        if(Math.hypot(sx-hs.x,sy-hs.y)<8) {
+          saveHist();
+          S.drag={type:'handle',elId:el.id,vi:h.vi};
+          return;
         }
-
-        // ==========================================
-        // GESTIÓN DE FRECUENCIAS
-        // ==========================================
-        function updateAntennaFreqRange() {
-            const sel = document.getElementById('antennaSelect');
-            const range = ANTENNA_FREQ_RANGES[sel.value];
-            const freqRangeSel = document.getElementById('antennaFreqRange');
-            
-            // Guardar selección actual de custom
-            const currentCustom = freqRangeSel.value === 'custom';
-            
-            // Limpiar opciones excepto custom
-            freqRangeSel.innerHTML = '<option value="custom">Personalizado</option>';
-            
-            // Añadir presets comunes para audio profesional
-            const presets = [
-                { label: 'UHF TV (470-862 MHz)', min: 470, max: 862 },
-                { label: 'Wireless Mic (470-952 MHz)', min: 470, max: 952 },
-                { label: 'Band IV (470-582 MHz)', min: 470, max: 582 },
-                { label: 'Band V (582-862 MHz)', min: 582, max: 862 },
-                { label: '900 MHz Band (863-952 MHz)', min: 863, max: 952 }
-            ];
-            
-            presets.forEach(p => {
-                if (p.min >= range.min && p.max <= range.max) {
-                    const opt = document.createElement('option');
-                    opt.value = `${p.min}-${p.max}`;
-                    opt.textContent = p.label;
-                    freqRangeSel.appendChild(opt);
-                }
-            });
-            
-            // Si hay un preset que coincide exactamente con el rango de la antena, seleccionarlo
-            const exactMatch = presets.find(p => p.min === range.min && p.max === range.max);
-            if (exactMatch && !currentCustom) {
-                freqRangeSel.value = `${range.min}-${range.max}`;
-            } else if (currentCustom || !exactMatch) {
-                freqRangeSel.value = 'custom';
-            }
-            
-            // Actualizar inputs de frecuencia
-            document.getElementById('freqMin').value = range.min;
-            document.getElementById('freqMax').value = range.max;
-            calculateAvgFrequency();
-        }
-
-        function calculateAvgFrequency() {
-            const freqRangeSel = document.getElementById('antennaFreqRange');
-            let freqMin, freqMax;
-            
-            if (freqRangeSel.value === 'custom') {
-                freqMin = parseFloat(document.getElementById('freqMin').value);
-                freqMax = parseFloat(document.getElementById('freqMax').value);
-            } else {
-                const [min, max] = freqRangeSel.value.split('-').map(Number);
-                freqMin = min;
-                freqMax = max;
-                document.getElementById('freqMin').value = freqMin;
-                document.getElementById('freqMax').value = freqMax;
-            }
-            
-            const avg = (freqMin + freqMax) / 2;
-            document.getElementById('avgFrequency').value = Math.round(avg);
-            
-            // También actualizar el valor en el modal si está abierto
-            document.getElementById('modalAvgFrequency').value = Math.round(avg);
-        }
-
-        // ==========================================
-        // TRANSFORMACIONES DE COORDENADAS
-        // ==========================================
-        function worldToScreen(wx, wy) {
-            const scale = Math.min(
-                (canvas.width - 80) / state.scenario.width,
-                (canvas.height - 80) / state.scenario.height
-            ) * state.zoom;
-            const offsetX = (canvas.width - state.scenario.width * scale) / 2 + state.pan.x;
-            const offsetY = (canvas.height - state.scenario.height * scale) / 2 + state.pan.y;
-            return {
-                x: offsetX + wx * scale,
-                y: offsetY + wy * scale,
-                scale: scale
-            };
-        }
-
-        function screenToWorld(sx, sy) {
-            const scale = Math.min(
-                (canvas.width - 80) / state.scenario.width,
-                (canvas.height - 80) / state.scenario.height
-            ) * state.zoom;
-            const offsetX = (canvas.width - state.scenario.width * scale) / 2 + state.pan.x;
-            const offsetY = (canvas.height - state.scenario.height * scale) / 2 + state.pan.y;
-            return {
-                x: (sx - offsetX) / scale,
-                y: (sy - offsetY) / scale
-            };
-        }
-
-        // ==========================================
-        // EVENTOS DE RATÓN
-        // ==========================================
-        function onMouseDown(e) {
-            const rect = canvas.getBoundingClientRect();
-            const sx = e.clientX - rect.left;
-            const sy = e.clientY - rect.top;
-            const world = screenToWorld(sx, sy);
-
-            if (e.button === 2) {
-                state.isDrawing = false;
-                return;
-            }
-
-            // Check for rotation or drag on antenna (when in select mode)
-            if (state.tools.current === 'select' && state.selectedAntenna !== null) {
-                const a = state.antennas[state.selectedAntenna];
-                const s = worldToScreen(a.x, a.y);
-                const scale = s.scale;
-                
-                // Calculate the tip position (front of antenna)
-                const angleRad = (a.angle - 90) * Math.PI / 180;
-                const tipDist = Math.max(20, 2.5 * scale); // Distance from center to tip
-                const tipX = s.x + Math.cos(angleRad) * tipDist;
-                const tipY = s.y + Math.sin(angleRad) * tipDist;
-                
-                // Check if clicking on the TIP (for rotation) - zona de detección más grande
-                const distToTip = Math.sqrt((sx - tipX) ** 2 + (sy - tipY) ** 2);
-                const tipRadius = Math.max(40, 8.0 * scale); // Zona de detección muy generosa para facilitar rotación
-                
-                if (distToTip < tipRadius && a.type !== 'omni') {
-                    state.isRotating = true;
-                    state.rotationCenter = { x: a.x, y: a.y };
-                    document.getElementById('statusText').textContent = '🔄 Rotando antena - Mueve el ratón';
-                    return;
-                }
-                
-                // Check for antenna drag (clicking on the center/body)
-                const distToCenter = Math.sqrt((sx - s.x) ** 2 + (sy - s.y) ** 2);
-                const bodyRadius = Math.max(20, 4.0 * scale); // Zona del cuerpo para arrastrar
-                
-                if (distToCenter < bodyRadius) {
-                    state.isDragging = true;
-                    state.dragOffset = { x: world.x - a.x, y: world.y - a.y };
-                    document.getElementById('statusText').textContent = '✋ Arrastrando antena - Suelta para colocar';
-                    return;
-                }
-            }
-
-            if (state.tools.current === 'wall' || state.tools.current === 'obstacle') {
-                state.isDrawing = true;
-                state.drawStart = { x: world.x, y: world.y, sx, sy };
-            } else if (state.tools.current === 'antenna') {
-                document.getElementById('antennaX').value = world.x.toFixed(1);
-                document.getElementById('antennaY').value = world.y.toFixed(1);
-                openAntennaModal();
-            } else if (state.tools.current === 'eraser') {
-                eraseAt(world.x, world.y);
-            } else if (state.tools.current === 'select') {
-                selectAntennaAt(world.x, world.y);
-            }
-        }
-
-        function onMouseMove(e) {
-            const rect = canvas.getBoundingClientRect();
-            const sx = e.clientX - rect.left;
-            const sy = e.clientY - rect.top;
-            const world = screenToWorld(sx, sy);
-
-            state.mousePos = { x: world.x, y: world.y };
-            document.getElementById('coordsText').textContent = `X: ${world.x.toFixed(1)} m | Y: ${world.y.toFixed(1)} m`;
-
-            // Handle rotation
-            if (state.isRotating && state.rotationCenter) {
-                const dx = sx - (worldToScreen(state.rotationCenter.x, state.rotationCenter.y)).x;
-                const dy = sy - (worldToScreen(state.rotationCenter.x, state.rotationCenter.y)).y;
-                let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-                angle = ((angle % 360) + 360) % 360;
-                
-                state.antennas[state.selectedAntenna].angle = Math.round(angle);
-                document.getElementById('statusText').textContent = `🔄 Rotación: ${Math.round(angle)}°`;
-                draw();
-                scheduleCoverageUpdate();
-                return;
-            }
-
-            // Handle dragging
-            if (state.isDragging && state.selectedAntenna !== null) {
-                const a = state.antennas[state.selectedAntenna];
-                a.x = Math.max(0, Math.min(state.scenario.width, world.x - state.dragOffset.x));
-                a.y = Math.max(0, Math.min(state.scenario.height, world.y - state.dragOffset.y));
-                document.getElementById('statusText').textContent = `✋ Moviendo: (${a.x.toFixed(1)}, ${a.y.toFixed(1)})`;
-                draw();
-                scheduleCoverageUpdate();
-                return;
-            }
-
-            if (state.isDrawing && state.drawStart) {
-                draw();
-                ctx.strokeStyle = '#3b82f6';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                const start = worldToScreen(state.drawStart.x, state.drawStart.y);
-                ctx.moveTo(start.x, start.y);
-                ctx.lineTo(sx, sy);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-
-        function onMouseUp(e) {
-            // End rotation
-            if (state.isRotating) {
-                state.isRotating = false;
-                state.rotationCenter = null;
-                document.getElementById('statusText').textContent = `✅ Rotación completada: ${state.antennas[state.selectedAntenna].angle}°`;
-                return;
-            }
-
-            // End dragging
-            if (state.isDragging) {
-                state.isDragging = false;
-                const a = state.antennas[state.selectedAntenna];
-                document.getElementById('statusText').textContent = `✅ Antena colocada en (${a.x.toFixed(1)}, ${a.y.toFixed(1)})`;
-                return;
-            }
-
-            if (state.isDrawing && state.drawStart) {
-                const rect = canvas.getBoundingClientRect();
-                const sx = e.clientX - rect.left;
-                const sy = e.clientY - rect.top;
-                const world = screenToWorld(sx, sy);
-
-                if (state.tools.current === 'wall') {
-                    addWall(state.drawStart.x, state.drawStart.y, world.x, world.y);
-                } else if (state.tools.current === 'obstacle') {
-                    addObstacle(
-                        Math.min(state.drawStart.x, world.x),
-                        Math.min(state.drawStart.y, world.y),
-                        Math.abs(world.x - state.drawStart.x),
-                        Math.abs(world.y - state.drawStart.y)
-                    );
-                }
-
-                state.isDrawing = false;
-                state.drawStart = null;
-                draw();
-            }
-        }
-
-        function onWheel(e) {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            state.zoom = Math.max(0.2, Math.min(10, state.zoom * delta));
-            draw();
-        }
-
-        // ==========================================
-        // HERRAMIENTAS
-        // ==========================================
-        function setTool(tool) {
-            state.tools.current = tool;
-            document.querySelectorAll('.tool-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.tool === tool);
-            });
-            const toolNames = {
-                select: '🖱️ Modo selección - Click en una antena para seleccionarla',
-                wall: '🧱 Modo muro - Click y arrastra para dibujar un muro',
-                obstacle: '📦 Modo obstáculo - Click y arrastra para crear un obstáculo',
-                antenna: '📡 Modo antena - Click para colocar una antena',
-                eraser: '🗑️ Modo borrador - Click en un elemento para eliminarlo'
-            };
-            document.getElementById('statusText').textContent = toolNames[tool];
-        }
-
-        function addWall(x1, y1, x2, y2) {
-            const material = document.getElementById('wallMaterial').value;
-            const height = parseFloat(document.getElementById('wallHeight').value);
-            const thickness = parseFloat(document.getElementById('wallThickness').value);
-
-            state.walls.push({
-                x1, y1, x2, y2,
-                material,
-                loss: WALL_MATERIALS[material].loss,
-                height,
-                thickness,
-                color: WALL_MATERIALS[material].color
-            });
-            document.getElementById('statusText').textContent = `✅ Muro añadido (${WALL_MATERIALS[material].label}, ${WALL_MATERIALS[material].loss} dB)`;
-        }
-
-        function addObstacle(x, y, w, h) {
-            const material = document.getElementById('wallMaterial').value;
-            const height = parseFloat(document.getElementById('wallHeight').value);
-
-            state.obstacles.push({
-                x, y, w, h,
-                material,
-                loss: WALL_MATERIALS[material].loss,
-                height,
-                color: WALL_MATERIALS[material].color
-            });
-            document.getElementById('statusText').textContent = `✅ Obstáculo añadido (${w.toFixed(1)}m x ${h.toFixed(1)}m)`;
-        }
-
-        function eraseAt(wx, wy) {
-            // Check antennas
-            for (let i = state.antennas.length - 1; i >= 0; i--) {
-                const a = state.antennas[i];
-                const dist = Math.sqrt((wx - a.x) ** 2 + (wy - a.y) ** 2);
-                if (dist < 1.5) {
-                    state.antennas.splice(i, 1);
-                    document.getElementById('statusText').textContent = `🗑️ Antena "${a.name}" eliminada`;
-                    updateAntennaList();
-                    draw();
-                    return;
-                }
-            }
-            // Check walls
-            for (let i = state.walls.length - 1; i >= 1 >= 0; i--) {
-                const w = state.walls[i];
-                if (distPointToSegment(wx, wy, w.x1, w.y1, w.x2, w.y2) < 1) {
-                    state.walls.splice(i, 1);
-                    document.getElementById('statusText').textContent = '🗑️ Muro eliminado';
-                    draw();
-                    return;
-                }
-            }
-            // Check obstacles
-            for (let i = state.obstacles.length - 1; i >= 0; i--) {
-                const o = state.obstacles[i];
-                if (wx >= o.x && wx <= o.x + o.w && wy >= o.y && wy <= o.y + o.h) {
-                    state.obstacles.splice(i, 1);
-                    document.getElementById('statusText').textContent = '🗑️ Obstáculo eliminado';
-                    draw();
-                    return;
-                }
-            }
-        }
-
-        function distPointToSegment(px, py, x1, y1, x2, y2) {
-            const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
-            const dot = A * C + B * D;
-            const lenSq = C * C + D * D;
-            let param = lenSq !== 0 ? dot / lenSq : -1;
-            param = Math.max(0, Math.min(1, param));
-            const xx = x1 + param * C, yy = y1 + param * D;
-            return Math.sqrt((px - xx) ** 2 + (py - yy) ** 2);
-        }
-
-        function selectAntennaAt(wx, wy) {
-            for (let i = state.antennas.length - 1; i >= 0; i--) {
-                const a = state.antennas[i];
-                const dist = Math.sqrt((wx - a.x) ** 2 + (wy - a.y) ** 2);
-                if (dist < 1.5) {
-                    state.selectedAntenna = i;
-                    document.getElementById('statusText').textContent = `📡 Seleccionada: ${a.name}`;
-                    draw();
-                    return;
-                }
-            }
-            state.selectedAntenna = null;
-            draw();
-        }
-
-        // ==========================================
-        // ANTENAS
-        // ==========================================
-        function openAntennaModal() {
-            document.getElementById('antennaModal').classList.add('active');
-            const sel = document.getElementById('antennaSelect');
-            const ant = ANTENNA_DATABASE[sel.value];
-            
-            // Only auto-fill name if creating new antenna (not editing)
-            if (window.editingAntennaIndex === undefined || window.editingAntennaIndex === null) {
-                document.getElementById('antennaName').value = ant.name;
-                document.getElementById('modalAntennaHeight').value = document.getElementById('antennaHeight').value;
-                document.getElementById('modalAntennaTilt').value = document.getElementById('antennaTilt').value;
-                document.getElementById('modalAvgFrequency').value = document.getElementById('avgFrequency').value;
-            }
-        }
-
-        function closeAntennaModal() {
-            document.getElementById('antennaModal').classList.remove('active');
-            // Reset editing state when closing modal
-            window.editingAntennaIndex = null;
-            document.querySelector('#antennaModal h2').textContent = '📡 Colocar Antena';
-        }
-
-        function placeAntenna() {
-            const sel = document.getElementById('antennaSelect');
-            const ant = ANTENNA_DATABASE[sel.value];
-            const name = document.getElementById('antennaName').value || ant.name;
-            const x = parseFloat(document.getElementById('antennaX').value);
-            const y = parseFloat(document.getElementById('antennaY').value);
-            const angle = parseFloat(document.getElementById('antennaAngle').value);
-            const channel = parseInt(document.getElementById('antennaChannel').value);
-            const txPower = parseFloat(document.getElementById('txPower').value);
-            const height = parseFloat(document.getElementById('modalAntennaHeight').value) || parseFloat(document.getElementById('antennaHeight').value);
-            const tilt = parseFloat(document.getElementById('modalAntennaTilt').value) || 0;
-            const avgFreq = parseFloat(document.getElementById('modalAvgFrequency').value) || 711;
-
-            // Check if we're editing an existing antenna
-            if (window.editingAntennaIndex !== undefined && window.editingAntennaIndex !== null) {
-                // Update existing antenna
-                state.antennas[window.editingAntennaIndex] = {
-                    name, x, y, angle, channel, txPower, height, tilt, freq: avgFreq,
-                    gain: ant.gain,
-                    type: ant.type,
-                    beamwidth: ant.beamwidth,
-                    key: sel.value
-                };
-                window.editingAntennaIndex = null;
-                document.querySelector('#antennaModal h2').textContent = '📡 Colocar Antena';
-                document.getElementById('statusText').textContent = `✅ Antena "${name}" actualizada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
-            } else {
-                // Create new antenna
-                state.antennas.push({
-                    name, x, y, angle, channel, txPower, height, tilt, freq: avgFreq,
-                    gain: ant.gain,
-                    type: ant.type,
-                    beamwidth: ant.beamwidth,
-                    key: sel.value
-                });
-                document.getElementById('statusText').textContent = `✅ Antena "${name}" colocada en (${x.toFixed(1)}, ${y.toFixed(1)})`;
-            }
-
-            closeAntennaModal();
-            updateAntennaList();
-            draw();
-            scheduleCoverageUpdate();
-        }
-
-        function updateAntennaList() {
-            const container = document.getElementById('placedAntennas');
-            if (state.antennas.length === 0) {
-                container.innerHTML = '<p style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 12px;">No hay antenas colocadas</p>';
-                return;
-            }
-            container.innerHTML = state.antennas.map((a, i) => `
-                <div class="antenna-item" onclick="selectAndEditAntenna(${i})" style="cursor: pointer;">
-                    <div class="info">
-                        <div class="name">${a.name}</div>
-                        <div class="specs">${a.gain} dBi | ${a.txPower} dBm | Ch ${a.channel} | ${a.angle}°</div>
-                    </div>
-                    <span class="badge badge-${a.type}">${a.type}</span>
-                    <button class="btn btn-danger btn-sm" style="width:auto; margin-left: 8px; padding: 4px 8px;" onclick="event.stopPropagation(); removeAntenna(${i})">✕</button>
-                </div>
-            `).join('');
-        }
-
-        function selectAndEditAntenna(index) {
-            state.selectedAntenna = index;
-            const a = state.antennas[index];
-            
-            // Open modal with current values for editing
-            document.getElementById('antennaName').value = a.name;
-            document.getElementById('antennaX').value = a.x.toFixed(1);
-            document.getElementById('antennaY').value = a.y.toFixed(1);
-            document.getElementById('antennaAngle').value = Math.round(a.angle);
-            document.getElementById('antennaChannel').value = a.channel;
-            document.getElementById('txPower').value = a.txPower;
-            document.getElementById('modalAntennaHeight').value = a.height || 3;
-            document.getElementById('modalAntennaTilt').value = a.tilt || 0;
-            document.getElementById('modalAvgFrequency').value = a.freq || 711;
-            
-            // Set the antenna select to the correct model
-            document.getElementById('antennaSelect').value = a.key;
-            
-            // Update frequency range dropdown
-            updateAntennaFreqRange();
-            
-            // Store that we're editing, not creating new
-            window.editingAntennaIndex = index;
-            
-            openAntennaModal();
-            document.querySelector('#antennaModal h2').textContent = '📡 Editar Antena';
-        }
-
-        function removeAntenna(index) {
-            state.antennas.splice(index, 1);
-            if (state.selectedAntenna === index) {
-                state.selectedAntenna = null;
-            } else if (state.selectedAntenna !== null && state.selectedAntenna > index) {
-                state.selectedAntenna--;
-            }
-            updateAntennaList();
-            draw();
-            scheduleCoverageUpdate();
-        }
-
-        // ==========================================
-        // CÁLCULO DE COBERTURA
-        // ==========================================
-        function scheduleCoverageUpdate() {
-            if (state.antennas.length === 0) {
-                state.coverage = null;
-                draw();
-                return;
-            }
-            
-            if (state.coverageUpdateTimeout) {
-                clearTimeout(state.coverageUpdateTimeout);
-            }
-            
-            state.coverageUpdateTimeout = setTimeout(() => {
-                calculateCoverage(true);
-            }, 150);
-        }
-        
-        function calculateCoverage(silent = false) {
-            const model = document.getElementById('propagationModel').value;
-            const resolution = parseFloat(document.getElementById('resolution').value);
-
-            if (state.antennas.length === 0) {
-                state.coverage = null;
-                draw();
-                return;
-            }
-
-            if (!silent) {
-                document.getElementById('statusText').textContent = '⏳ Calculando cobertura...';
-            }
-
-            setTimeout(() => {
-                const width = state.scenario.width;
-                const height = state.scenario.height;
-
-                state.coverage = {
-                    width, height, resolution,
-                    data: new Float32Array(Math.ceil(width / resolution) * Math.ceil(height / resolution)),
-                    model
-                };
-
-                for (let ix = 0; ix < Math.ceil(width / resolution); ix++) {
-                    for (let iy = 0; iy < Math.ceil(height / resolution); iy++) {
-                        const px = (ix + 0.5) * resolution;
-                        const py = (iy + 0.5) * resolution;
-                        let maxRSSI = -100;
-
-                        for (const antenna of state.antennas) {
-                            // Use antenna's own frequency if available, otherwise use a default
-                            const freq = antenna.freq || 711;
-                            let rssi = calculateRSSI(px, py, antenna, freq, model);
-                            if (rssi > maxRSSI) maxRSSI = rssi;
-                        }
-
-                        state.coverage.data[iy * Math.ceil(width / resolution) + ix] = maxRSSI;
-                    }
-                }
-
-                draw();
-                if (!silent) {
-                    document.getElementById('statusText').textContent = '✅ Cobertura calculada correctamente';
-                }
-            }, 50);
-        }
-
-        function calculateRSSI(px, py, antenna, freq, model) {
-            const dist = Math.sqrt((px - antenna.x) ** 2 + (py - antenna.y) ** 2);
-            if (dist < 0.5) return antenna.txPower + antenna.gain - 30;
-
-            let pathLoss = 0;
-
-            switch (model) {
-                case 'fspl':
-                    pathLoss = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
-                    break;
-
-                case 'logdistance':
-                    const PL0 = 20 * Math.log10(1) + 20 * Math.log10(freq) + 32.44;
-                    const n = 2.5;
-                    pathLoss = PL0 + 10 * n * Math.log10(dist);
-                    break;
-
-                case 'multiwall':
-                    pathLoss = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
-                    const walls = getWallCrossings(antenna.x, antenna.y, px, py);
-                    for (const wall of walls) {
-                        pathLoss += wall.loss;
-                    }
-                    const n_walls = walls.length;
-                    if (n_walls > 0) {
-                        pathLoss += 10 * 1.5 * Math.log10(dist);
-                    }
-                    break;
-
-                case 'itur':
-                    const PL0_itur = 20 * Math.log10(1) + 20 * Math.log10(freq) + 32.44;
-                    const n_itur = 2.0;
-                    const d_ref = 1;
-                    pathLoss = PL0_itur + 10 * n_itur * Math.log10(dist / d_ref);
-                    const walls_itur = getWallCrossings(antenna.x, antenna.y, px, py);
-                    pathLoss += walls_itur.reduce((sum, w) => sum + w.loss, 0);
-                    break;
-            }
-
-            // Antenna pattern
-            const angleDeg = Math.atan2(py - antenna.y, px - antenna.x) * 180 / Math.PI;
-            let adjustedAngle = ((angleDeg - antenna.angle) % 360 + 360) % 360;
-            if (adjustedAngle > 180) adjustedAngle = 360 - adjustedAngle;
-
-            let patternLoss = 0;
-            if (antenna.type !== 'omni') {
-                const halfBeam = antenna.beamwidth / 2;
-                if (adjustedAngle > halfBeam) {
-                    patternLoss = 20 * Math.log10(Math.max(0.1, 1 - (adjustedAngle - halfBeam) / (180 - halfBeam)));
-                }
-            }
-
-            const rssi = antenna.txPower + antenna.gain - pathLoss + patternLoss;
-            return Math.max(-100, Math.min(0, rssi));
-        }
-
-        function getWallCrossings(x1, y1, x2, y2) {
-            const crossings = [];
-
-            for (const wall of state.walls) {
-                if (lineSegmentsIntersect(x1, y1, x2, y2, wall.x1, wall.y1, wall.x2, wall.y2)) {
-                    crossings.push(wall);
-                }
-            }
-
-            for (const obs of state.obstacles) {
-                const corners = [
-                    [obs.x, obs.y], [obs.x + obs.w, obs.y],
-                    [obs.x + obs.w, obs.y + obs.h], [obs.x, obs.y + obs.h]
-                ];
-                for (let i = 0; i < 4; i++) {
-                    const j = (i + 1) % 4;
-                    if (lineSegmentsIntersect(x1, y1, x2, y2, corners[i][0], corners[i][1], corners[j][0], corners[j][1])) {
-                        crossings.push({ loss: obs.loss });
-                        break;
-                    }
-                }
-
-                if (isPointInRect((x1 + x2) / 2, (y1 + y2) / 2, obs.x, obs.y, obs.w, obs.h)) {
-                    crossings.push({ loss: obs.loss });
-                }
-            }
-
-            return crossings;
-        }
-
-        function lineSegmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-            if (Math.abs(denom) < 1e-10) return false;
-            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
-            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
-            return t > 0 && t < 1 && u > 0 && u < 1;
-        }
-
-        function isPointInRect(px, py, rx, ry, rw, rh) {
-            return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
-        }
-
-        // ==========================================
-        // RENDERIZADO
-        // ==========================================
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Grid
-            drawGrid();
-
-            // Scenario border
-            const scenario = worldToScreen(0, 0);
-            const scenario2 = worldToScreen(state.scenario.width, state.scenario.height);
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(scenario.x, scenario.y, scenario2.x - scenario.x, scenario2.y - scenario.y);
-
-            // Coverage heatmap
-            if (state.coverage) {
-                drawCoverage();
-            }
-
-            // Walls
-            for (const wall of state.walls) {
-                const s1 = worldToScreen(wall.x1, wall.y1);
-                const s2 = worldToScreen(wall.x2, wall.y2);
-                ctx.strokeStyle = wall.color;
-                ctx.lineWidth = Math.max(2, wall.thickness * s1.scale);
-                ctx.beginPath();
-                ctx.moveTo(s1.x, s1.y);
-                ctx.lineTo(s2.x, s2.y);
-                ctx.stroke();
-            }
-
-            // Obstacles
-            for (const obs of state.obstacles) {
-                const s1 = worldToScreen(obs.x, obs.y);
-                const s2 = worldToScreen(obs.x + obs.w, obs.y + obs.h);
-                ctx.fillStyle = obs.color + '40';
-                ctx.fillRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
-                ctx.strokeStyle = obs.color;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
-            }
-
-            // Antennas
-            for (let i = 0; i < state.antennas.length; i++) {
-                const a = state.antennas[i];
-                const s = worldToScreen(a.x, a.y);
-                drawAntenna(s.x, s.y, a, s.scale, i === state.selectedAntenna);
-            }
-        }
-
-        function drawGrid() {
-            const gridSpacing = 5;
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1;
-
-            for (let x = 0; x <= state.scenario.width; x += gridSpacing) {
-                const s = worldToScreen(x, 0);
-                const s2 = worldToScreen(x, state.scenario.height);
-                ctx.beginPath();
-                ctx.moveTo(s.x, s.y);
-                ctx.lineTo(s2.x, s2.y);
-                ctx.stroke();
-            }
-
-            for (let y = 0; y <= state.scenario.height; y += gridSpacing) {
-                const s = worldToScreen(0, y);
-                const s2 = worldToScreen(state.scenario.width, y);
-                ctx.beginPath();
-                ctx.moveTo(s.x, s.y);
-                ctx.lineTo(s2.x, s2.y);
-                ctx.stroke();
-            }
-
-            // Labels
-            ctx.fillStyle = '#475569';
-            ctx.font = '10px sans-serif';
-            for (let x = 0; x <= state.scenario.width; x += 10) {
-                const s = worldToScreen(x, 0);
-                ctx.fillText(x + 'm', s.x + 2, s.y - 4);
-            }
-            for (let y = 0; y <= state.scenario.height; y += 10) {
-                const s = worldToScreen(0, y);
-                ctx.fillText(y + 'm', s.x + 2, s.y + 12);
-            }
-        }
-
-        function drawCoverage() {
-            const cov = state.coverage;
-            const cols = Math.ceil(cov.width / cov.resolution);
-
-            for (let ix = 0; ix < cols; ix++) {
-                for (let iy = 0; iy < Math.ceil(cov.height / cov.resolution); iy++) {
-                    const rssi = cov.data[iy * cols + ix];
-                    if (rssi < -95) continue;
-
-                    const color = rssiToColor(rssi);
-                    const px = worldToScreen(ix * cov.resolution, iy * cov.resolution);
-                    const size = cov.resolution * px.scale;
-
-                    ctx.fillStyle = color;
-                    ctx.fillRect(px.x, px.y, size + 1, size + 1);
-                }
-            }
-        }
-
-        function rssiToColor(rssi) {
-            if (rssi >= -30) return '#16a34a';
-            if (rssi >= -50) return '#22c55e';
-            if (rssi >= -60) return '#84cc16';
-            if (rssi >= -65) return '#eab308';
-            if (rssi >= -70) return '#f59e0b';
-            if (rssi >= -75) return '#f97316';
-            if (rssi >= -80) return '#ef4444';
-            if (rssi >= -85) return '#dc2626';
-            if (rssi >= -90) return '#b91c1c';
-            return 'transparent';
-        }
-
-        function drawAntenna(x, y, antenna, scale, selected) {
-            // Range circle (más sutil)
-            if (selected) {
-                ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([3, 3]);
-                const range = 15 * scale;
-                ctx.beginPath();
-                ctx.arc(x, y, range, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-
-            // Antena más pequeña
-            const size = Math.max(6, 0.6 * scale);
-            
-            // Dibujar antena direccional o omnidireccional
-            if (antenna.type !== 'omni') {
-                // Antena direccional: triángulo apuntando en la dirección
-                const angleRad = (antenna.angle - 90) * Math.PI / 180;
-                const arrowLength = size * 2;
-                const arrowWidth = size * 1.2;
-                
-                // Calcular puntos del triángulo
-                const tipX = x + Math.cos(angleRad) * arrowLength;
-                const tipY = y + Math.sin(angleRad) * arrowLength;
-                const leftX = x + Math.cos(angleRad + Math.PI * 0.7) * arrowWidth;
-                const leftY = y + Math.sin(angleRad + Math.PI * 0.7) * arrowWidth;
-                const rightX = x + Math.cos(angleRad - Math.PI * 0.7) * arrowWidth;
-                const rightY = y + Math.sin(angleRad - Math.PI * 0.7) * arrowWidth;
-                
-                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
-                ctx.beginPath();
-                ctx.moveTo(tipX, tipY);
-                ctx.lineTo(leftX, leftY);
-                ctx.lineTo(rightX, rightY);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Punto de rotación INVISIBLE en la punta (solo para lógica)
-                // No se dibuja nada aquí
-                
-                // Línea de dirección más fina
-                ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(tipX, tipY);
-                ctx.stroke();
-            } else {
-                // Antena omni: círculo pequeño con punto
-                ctx.fillStyle = selected ? '#60a5fa' : '#3b82f6';
-                ctx.beginPath();
-                ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Selection highlight
-            if (selected) {
-                ctx.strokeStyle = '#60a5fa';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 2]);
-                ctx.beginPath();
-                ctx.arc(x, y, size + 10, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-
-        // ==========================================
-        // ZOOM Y PAN
-        // ==========================================
-        function zoomIn() {
-            state.zoom = Math.min(10, state.zoom * 1.2);
-            draw();
-        }
-
-        function zoomOut() {
-            state.zoom = Math.max(0.2, state.zoom * 0.8);
-            draw();
-        }
-
-        function resetView() {
-            state.zoom = 1;
-            state.pan = { x: 0, y: 0 };
-            draw();
-        }
-
-        // ==========================================
-        // UTILIDADES
-        // ==========================================
-        function updateScenario() {
-            state.scenario.width = parseFloat(document.getElementById('scenarioWidth').value);
-            state.scenario.height = parseFloat(document.getElementById('scenarioHeight').value);
-            state.coverage = null;
-            draw();
-            document.getElementById('statusText').textContent = `✅ Escenario actualizado: ${state.scenario.width}m x ${state.scenario.height}m`;
-        }
-
-        function clearAll() {
-            if (confirm('¿Estás seguro de que quieres limpiar todo?')) {
-                state.walls = [];
-                state.obstacles = [];
-                state.antennas = [];
-                state.coverage = null;
-                state.selectedAntenna = null;
-                updateAntennaList();
-                draw();
-                document.getElementById('statusText').textContent = '🗑️ Todo limpio';
-            }
-        }
-
-        // ==========================================
-        // INICIAR
-        // ==========================================
-        init();
-    </script>
+      }
+    }
+  }
+
+  // Hit test elements
+  let hit=null;
+  for(let i=S.els.length-1;i>=0;i--) {
+    const el=S.els[i];
+    if(!el.show) continue;
+    if(ptInPoly(w.x,w.y,getPoints(el))) { hit=el; break; }
+  }
+
+  if(hit) {
+    S.selId=hit.id;
+    updateEls(); updateSelPanel();
+    render();
+  } else {
+    S.selId=null;
+    updateEls(); updateSelPanel();
+    render();
+    S.pan={sx:e.clientX,sy:e.clientY,opx:S.tv.px,opy:S.tv.py};
+  }
+}
+
+function onTMove(e) {
+  const r=topCanvas.getBoundingClientRect();
+  const sx=e.clientX-r.left, sy=e.clientY-r.top;
+  const w=t2w(sx,sy);
+  document.getElementById('topCoords').textContent=`X: ${w.x.toFixed(1)} m | Y: ${w.y.toFixed(1)} m`;
+
+  if(S.pan) {
+    S.tv.px=S.pan.opx+(e.clientX-S.pan.sx);
+    S.tv.py=S.pan.opy+(e.clientY-S.pan.sy);
+    render(); return;
+  }
+  if(S.antDrag) {
+    const ant=S.antennas.find(a=>a.id===S.antDrag.antId);
+    if(ant){ ant.x=w.x-S.antDrag.offX; ant.y=w.y-S.antDrag.offY; updateAntList(); render(); }
+    return;
+  }
+  if(S.drag) {
+    const el=S.els.find(e=>e.id===S.drag.elId);
+    if(!el) return;
+    applyDrag(el, S.drag.vi, w.x, w.y);
+    updateSelPanel();
+    render();
+  }
+}
+
+function onTUp() { S.pan=null; S.drag=null; S.antDrag=null; }
+
+function applyDrag(el, vi, wx, wy) {
+  if(el.verts && vi>=0) {
+    el.verts[vi]={x:wx,y:wy};
+  } else if(el.shape==='arc') {
+    if(vi===-1) { el.cx=wx; el.cy=wy; }
+    else if(vi===-2) {
+      const a=Math.atan2(wy-el.cy,wx-el.cx)*180/Math.PI;
+      el.sa=a; el.ro=Math.hypot(wx-el.cx,wy-el.cy);
+    } else if(vi===-3) {
+      const a=Math.atan2(wy-el.cy,wx-el.cx)*180/Math.PI;
+      el.sw=((a-el.sa)%360+360)%360||1;
+    } else if(vi===-4) {
+      el.ro=Math.hypot(wx-el.cx,wy-el.cy);
+    }
+  } else if(el.shape==='superelliptic') {
+    if(vi===-1) el.a=Math.abs(wx-el.cx)||0.1;
+    else if(vi===-2) el.a=Math.abs(wx-el.cx)||0.1;
+    else if(vi===-3) el.b=Math.abs(wy-el.cy)||0.1;
+    else if(vi===-4) el.b=Math.abs(wy-el.cy)||0.1;
+  }
+}
+
+function onTWheel(e) {
+  e.preventDefault();
+  const f=e.deltaY<0?1.15:0.87;
+  const r=topCanvas.getBoundingClientRect();
+  const sx=e.clientX-r.left, sy=e.clientY-r.top;
+  const wb=t2w(sx,sy);
+  S.tv.zoom=Math.max(2,Math.min(200,S.tv.zoom*f));
+  const sa=w2t(wb.x,wb.y);
+  S.tv.px+=sx-sa.x; S.tv.py+=sy-sa.y;
+  render();
+}
+
+// ====================================================
+// UI UPDATES
+// ====================================================
+function refreshAll() { updateEls(); updateSelPanel(); render(); }
+
+function updateEls() {
+  const tbody=document.getElementById('elTableBody');
+  tbody.innerHTML='';
+  for(const el of S.els) {
+    const tr=document.createElement('tr');
+    if(el.id===S.selId) tr.classList.add('sel');
+    tr.onclick=()=>{ S.selId=el.id; updateEls(); updateSelPanel(); render(); };
+
+    tr.innerHTML=`
+      <td><span class="el-name" title="${el.name}" ondblclick="event.stopPropagation();renameEl(${el.id})">${el.name}</span></td>
+      <td><span class="shp-icon" title="${el.shape}">${SHAPE_ICONS[el.shape]||'?'}</span></td>
+      <td>
+        <select class="type-sel" onchange="el${el.id}type(this.value)" onclick="event.stopPropagation()">
+          ${TYPES.map(t=>`<option value="${t}"${el.type===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <span class="col-swatch" style="background:${el.color}" onclick="event.stopPropagation();openColorPick(${el.id})" title="Color"></span>
+      </td>
+      <td><button class="ico-btn${el.show?' on':''}" onclick="event.stopPropagation();toggleShow(${el.id})">${el.show?'◉':'○'}</button></td>
+      <td><button class="ico-btn${el.locked?' on-lock':''}" onclick="event.stopPropagation();toggleLock(${el.id})">${el.locked?'🔒':'🔓'}</button></td>
+      <td><button class="ico-btn${el.transp?' on':''}" onclick="event.stopPropagation();toggleTransp(${el.id})">✦</button></td>
+    `;
+
+    // Inline type change handler
+    tr.querySelector('select').addEventListener('change', function(){
+      const e2=S.els.find(e=>e.id===el.id);
+      if(e2) e2.type=this.value;
+    });
+
+    tbody.appendChild(tr);
+  }
+}
+
+function updateSelPanel() {
+  const body=document.getElementById('selTabBody');
+  const el=S.els.find(e=>e.id===S.selId);
+  if(!el) {
+    body.innerHTML='<p class="dim-msg">Note: Detailed information can only be provided when a venue element has been selected.</p>';
+    return;
+  }
+
+  let html=`
+    <div class="pg"><div class="pl">Name</div>
+      <input class="pi" type="text" value="${el.name}" onchange="updElProp(${el.id},'name',this.value)">
+    </div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Z (m)</div>
+        <input class="pi" type="number" value="${el.z||0}" step="0.1" onchange="updElProp(${el.id},'z',+this.value)">
+      </div>
+      <div class="pg"><div class="pl">Height (m)</div>
+        <input class="pi" type="number" value="${el.h||0}" step="0.1" onchange="updElProp(${el.id},'h',+this.value)">
+      </div>
+    </div>`;
+
+  if(el.verts) {
+    html+=`<div class="pl" style="margin-top:6px">Vertices</div><div class="vlist">`;
+    for(let i=0;i<el.verts.length;i++) {
+      const v=el.verts[i];
+      html+=`<div class="vrow">
+        <span class="vlbl">V${i+1}</span>
+        <input class="vi" type="number" value="${v.x.toFixed(2)}" step="0.1" onchange="updVert(${el.id},${i},'x',+this.value)">
+        <input class="vi" type="number" value="${v.y.toFixed(2)}" step="0.1" onchange="updVert(${el.id},${i},'y',+this.value)">
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+
+  if(el.shape==='arc') {
+    html+=`<div class="pl" style="margin-top:6px">Arc Parameters</div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Center X</div><input class="pi" type="number" value="${el.cx.toFixed(2)}" step="0.5" onchange="updArc(${el.id},'cx',+this.value)"></div>
+      <div class="pg"><div class="pl">Center Y</div><input class="pi" type="number" value="${el.cy.toFixed(2)}" step="0.5" onchange="updArc(${el.id},'cy',+this.value)"></div>
+    </div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Outer R (m)</div><input class="pi" type="number" value="${el.ro.toFixed(1)}" step="0.5" onchange="updArc(${el.id},'ro',+this.value)"></div>
+      <div class="pg"><div class="pl">Inner R (m)</div><input class="pi" type="number" value="${el.ri.toFixed(1)}" step="0.5" onchange="updArc(${el.id},'ri',+this.value)"></div>
+    </div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Start Angle °</div><input class="pi" type="number" value="${el.sa.toFixed(1)}" step="5" onchange="updArc(${el.id},'sa',+this.value)"></div>
+      <div class="pg"><div class="pl">Sweep °</div><input class="pi" type="number" value="${el.sw.toFixed(1)}" step="5" onchange="updArc(${el.id},'sw',+this.value)"></div>
+    </div>`;
+  }
+
+  if(el.shape==='superelliptic') {
+    html+=`<div class="pl" style="margin-top:6px">Superelliptic</div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Center X</div><input class="pi" type="number" value="${el.cx.toFixed(2)}" step="0.5" onchange="updSuper(${el.id},'cx',+this.value)"></div>
+      <div class="pg"><div class="pl">Center Y</div><input class="pi" type="number" value="${el.cy.toFixed(2)}" step="0.5" onchange="updSuper(${el.id},'cy',+this.value)"></div>
+    </div>
+    <div class="pr">
+      <div class="pg"><div class="pl">Width a (m)</div><input class="pi" type="number" value="${el.a.toFixed(2)}" step="0.5" onchange="updSuper(${el.id},'a',+this.value)"></div>
+      <div class="pg"><div class="pl">Depth b (m)</div><input class="pi" type="number" value="${el.b.toFixed(2)}" step="0.5" onchange="updSuper(${el.id},'b',+this.value)"></div>
+    </div>
+    <div class="pg"><div class="pl">Exponent n (2=ellipse / 4=squircle)</div>
+      <input class="pi" type="number" value="${el.exp}" step="0.5" min="0.5" max="20" onchange="updSuper(${el.id},'exp',+this.value)">
+    </div>`;
+  }
+
+  body.innerHTML=html;
+}
+
+// ====================================================
+// PROP UPDATE HELPERS
+// ====================================================
+function updElProp(id,k,v) {
+  const el=S.els.find(e=>e.id===id); if(!el) return;
+  el[k]=v; if(k==='name') updateEls(); render();
+}
+function updVert(id,i,k,v) {
+  const el=S.els.find(e=>e.id===id); if(!el||!el.verts) return;
+  el.verts[i][k]=v; render();
+}
+function updArc(id,k,v) {
+  const el=S.els.find(e=>e.id===id); if(!el) return;
+  if(k==='ro') v=Math.max(0.1,v);
+  if(k==='ri') v=Math.max(0,v);
+  if(k==='sw') v=Math.max(1,Math.min(360,v));
+  el[k]=v; render();
+}
+function updSuper(id,k,v) {
+  const el=S.els.find(e=>e.id===id); if(!el) return;
+  if(k==='a'||k==='b') v=Math.max(0.1,v);
+  if(k==='exp') v=Math.max(0.5,v);
+  el[k]=v; render();
+}
+
+function renameEl(id) {
+  const el=S.els.find(e=>e.id===id); if(!el) return;
+  const n=prompt('Nombre:',el.name);
+  if(n&&n.trim()){ el.name=n.trim(); updateEls(); render(); }
+}
+
+function toggleShow(id)  { const e=S.els.find(e=>e.id===id); if(e){e.show=!e.show; updateEls(); render();} }
+function toggleLock(id)  { const e=S.els.find(e=>e.id===id); if(e){e.locked=!e.locked; updateEls();} }
+function toggleTransp(id){ const e=S.els.find(e=>e.id===id); if(e){e.transp=!e.transp; updateEls(); render();} }
+
+function openColorPick(id) {
+  S.colorEditId=id;
+  const el=S.els.find(e=>e.id===id);
+  const picker=document.getElementById('colorPicker');
+  picker.value=el?el.color:'#888888';
+  picker.click();
+}
+function onColorPicked(v) {
+  const el=S.els.find(e=>e.id===S.colorEditId); if(!el) return;
+  el.color=v; updateEls(); render();
+}
+
+// ====================================================
+// RACKS DATA MODEL
+// ====================================================
+S.rackGroups = [];
+S.selRackId  = null;
+S.nextRackId = 1;
+S.rackDetailTab = 'channels';
+
+const RECV_MODELS = {
+  'shure_psm300':  {name:'Shure PSM300',     ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
+  'shure_psm900':  {name:'Shure PSM900',     ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
+  'shure_psm1000': {name:'Shure PSM1000',    ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
+  'shure_ulxd4':   {name:'Shure ULXD4',      ru:1, chPerUnit:1, color:'#3a1a6a', brand:'Shure'},
+  'shure_ulxd4d':  {name:'Shure ULXD4D',     ru:1, chPerUnit:2, color:'#3a1a6a', brand:'Shure'},
+  'shure_ad4q':    {name:'Shure AD4Q',        ru:1, chPerUnit:4, color:'#3a1a6a', brand:'Shure'},
+  'senn_sr2050':   {name:'Senn. SR2050 IEM', ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser'},
+  'senn_ewdx_iem': {name:'Senn. EW-DX IEM',  ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
+  'senn_em6000':   {name:'Senn. EM6000',      ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
+  'senn_ewdx_hh':  {name:'Senn. EW-DX HH',   ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
+};
+
+const SPLITTERS = {
+  'none':          {name:'None',                       loss:0,    gain:0,  active:false, ways:1,  cat:'b', notes:'Direct connection. No distribution.'},
+  // Passive — usable as combiners (IEM) or splitters (MIC)
+  'passive_t':     {name:'T-junction / BNC',           loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Simple passive split. Impedance mismatch risk at long runs.'},
+  'passive_2w':    {name:'Passive 2-way',              loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Resistive/hybrid 2-way. 3.5 dB insertion loss.'},
+  'passive_4w':    {name:'Passive 4-way',              loss:7,    gain:0,  active:false, ways:4,  cat:'b', notes:'Passive cascade. 7 dB total loss (2× 3.5 dB stages).'},
+  'passive_8w':    {name:'Passive 8-way',              loss:10.5, gain:0,  active:false, ways:8,  cat:'b', notes:'Passive cascade. 10.5 dB total loss.'},
+  // Shure — active distros are splitters (MIC); passive ones work for both
+  'shure_ua844':   {name:'Shure UA844+US',             loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way distro. +12 dB. 470–900 MHz. Standard touring splitter for receivers.'},
+  'shure_ua845':   {name:'Shure UA845',                loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Rack-mount active 4-way. Same spec as UA844+US. 470–900 MHz.'},
+  'shure_axt600':  {name:'Shure AXT600 Axient',        loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'High-isolation active distro for Axient Digital. Includes redundant RF + audio feed.'},
+  'shure_ua221':   {name:'Shure UA221 Passive',        loss:3,    gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way splitter/combiner. 3 dB loss. 400–900 MHz.'},
+  'shure_ua400b':  {name:'Shure UA400B',               loss:6,    gain:0,  active:false, ways:4,  cat:'b', notes:'Passive 4-way. 6 dB loss. 400–900 MHz.'},
+  'shure_pa821b':  {name:'Shure PA821B',               loss:3.5,  gain:0,  active:false, ways:2,  cat:'c', notes:'Passive 2-way combiner. 3.5 dB loss. 470–952 MHz. Designed to combine two IEM transmitters onto one shared antenna.'},
+  // Sennheiser — active = splitter for receivers; passive = both
+  'senn_asa1':     {name:'Sennheiser ASA1 NT',         loss:0,    gain:10, active:true,  ways:2,  cat:'s', notes:'Active 2-way antenna splitter for receivers. +10 dB. 470–866 MHz.'},
+  'senn_asa3000':  {name:'Sennheiser ASA3000',         loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter for receivers. +10 dB. Evolution G3/G4/G10. 470–866 MHz.'},
+  'senn_ac3200':   {name:'Sennheiser AC3200-II',       loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way for Digital 6000/9000. Cascade up to 3 units.'},
+  'senn_ac31':     {name:'Sennheiser AC31',            loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way combiner/splitter. 3.5 dB loss. 174–1800 MHz.'},
+  // Audio-Technica — active splitters for receivers
+  'at_aewda':      {name:'AT AEW-DA Active Distro',    loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +12 dB. 500–900 MHz. For AEW Series.'},
+  'at_aewt3000':   {name:'AT AEW-T3000',               loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way for System 10 Pro / 3000 series.'},
+  // Wisycom — active splitters for receivers
+  'wisycom_rab1':  {name:'Wisycom RAB1',               loss:0,    gain:13, active:true,  ways:4,  cat:'s', notes:'Active 4-way wideband splitter. +13 dB. 470–870 MHz. Cascade-able.'},
+  'wisycom_ldq04': {name:'Wisycom LDQ04',              loss:0,    gain:13, active:true,  ways:4,  cat:'s', notes:'Active 4-way. +13 dB. For MCR42/MFL receivers. 470–870 MHz.'},
+  'wisycom_rab5':  {name:'Wisycom RAB5',               loss:0,    gain:13, active:true,  ways:8,  cat:'s', notes:'Active 8-way wideband splitter. +13 dB. For large festival setups.'},
+  // Lectrosonics — active splitters; passive = both
+  'lectro_a1626':  {name:'Lectrosonics A1626',         loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +12 dB. Wideband 470–692 MHz.'},
+  'lectro_da6':    {name:'Lectrosonics DA6',           loss:0,    gain:12, active:true,  ways:6,  cat:'s', notes:'Active 6-way splitter. +12 dB. For large receiver racks.'},
+  'lectro_pa':     {name:'Lectrosonics PA',            loss:7,    gain:0,  active:false, ways:4,  cat:'b', notes:'Passive 4-way. −7 dB. No power required. Works as combiner or splitter.'},
+  // RF Venue — active distros are splitters; COMBINE4 is IEM combiner only
+  'rfv_distro4':   {name:'RF Venue DISTRO4',           loss:0,    gain:13, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +13 dB. 169–1300 MHz wideband. LED RF metering.'},
+  'rfv_distro9':   {name:'RF Venue DISTRO9',           loss:0,    gain:13, active:true,  ways:9,  cat:'s', notes:'Active 9-way splitter. +13 dB. Up to 9 receiver outputs from 2 antennas.'},
+  'rfv_combine4':  {name:'RF Venue COMBINE4',          loss:7,    gain:0,  active:false, ways:4,  cat:'c', notes:'4-way passive combiner for merging IEM transmitter outputs into one shared antenna.'},
+  // Glensound — active splitter
+  'glen_ad4':      {name:'Glensound AD4',              loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +10 dB. 450–870 MHz. Broadcast grade.'},
+};
+
+const CABLE_LOSS_PER_M = { 'RG8':0.05, 'RG58':0.2, 'LMR400':0.03 };
+
+// Groups by brand for the filtered splitter select
+const SPLITTER_GROUPS = [
+  { label: 'Passive',          keys: ['passive_t','passive_2w','passive_4w','passive_8w'] },
+  { label: 'Shure',            keys: ['shure_ua844','shure_ua845','shure_axt600','shure_ua221','shure_ua400b','shure_pa821b'] },
+  { label: 'Sennheiser',       keys: ['senn_asa1','senn_asa3000','senn_ac3200','senn_ac31'] },
+  { label: 'Audio-Technica',   keys: ['at_aewda','at_aewt3000'] },
+  { label: 'Wisycom',          keys: ['wisycom_rab1','wisycom_ldq04','wisycom_rab5'] },
+  { label: 'Lectrosonics',     keys: ['lectro_a1626','lectro_da6','lectro_pa'] },
+  { label: 'RF Venue',         keys: ['rfv_distro4','rfv_distro9','rfv_combine4'] },
+  { label: 'Glensound',        keys: ['glen_ad4'] },
+];
+
+function filterSplittersByType() {
+  const type = document.getElementById('rgType').value;
+  const isIEM = type === 'IEM';
+  const allowedCats = isIEM ? ['c','b'] : ['s','b'];
+
+  // Update label
+  document.getElementById('splitterLabel').textContent = isIEM ? 'Combiner' : 'Splitter / Distro';
+
+  const sel = document.getElementById('rgSplitter');
+  const curVal = sel.value;
+
+  let html = '<option value="none">— None —</option>';
+  for(const grp of SPLITTER_GROUPS) {
+    const filtered = grp.keys.filter(k => SPLITTERS[k] && allowedCats.includes(SPLITTERS[k].cat));
+    if(!filtered.length) continue;
+    html += `<optgroup label="── ${grp.label} ──">`;
+    for(const k of filtered) {
+      const sp = SPLITTERS[k];
+      const suffix = sp.active
+        ? `(active ${sp.ways}-way, +${sp.gain} dB)`
+        : sp.loss > 0 ? `(passive ${sp.ways}-way, −${sp.loss} dB)` : '';
+      html += `<option value="${k}">${sp.name} ${suffix}</option>`;
+    }
+    html += '</optgroup>';
+  }
+
+  sel.innerHTML = html;
+  if([...sel.options].some(o => o.value === curVal)) sel.value = curVal;
+  updateRackWiringCalc();
+}
+
+function addRackGroup() {
+  const name     = document.getElementById('rgName').value.trim() || `Group ${S.nextRackId}`;
+  const type     = document.getElementById('rgType').value;
+  const modelKey = document.getElementById('rgModel').value;
+  const numCh    = Math.max(1, Math.min(32, parseInt(document.getElementById('rgChannels').value)||4));
+  const color    = document.getElementById('rgColor').value;
+  const freqStart= parseFloat(document.getElementById('rgFreqStart').value)||606.0;
+  const freqStep = parseFloat(document.getElementById('rgFreqStep').value)||0.25;
+  const antRuns  = parseInt(document.getElementById('rgAntRuns').value)||1;
+  const splitter = document.getElementById('rgSplitter').value;
+  const cableType= document.getElementById('rgCableType').value;
+  const cableLen = parseFloat(document.getElementById('rgCableLen').value)||10;
+
+  const channels = [];
+  for(let i=0; i<numCh; i++){
+    channels.push({
+      num: i+1,
+      name: `Ch ${i+1}`,
+      freq: parseFloat((freqStart + i*freqStep).toFixed(3))
+    });
+  }
+
+  const group = {
+    id: S.nextRackId++,
+    name, type, modelKey, color,
+    channels, antRuns, splitter, cableType, cableLen,
+    muted: false
+  };
+  S.rackGroups.push(group);
+  S.selRackId = group.id;
+  document.getElementById('rgName').value = '';
+  updateRackList();
+  updateRackDetailArea();
+  drawRackCanvases();
+  updateRackWiringCalc();
+  setStatus(`Group "${name}" added`);
+}
+
+function delRackGroup() {
+  if(!S.selRackId) { setStatus('Select a group first'); return; }
+  S.rackGroups = S.rackGroups.filter(g=>g.id!==S.selRackId);
+  S.selRackId = S.rackGroups.length ? S.rackGroups[S.rackGroups.length-1].id : null;
+  updateRackList();
+  updateRackDetailArea();
+  drawRackCanvases();
+}
+
+function dupRackGroup() {
+  if(!S.selRackId) { setStatus('Select a group first'); return; }
+  const orig = S.rackGroups.find(g=>g.id===S.selRackId);
+  if(!orig) return;
+  const clone = JSON.parse(JSON.stringify(orig));
+  clone.id = S.nextRackId++;
+  clone.name = orig.name + ' Copy';
+  S.rackGroups.push(clone);
+  S.selRackId = clone.id;
+  updateRackList();
+  updateRackDetailArea();
+  drawRackCanvases();
+}
+
+function selRack(id) {
+  S.selRackId = id;
+  updateRackList();
+  updateRackDetailArea();
+  drawRackCanvases();
+}
+
+function toggleRackMute(id, e) {
+  e.stopPropagation();
+  const g = S.rackGroups.find(g=>g.id===id);
+  if(g) { g.muted = !g.muted; updateRackList(); drawRackCanvases(); }
+}
+
+function updateRackList() {
+  const body = document.getElementById('rackListBody');
+  if(!S.rackGroups.length){
+    body.innerHTML='<p class="dim-msg" style="padding:8px;">No groups yet. Add one in the right panel.</p>';
+    return;
+  }
+  body.innerHTML = S.rackGroups.map(g=>{
+    const sel = g.id===S.selRackId;
+    const badgeClass = g.type==='IEM'?'iem':g.type==='MIC'?'mic':'bp';
+    return `<div class="rack-group-item${sel?' sel':''}" onclick="selRack(${g.id})">
+      <span class="rack-dot" style="background:${g.color}"></span>
+      <span class="rack-group-name">${g.name}</span>
+      <span class="type-badge ${badgeClass}">${g.type}</span>
+      <button class="rack-mute${g.muted?' muted':''}" title="${g.muted?'Unmute':'Mute'}" onclick="toggleRackMute(${g.id},event)">${g.muted?'M':'M'}</button>
+    </div>`;
+  }).join('');
+}
+
+function setRackDetailTab(tab, btn) {
+  S.rackDetailTab = tab;
+  document.querySelectorAll('.rack-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateRackDetailArea();
+}
+
+function updateRackDetailArea() {
+  const area = document.getElementById('rackDetailArea');
+  const body = document.getElementById('rackDetailBody');
+  if(!S.selRackId) { area.style.display='none'; return; }
+  area.style.display='flex';
+  const g = S.rackGroups.find(g=>g.id===S.selRackId);
+  if(!g) return;
+  if(S.rackDetailTab==='channels') updateRackChannelTab(g, body);
+  else updateRackWiringTab(g, body);
+}
+
+function updateRackChannelTab(g, body) {
+  body.innerHTML = g.channels.map((ch,idx)=>`
+    <div class="rack-ch-row">
+      <span class="rack-ch-num">${ch.num}</span>
+      <input class="rack-ch-name" type="text" value="${ch.name}"
+        onchange="updRackChName(${g.id},${idx},this.value)" title="Channel name">
+      <span class="freq-chip">${ch.freq.toFixed(3)}</span>
+    </div>`).join('');
+}
+
+function updateRackWiringTab(g, body) {
+  const cableLoss = parseFloat((CABLE_LOSS_PER_M[g.cableType]||0.05) * g.cableLen).toFixed(1);
+  const sp = SPLITTERS[g.splitter]||SPLITTERS['none'];
+  const netSplitter = sp.active ? -sp.gain : sp.loss;
+  const total = (parseFloat(cableLoss) + netSplitter).toFixed(1);
+  const splitterLabel = sp.active ? `-${sp.gain} dB (active gain)` : sp.loss===0 ? '0 dB' : `-${sp.loss} dB`;
+  const waysLabel = sp.ways > 1 ? `${sp.ways}-way` : '';
+  const typeLabel = sp.active ? '⚡ Active' : '⊘ Passive';
+  const totalColor = parseFloat(total) > 8 ? '#c06060' : parseFloat(total) > 3 ? '#e8a040' : '#6bc490';
+  body.innerHTML = `
+    <div style="padding:8px;display:flex;flex-direction:column;gap:6px;">
+      <div class="loss-display">
+        <div style="margin-bottom:4px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;">Antenna path budget</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span>Cable (${g.cableType}, ${g.cableLen} m)</span>
+          <span class="loss-val" style="color:#e8a040">−${cableLoss} dB</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span>${sp.name}</span>
+          <span class="loss-val" style="color:${sp.active?'#6bc490':'#e8a040'}">${sp.active?'+'+sp.gain:'−'+sp.loss} dB</span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:4px;margin-top:2px;display:flex;justify-content:space-between;font-weight:600;">
+          <span>Net at receiver</span>
+          <span class="loss-val" style="color:${totalColor}">${parseFloat(total)>=0?'+':''}${(parseFloat(total)*-1).toFixed(1)} dB</span>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:3px;padding:6px;font-size:10px;color:var(--text-dim);line-height:1.5;">
+        <div style="color:var(--text);margin-bottom:3px;">${typeLabel} · ${waysLabel}</div>
+        ${sp.notes || ''}
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);">
+        Antenna runs: <span style="color:var(--text)">${g.antRuns}</span>
+      </div>
+    </div>`;
+}
+
+function updRackChName(groupId, chIdx, val) {
+  const g = S.rackGroups.find(g=>g.id===groupId);
+  if(g && g.channels[chIdx]) g.channels[chIdx].name = val;
+}
+
+function focusAddRackGroup() {
+  document.getElementById('rgName').focus();
+}
+
+function updateRackWiringCalc() {
+  const cableType = document.getElementById('rgCableType').value;
+  const cableLen  = parseFloat(document.getElementById('rgCableLen').value)||0;
+  const splKey    = document.getElementById('rgSplitter').value;
+  const sp        = SPLITTERS[splKey]||SPLITTERS['none'];
+  const cableLoss = (CABLE_LOSS_PER_M[cableType]||0.05) * cableLen;
+  const netSplitter = sp.active ? -sp.gain : sp.loss;
+  const total     = cableLoss + netSplitter;
+  const splLabel  = sp.active ? `+${sp.gain} dB (active)` : `-${sp.loss} dB`;
+  document.getElementById('rackLossDisplay').innerHTML =
+    `Cable: <span class="loss-val">-${cableLoss.toFixed(1)} dB</span> | ` +
+    `Splitter: <span class="loss-val">${sp.active?'+'+sp.gain:'−'+sp.loss} dB</span> | ` +
+    `Total: <span class="loss-val" style="color:${total>5?'#c06060':'#6bc490'}">-${total.toFixed(1)} dB</span>`;
+
+  // Update selected group wiring params
+  if(S.selRackId) {
+    const g = S.rackGroups.find(g=>g.id===S.selRackId);
+    if(g) {
+      g.antRuns   = parseInt(document.getElementById('rgAntRuns').value)||1;
+      g.splitter  = splKey;
+      g.cableType = cableType;
+      g.cableLen  = cableLen;
+      if(S.rackDetailTab==='wiring') updateRackDetailArea();
+      drawRackCanvases();
+    }
+  }
+}
+
+// ====================================================
+// RACK CANVAS DRAWING
+// ====================================================
+const rackCanvas = document.getElementById('rackCanvas');
+const rackCtx    = rackCanvas.getContext('2d');
+const connCanvas = document.getElementById('connCanvas');
+const connCtx    = connCanvas.getContext('2d');
+
+function resizeRackCanvases() {
+  const wrap = document.getElementById('rackCanvasWrap');
+  const conn = document.getElementById('rackConnWrap');
+  if(wrap && wrap.clientWidth>0) {
+    rackCanvas.width  = wrap.clientWidth;
+    rackCanvas.height = wrap.clientHeight;
+    connCanvas.width  = conn.clientWidth;
+    connCanvas.height = conn.clientHeight;
+    drawRackCanvases();
+  }
+}
+
+function drawRackCanvases() {
+  const emptyMsg = document.getElementById('rackEmptyMsg');
+  if(!S.selRackId || !S.rackGroups.length) {
+    rackCtx.clearRect(0,0,rackCanvas.width,rackCanvas.height);
+    connCtx.clearRect(0,0,connCanvas.width,connCanvas.height);
+    rackCtx.fillStyle='#111'; rackCtx.fillRect(0,0,rackCanvas.width,rackCanvas.height);
+    connCtx.fillStyle='#111'; connCtx.fillRect(0,0,connCanvas.width,connCanvas.height);
+    if(emptyMsg) emptyMsg.style.display='flex';
+    return;
+  }
+  if(emptyMsg) emptyMsg.style.display='none';
+  const g = S.rackGroups.find(g=>g.id===S.selRackId);
+  if(!g) return;
+  drawRack(g);
+  drawConnDiagram(g);
+}
+
+function drawRack(group) {
+  const ctx = rackCtx;
+  const W = rackCanvas.width, H = rackCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+
+  const m = RECV_MODELS[group.modelKey] || RECV_MODELS['shure_psm300'];
+  const chPerUnit = m.chPerUnit;
+  const numUnits  = Math.ceil(group.channels.length / chPerUnit);
+  const totalRU   = numUnits + 2; // +1 antenna distro, +1 PSU
+
+  const RU_H   = 28;           // pixels per rack unit
+  const rackW  = Math.min(480, W - 90);
+  const rackH  = totalRU * RU_H + 10;
+  const rackX  = Math.max(55, (W - rackW) / 2);
+  const rackY  = Math.max(35, (H - rackH) / 2);
+
+  // Title
+  ctx.fillStyle='#bbb'; ctx.font='bold 12px Segoe UI,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(`${group.name}  [${totalRU}U rack]`, W/2, rackY - 22);
+
+  // Outer rack frame
+  ctx.fillStyle='#1c1c1c';
+  ctx.fillRect(rackX, rackY, rackW, rackH);
+  ctx.strokeStyle='#444'; ctx.lineWidth=1.5;
+  ctx.strokeRect(rackX, rackY, rackW, rackH);
+
+  // Rail strips (left/right)
+  const railW = 18;
+  ctx.fillStyle='#2a2a2a';
+  ctx.fillRect(rackX, rackY, railW, rackH);
+  ctx.fillRect(rackX + rackW - railW, rackY, railW, rackH);
+  ctx.strokeStyle='#3a3a3a'; ctx.lineWidth=1;
+  ctx.strokeRect(rackX, rackY, railW, rackH);
+  ctx.strokeRect(rackX + rackW - railW, rackY, railW, rackH);
+
+  // Screw holes on rails
+  ctx.fillStyle='#181818';
+  for(let u=0; u<totalRU; u++){
+    const cy = rackY + u*RU_H + RU_H/2;
+    // left
+    ctx.beginPath(); ctx.arc(rackX + railW/2, cy, 3.5, 0, Math.PI*2);
+    ctx.fill(); ctx.strokeStyle='#555'; ctx.lineWidth=0.5; ctx.stroke();
+    // right
+    ctx.beginPath(); ctx.arc(rackX + rackW - railW/2, cy, 3.5, 0, Math.PI*2);
+    ctx.fill(); ctx.stroke();
+  }
+
+  // Unit numbers (left of rack)
+  ctx.fillStyle='#555'; ctx.font='9px monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let u=0; u<totalRU; u++){
+    const cy = rackY + u*RU_H + RU_H/2;
+    ctx.fillText(`${u+1}U`, rackX - 4, cy);
+  }
+
+  const moduleX = rackX + railW + 2;
+  const moduleW = rackW - railW*2 - 4;
+
+  // --- 1U: Antenna Distribution unit ---
+  const sp = SPLITTERS[group.splitter]||SPLITTERS['none'];
+  const aduY = rackY;
+  const aduH = RU_H;
+  ctx.fillStyle='#0a2a14';
+  ctx.fillRect(moduleX, aduY, moduleW, aduH);
+  ctx.strokeStyle='#1a5a2a'; ctx.lineWidth=1;
+  ctx.strokeRect(moduleX, aduY, moduleW, aduH);
+  // LED
+  ctx.fillStyle='#20c060';
+  ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH/2, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#6de89a'; ctx.font='bold 9px monospace';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH/2);
+  // Cable loss label right
+  const cableLoss = (CABLE_LOSS_PER_M[group.cableType]||0.05) * group.cableLen;
+  ctx.fillStyle='#4a8a60'; ctx.font='9px monospace';
+  ctx.textAlign='right';
+  const netLoss = sp.active ? -(sp.gain) : sp.loss;
+  ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss>=0?'-':''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH/2);
+
+  // --- Receiver modules ---
+  let ruOffset = 1;
+  let unitIdx = 0;
+  while(unitIdx < numUnits) {
+    const chStart = unitIdx * chPerUnit;
+    const chEnd   = Math.min(chStart + chPerUnit, group.channels.length);
+    const slotH   = RU_H * m.ru;
+    const modY    = rackY + ruOffset * RU_H;
+
+    // Module background — use group color tinted
+    ctx.fillStyle = group.color || m.color;
+    ctx.globalAlpha = group.muted ? 0.3 : 0.85;
+    ctx.fillRect(moduleX, modY, moduleW, slotH);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+    ctx.strokeRect(moduleX, modY, moduleW, slotH);
+
+    // LED
+    const ledColor = group.muted ? '#c03030' : '#30c060';
+    ctx.fillStyle=ledColor;
+    ctx.beginPath(); ctx.arc(moduleX + 10, modY + slotH/2, 4, 0, Math.PI*2); ctx.fill();
+
+    // Model name
+    ctx.fillStyle='#ddd'; ctx.font='bold 9px monospace';
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    const chNums = chPerUnit===1 ? `Ch ${chStart+1}` : `Ch ${chStart+1}-${chEnd}`;
+    ctx.fillText(`${m.name}  ${chNums}`, moduleX + 22, modY + slotH/2);
+
+    // Frequency on right
+    ctx.fillStyle='rgba(200,220,255,0.7)'; ctx.font='9px monospace';
+    ctx.textAlign='right';
+    const freqLabels = group.channels.slice(chStart, chEnd).map(c=>c.freq.toFixed(3)+' MHz').join(' / ');
+    ctx.fillText(freqLabels, moduleX + moduleW - 6, modY + slotH/2);
+
+    ruOffset++;
+    unitIdx++;
+  }
+
+  // --- 1U: PSU ---
+  const psuY = rackY + (totalRU - 1)*RU_H;
+  ctx.fillStyle='#0a0a2a';
+  ctx.fillRect(moduleX, psuY, moduleW, RU_H);
+  ctx.strokeStyle='#1a1a4a'; ctx.lineWidth=1;
+  ctx.strokeRect(moduleX, psuY, moduleW, RU_H);
+  ctx.fillStyle='#4040a0';
+  ctx.beginPath(); ctx.arc(moduleX + 10, psuY + RU_H/2, 4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#8888cc'; ctx.font='9px monospace';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('PSU / Power Distribution', moduleX + 22, psuY + RU_H/2);
+}
+
+function drawConnDiagram(group) {
+  const ctx = connCtx;
+  const W = connCanvas.width, H = connCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+
+  const m  = RECV_MODELS[group.modelKey]||RECV_MODELS['shure_psm300'];
+  const sp = SPLITTERS[group.splitter]||SPLITTERS['none'];
+  const numUnits = Math.ceil(group.channels.length / m.chPerUnit);
+  const cableLossTotal = (CABLE_LOSS_PER_M[group.cableType]||0.05) * group.cableLen;
+  const netLoss = sp.active ? (cableLossTotal - sp.gain) : (cableLossTotal + sp.loss);
+
+  const CY  = H * 0.42;
+  const pad = 16;
+
+  // --- Antenna icon (left) ---
+  const antX = pad + 24;
+  ctx.strokeStyle='#e8c040'; ctx.lineWidth=2;
+  // V antenna symbol
+  ctx.beginPath(); ctx.moveTo(antX - 12, CY + 14); ctx.lineTo(antX, CY - 8); ctx.lineTo(antX + 12, CY + 14); ctx.stroke();
+  // Mast
+  ctx.beginPath(); ctx.moveTo(antX, CY - 8); ctx.lineTo(antX, CY - 20); ctx.stroke();
+  // Ground line
+  ctx.lineWidth=1; ctx.strokeStyle='#666';
+  ctx.beginPath(); ctx.moveTo(antX - 12, CY + 14); ctx.lineTo(antX + 12, CY + 14); ctx.stroke();
+  ctx.fillStyle='#e8c040'; ctx.font='bold 9px monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('ANT', antX, CY + 18);
+
+  // Arrow + cable label
+  const cableArrowX1 = antX + 16;
+  const distX = Math.min(W * 0.28, 140);
+
+  drawArrow(ctx, cableArrowX1, CY, distX - 6, CY, '#888');
+  ctx.fillStyle='#888'; ctx.font='8px monospace'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(`${group.cableType} ${group.cableLen}m`, (cableArrowX1+distX)/2, CY - 3);
+  ctx.fillStyle='#c06060'; ctx.font='8px monospace'; ctx.textBaseline='top';
+  ctx.fillText(`-${cableLossTotal.toFixed(1)} dB`, (cableArrowX1+distX)/2, CY + 2);
+
+  // --- Distributor box ---
+  const distW = 70, distH = 36;
+  const distY = CY - distH/2;
+  ctx.fillStyle='#0a2a14';
+  ctx.fillRect(distX, distY, distW, distH);
+  ctx.strokeStyle = sp.active ? '#20b060' : '#556655'; ctx.lineWidth=1;
+  ctx.strokeRect(distX, distY, distW, distH);
+  ctx.fillStyle='#8dcca0'; ctx.font='bold 8px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(sp.name, distX + distW/2, CY - 6);
+  const lossLabel = sp.active ? `+${sp.gain} dB` : `-${sp.loss} dB`;
+  ctx.fillStyle = sp.active ? '#40c080' : '#c06060';
+  ctx.fillText(lossLabel, distX + distW/2, CY + 7);
+
+  // Fan out arrows to receivers
+  const fansStartX = distX + distW + 8;
+  const recvW = 72, recvH = 28;
+  const totalFanH = numUnits * (recvH + 8) - 8;
+  const fanTop = CY - totalFanH/2;
+
+  for(let u=0; u<numUnits; u++){
+    const chStart = u * m.chPerUnit;
+    const chEnd   = Math.min(chStart + m.chPerUnit, group.channels.length);
+    const recvCY  = fanTop + u*(recvH + 8) + recvH/2;
+
+    // Line from distributor to receiver
+    const midX = fansStartX + (W - fansStartX - recvW - pad) * 0.25 + fansStartX;
+    const lineEndX = W - recvW - pad - 6;
+    drawArrow(ctx, distX + distW, CY, lineEndX, recvCY, '#555');
+
+    // Receiver box
+    const rx = W - recvW - pad;
+    const ry = recvCY - recvH/2;
+    ctx.fillStyle = group.color || '#1a3a6a';
+    ctx.globalAlpha = group.muted ? 0.35 : 0.9;
+    ctx.fillRect(rx, ry, recvW, recvH);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+    ctx.strokeRect(rx, ry, recvW, recvH);
+    ctx.fillStyle='#ddd'; ctx.font='bold 8px monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+    const chLabel = m.chPerUnit===1 ? `Ch.${chStart+1}` : `Ch.${chStart+1}/${chEnd}`;
+    ctx.fillText(chLabel, rx + recvW/2, ry + 4);
+    // Freq label
+    const freqs = group.channels.slice(chStart, chEnd).map(c=>c.freq.toFixed(3)).join('/');
+    ctx.fillStyle='rgba(180,210,255,0.75)'; ctx.font='7px monospace';
+    ctx.textBaseline='bottom';
+    ctx.fillText(freqs+' MHz', rx + recvW/2, ry + recvH - 3);
+  }
+
+  // Total net loss label at bottom
+  ctx.fillStyle='#777'; ctx.font='8px monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+  ctx.fillText(`Net path loss: -${netLoss.toFixed(1)} dB  (cable + distributor)`, pad, H - 4);
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color) {
+  const headLen = 6;
+  const dx = x2-x1, dy = y2-y1;
+  const angle = Math.atan2(dy, dx);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLen*Math.cos(angle-Math.PI/7), y2 - headLen*Math.sin(angle-Math.PI/7));
+  ctx.lineTo(x2 - headLen*Math.cos(angle+Math.PI/7), y2 - headLen*Math.sin(angle+Math.PI/7));
+  ctx.closePath();
+  ctx.fillStyle = color; ctx.fill();
+}
+
+// ====================================================
+// TAB SWITCHING
+// ====================================================
+function switchTab(tab, btn) {
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  S.activeTab=tab;
+
+  const showVenue    = tab==='venue';
+  const showAnt      = tab==='antenas'||tab==='cobertura';
+  const showRacks    = tab==='racks';
+
+  // Left panel
+  document.getElementById('venuePanel').classList.toggle('hidden', !showVenue);
+  const ap=document.getElementById('antPanel');
+  if(showAnt) ap.classList.add('visible'); else ap.classList.remove('visible');
+  const rp=document.getElementById('rackPanel');
+  if(showRacks) rp.classList.add('visible'); else rp.classList.remove('visible');
+
+  // Center — hide/show topView, profileView, rackView
+  const topViewCont  = document.getElementById('topViewCont');
+  const profileViewCont = document.getElementById('profileViewCont');
+  const profileHdr   = document.getElementById('profileHdr');
+  const rackView     = document.getElementById('rackView');
+  const viewTabsBar  = document.querySelector('.view-tabs-bar');
+
+  if(showRacks) {
+    topViewCont.style.display    = 'none';
+    profileViewCont.style.display= 'none';
+    profileHdr.style.display     = 'none';
+    viewTabsBar.style.display    = 'none';
+    rackView.classList.add('visible');
+    // Ensure canvases are properly sized
+    setTimeout(()=>{ resizeRackCanvases(); }, 30);
+  } else {
+    topViewCont.style.display    = '';
+    profileViewCont.style.display= '';
+    profileHdr.style.display     = '';
+    viewTabsBar.style.display    = '';
+    rackView.classList.remove('visible');
+  }
+
+  // Right panel — only one visible at a time
+  document.getElementById('venueRightPanel').classList.toggle('hidden', !showVenue);
+  const ar=document.getElementById('antRightPanel');
+  const cr=document.getElementById('covRightPanel');
+  const rr=document.getElementById('rackRightPanel');
+  ar.classList.remove('visible'); cr.classList.remove('visible'); rr.classList.remove('visible');
+  if(tab==='antenas')   ar.classList.add('visible');
+  else if(tab==='cobertura') cr.classList.add('visible');
+  else if(tab==='racks') rr.classList.add('visible');
+
+  // Cancel place mode when leaving antenas tab
+  if(tab!=='antenas' && S.placingAnt) {
+    S.placingAnt=false;
+    topCont.classList.remove('placing');
+    document.getElementById('placeBanner').classList.remove('visible');
+    document.getElementById('placeModeBtn').style.background='rgba(74,127,192,0.25)';
+  }
+
+  updateAntList();
+  if(showRacks) { updateRackList(); updateRackDetailArea(); }
+}
+
+function setViewMode(mode, btn) {
+  document.querySelectorAll('.view-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  S.viewMode=mode;
+  render();
+}
+
+function setSelTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  S.selSubTab=tab;
+}
+
+function setStatus(msg) { document.getElementById('navStatus').textContent=msg; }
+
+function showAddMenu(e) {
+  // Could be a dropdown, for now cycle through shapes
+  setStatus('Selecciona un tipo de superficie en el panel derecho');
+}
+
+// ====================================================
+// INIT
+// ====================================================
+function initDefaults() {
+  // Default floor
+  S.els.push({
+    id:S.nextId++, name:'Floor', shape:'quadrangular', type:'Listening',
+    color:'#6b7280', show:true, locked:false, transp:false, z:0, h:0,
+    verts:[{x:-20,y:12},{x:20,y:12},{x:20,y:-12},{x:-20,y:-12}]
+  });
+  palIdx=1;
+  saveHist();
+  refreshAll();
+}
+
+resize();
+initDefaults();
+filterSplittersByType();
+updateRackWiringCalc();
+</script>
 </body>
 </html>
