@@ -1851,18 +1851,6 @@
                   style="font-size:10px;padding:1px 3px;height:22px;cursor:pointer;">
               </div>
             </div>
-            <div class="pg">
-              <div class="pl">Start Frequency (MHz)</div>
-              <input class="pi" type="number" id="rgFreqStart" value="606.000" step="0.25" style="font-size:10px;">
-            </div>
-            <div class="pg">
-              <div class="pl">Frequency Step</div>
-              <select class="pi" id="rgFreqStep" style="font-size:10px;">
-                <option value="0.25">250 kHz</option>
-                <option value="0.5">500 kHz</option>
-                <option value="1">1 MHz</option>
-              </select>
-            </div>
             <button class="rack-action-btn primary" onclick="addRackGroup()">+ Add Group</button>
           </div>
         </div>
@@ -3840,8 +3828,8 @@
       const band = document.getElementById('rgBand').value;
       const numCh = Math.max(1, Math.min(32, parseInt(document.getElementById('rgChannels').value) || 4));
       const color = document.getElementById('rgColor').value;
-      const freqStart = parseFloat(document.getElementById('rgFreqStart').value) || 606.0;
-      const freqStep = parseFloat(document.getElementById('rgFreqStep').value) || 0.25;
+      const freqStart = 606.0;
+      const freqStep = 0.25;
       const antRuns = parseInt(document.getElementById('rgAntRuns').value) || 1;
       const splitter = document.getElementById('rgSplitter').value;
       const cableType = document.getElementById('rgCableType').value;
