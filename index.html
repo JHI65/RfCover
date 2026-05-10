@@ -1769,9 +1769,15 @@ const RECV_MODELS = {
   'shure_ur4d':      {name:'UR4D †',   ru:1, chPerUnit:2, color:'#2a2a3a', brand:'Shure', type:'MIC'},
   'shure_ur4s':      {name:'UR4S †',   ru:1, chPerUnit:1, color:'#2a2a3a', brand:'Shure', type:'MIC'},
   'shure_pgxd4':     {name:'PGXD4 †',  ru:1, chPerUnit:1, color:'#2a2a3a', brand:'Shure', type:'MIC'},
-  // Sennheiser — IEM
-  'senn_sr2050':   {name:'SR 2050 IEM',  ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
-  'senn_ewdx_iem': {name:'EW-DX IEM TX', ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  // Sennheiser — IEM (actuales)
+  'senn_ew_iem_g4': {name:'EW IEM G4',    ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  'senn_sr2050':    {name:'SR 2050 IEM',  ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  'senn_ewdx_iem':  {name:'EW-DX IEM TX', ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  'senn_xsw_iem':   {name:'XSW IEM',      ru:1, chPerUnit:1, color:'#2a3a1a', brand:'Sennheiser', type:'IEM'},
+  // Sennheiser — IEM (descontinuados)
+  'senn_ew_iem_g3': {name:'EW IEM G3 †',  ru:1, chPerUnit:1, color:'#1a2a1a', brand:'Sennheiser', type:'IEM'},
+  'senn_ew_iem_g2': {name:'EW IEM G2 †',  ru:1, chPerUnit:1, color:'#1a2a1a', brand:'Sennheiser', type:'IEM'},
+  'senn_sr2000_iem':{name:'SR 2000 IEM †',ru:1, chPerUnit:1, color:'#1a2a1a', brand:'Sennheiser', type:'IEM'},
   // Sennheiser — MIC — Gama Alta (Digital 9000 / 6000 / 3000 / 2000)
   'senn_em9000':    {name:'EM 9000',        ru:1, chPerUnit:2, color:'#0a1a2a', brand:'Sennheiser', type:'MIC'},
   'senn_em9046':    {name:'EM 9046',        ru:1, chPerUnit:2, color:'#0a1a2a', brand:'Sennheiser', type:'MIC'},
@@ -1871,7 +1877,8 @@ const MODEL_GROUPS = [
   { brand:'Shure',      label:'SLX-D',          keys:['shure_slxd4','shure_slxd4d','shure_slxd4qp','shure_slxd4qdan'] },
   { brand:'Shure',      label:'BLX',            keys:['shure_blx4','shure_blx4r','shure_blx88'] },
   { brand:'Shure',      label:'Descontinuados', keys:['shure_ur4d','shure_ur4s','shure_pgxd4'] },
-  { brand:'Sennheiser', label:'IEM',               keys:['senn_sr2050','senn_ewdx_iem'] },
+  { brand:'Sennheiser', label:'IEM',               keys:['senn_ew_iem_g4','senn_sr2050','senn_ewdx_iem','senn_xsw_iem'] },
+  { brand:'Sennheiser', label:'IEM Descont.',      keys:['senn_ew_iem_g3','senn_ew_iem_g2','senn_sr2000_iem'] },
   { brand:'Sennheiser', label:'Digital 9000',      keys:['senn_em9000','senn_em9046'] },
   { brand:'Sennheiser', label:'Digital 6000/3000', keys:['senn_em6000','senn_em3732ii','senn_em3732','senn_em3731ii','senn_em3731','senn_em2050','senn_em2000'] },
   { brand:'Sennheiser', label:'EW-DX',             keys:['senn_ewdx_em4d','senn_ewdx_em2d','senn_ewdx_em2','senn_ewdx_hh','senn_ewd_em'] },
@@ -2195,8 +2202,13 @@ const MODEL_BANDS = {
     {id:'J11',  label:'J11 · 584–608 MHz'},
   ],
   // Sennheiser IEM
+  'senn_ew_iem_g4': _SENN_EW_G,
   'senn_sr2050':    _SENN_EW_G,
   'senn_ewdx_iem':  _SENN_EWDX,
+  'senn_xsw_iem':   _SENN_XSW,
+  'senn_ew_iem_g3': _SENN_EW_G,
+  'senn_ew_iem_g2': _SENN_EW_G,
+  'senn_sr2000_iem':_SENN_EW_G,
   // Sennheiser Digital 9000
   'senn_em9000':    _SENN_DIG9,
   'senn_em9046':    _SENN_DIG9,
