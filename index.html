@@ -473,6 +473,22 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
         Superelliptic
       </button>
     </div>
+    <div class="r-sec">
+      <div class="r-hdr">Draw by clicks</div>
+      <button class="shape-btn" id="drawClickBtn_poly" onclick="startDrawClick('Listening')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="9,1 17,8 13,12 5,12 1,8"/></svg>
+        Polygon
+      </button>
+      <button class="shape-btn" id="drawClickBtn_wall" onclick="startDrawClick('Wall')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="2" y1="6" x2="16" y2="6" stroke-width="2.5"/></svg>
+        Wall
+      </button>
+      <button class="shape-btn" id="drawClickBtn_obs" onclick="startDrawClick('Obstacle')">
+        <svg viewBox="0 0 18 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="12" height="7" stroke-dasharray="2 1"/></svg>
+        Obstacle
+      </button>
+      <div class="place-banner" id="drawClickBanner">Click to add points · Double-click or Enter to finish · Esc to cancel</div>
+    </div>
 
     <div class="r-sec">
       <div class="r-hdr">Tools</div>
@@ -646,7 +662,11 @@ const S = {
   antDrag: null,   // {antId, offX, offY}
   // Cobertura
   coverage: null,
-  showCov: false
+  showCov: false,
+  // Draw by clicks
+  drawClickType: null,   // 'Listening'|'Wall'|'Obstacle'|null
+  drawClickPts: [],      // world coords [{x,y}]
+  drawClickMouse: null   // current mouse world pos {x,y}
 };
 
 const TYPES = ['Listening','Obstacle','Stage','Wall','Ceiling'];
@@ -1240,6 +1260,12 @@ function rssiColor(v){
 
 // Keyboard controls
 document.addEventListener('keydown', e=>{
+  // Draw-by-clicks: Enter to finish, Escape to cancel
+  if(S.drawClickType) {
+    if(e.key==='Enter') { e.preventDefault(); finishDrawClick(); return; }
+    if(e.key==='Escape') { cancelDrawClick(); return; }
+  }
+
   // ESC cancels place mode
   if(e.key==='Escape' && S.placingAnt) {
     S.placingAnt=false;
@@ -1304,6 +1330,24 @@ function renderTop() {
   }
 
   drawAntennas(ctx);
+
+  // Draw-by-clicks preview
+  if(S.drawClickType && S.drawClickPts.length > 0) {
+    const pts = [...S.drawClickPts];
+    if(S.drawClickMouse) pts.push(S.drawClickMouse);
+    const sp = pts.map(p=>w2t(p.x,p.y));
+    ctx.save();
+    ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(sp[0].x,sp[0].y);
+    for(let i=1;i<sp.length;i++) ctx.lineTo(sp[i].x,sp[i].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#3b82f6';
+    for(const p of sp.slice(0,-1)) {
+      ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
 }
 
 function drawGrid(ctx, W, H, view, labels) {
@@ -1457,11 +1501,23 @@ topCanvas.addEventListener('mousemove', onTMove);
 topCanvas.addEventListener('mouseup',   onTUp);
 topCanvas.addEventListener('mouseleave',onTUp);
 topCanvas.addEventListener('wheel',     onTWheel, {passive:false});
+topCanvas.addEventListener('dblclick',  onTDblClick);
 
 function onTDown(e) {
   const r=topCanvas.getBoundingClientRect();
   const sx=e.clientX-r.left, sy=e.clientY-r.top;
   const w=t2w(sx,sy);
+
+  // Draw-by-clicks mode
+  if(S.drawClickType && e.button===0) {
+    S.drawClickPts.push({x:w.x, y:w.y});
+    const n = S.drawClickPts.length;
+    const minPts = S.drawClickType==='Wall' ? 2 : 3;
+    setStatus(`${n} point${n>1?'s':''} · Double-click or Enter to finish (need ≥${minPts})`);
+    render();
+    return;
+  }
+  if(S.drawClickType && e.button===2) { cancelDrawClick(); return; }
 
   if(e.button===1||(e.button===0&&(e.altKey||e.metaKey))) {
     S.pan={sx:e.clientX,sy:e.clientY,opx:S.tv.px,opy:S.tv.py};
@@ -1535,6 +1591,8 @@ function onTMove(e) {
   const sx=e.clientX-r.left, sy=e.clientY-r.top;
   const w=t2w(sx,sy);
   document.getElementById('topCoords').textContent=`X: ${w.x.toFixed(1)} m | Y: ${w.y.toFixed(1)} m`;
+
+  if(S.drawClickType) { S.drawClickMouse={x:w.x,y:w.y}; render(); return; }
 
   if(S.pan) {
     S.tv.px=S.pan.opx+(e.clientX-S.pan.sx);
@@ -2594,6 +2652,66 @@ function resizeRackCanvases() {
     connCanvas.height = conn.clientHeight;
     drawRackCanvases();
   }
+}
+
+// ====================================================
+// DRAW BY CLICKS
+// ====================================================
+function startDrawClick(type) {
+  S.drawClickType = type;
+  S.drawClickPts  = [];
+  S.drawClickMouse = null;
+  document.getElementById('drawClickBanner').classList.add('visible');
+  ['poly','wall','obs'].forEach(k=>{
+    const b=document.getElementById('drawClickBtn_'+k);
+    if(b) b.style.background='';
+  });
+  const keyMap={Listening:'poly',Wall:'wall',Obstacle:'obs'};
+  const btn=document.getElementById('drawClickBtn_'+keyMap[type]);
+  if(btn) btn.style.background='rgba(74,127,192,0.4)';
+  topCanvas.style.cursor='crosshair';
+  setStatus(`Draw ${type} — click to add points, double-click or Enter to finish`);
+}
+
+function cancelDrawClick() {
+  S.drawClickType=null; S.drawClickPts=[]; S.drawClickMouse=null;
+  document.getElementById('drawClickBanner').classList.remove('visible');
+  ['poly','wall','obs'].forEach(k=>{
+    const b=document.getElementById('drawClickBtn_'+k);
+    if(b) b.style.background='';
+  });
+  topCanvas.style.cursor='default';
+  setStatus('Cancelled');
+  render();
+}
+
+function finishDrawClick() {
+  const pts=S.drawClickPts;
+  const type=S.drawClickType;
+  const minPts=type==='Wall' ? 2 : 3;
+  if(pts.length < minPts) { setStatus(`Need at least ${minPts} points`); return; }
+  saveHist();
+  const color=PALETTE[palIdx++%PALETTE.length];
+  const el={
+    id:S.nextId++,
+    name: type==='Wall' ? `Wall ${S.els.filter(e=>e.type==='Wall').length+1}`
+        : type==='Obstacle' ? `Obstacle ${S.els.filter(e=>e.type==='Obstacle').length+1}`
+        : defName('quadrangular'),
+    shape:'quadrangular', type, color, show:true, locked:false, transp:false, z:0, h:0,
+    verts: pts.map(p=>({x:p.x,y:p.y}))
+  };
+  S.els.push(el);
+  S.selId=el.id;
+  cancelDrawClick();
+  refreshAll();
+  setStatus(`"${el.name}" created with ${pts.length} points`);
+}
+
+function onTDblClick(e) {
+  if(!S.drawClickType) return;
+  // remove last point (it was added by the mousedown that fired before dblclick)
+  if(S.drawClickPts.length>0) S.drawClickPts.pop();
+  finishDrawClick();
 }
 
 // ====================================================
