@@ -3214,7 +3214,7 @@
       'shure_psm600': { name: 'PSM600', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       'shure_psm700': { name: 'PSM700', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       'shure_psm900': { name: 'PSM900', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm1000': { name: 'PSM1000', ru: 1, chPerUnit: 2, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm1000': { name: 'PSM1000', ru: 1, chPerUnit: 2, rfOutPerCh: 2, xlrInPerCh: 2, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       // Shure — Axient Digital (MIC)
       'shure_ad4d': { name: 'AD4D', ru: 1, chPerUnit: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
       'shure_ad4q': { name: 'AD4Q', ru: 1, chPerUnit: 4, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
@@ -4463,12 +4463,25 @@
       S.rackGroups.forEach(g => {
         if (g.x == null) return;
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-        const nu = Math.ceil(g.channels.length / m.chPerUnit);
+        const rfPerCh = m.rfOutPerCh || 1;
+        const xlrPerCh = m.xlrInPerCh || 0;
         const key = 'g_' + g.id;
         if (!pp[key]) pp[key] = {};
-        for (let u = 0; u < nu; u++) pp[key]['rf_out_' + u] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + u * PORT_SP };
-        // signal ports
-        g.channels.forEach((ch, c) => { pp[key]['sig_out_' + c] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + c * PORT_SP }; });
+        // RF OUT ports
+        let portIdx = 0;
+        g.channels.forEach((ch, c) => {
+          for (let r = 0; r < rfPerCh; r++, portIdx++) {
+            pp[key][`rf_out_${c}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+          }
+        });
+        // Signal OUT + XLR IN ports
+        g.channels.forEach((ch, c) => {
+          const rowIdx = xlrPerCh > 0 ? c * Math.max(xlrPerCh, 1) : c;
+          pp[key]['sig_out_' + c] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + rowIdx * PORT_SP };
+          for (let x = 0; x < xlrPerCh; x++) {
+            pp[key][`xlr_in_${c}_${x}`] = { x: g.x, y: g.y + HDR + PORT_SP + (c * xlrPerCh + x) * PORT_SP };
+          }
+        });
       });
 
       S.rackConnections.filter(c => c.type === S.connMode).forEach(c => {
@@ -4505,9 +4518,19 @@
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
         return Math.ceil(g.channels.length / m.chPerUnit);
       }
+      function rfPortsOf(g) {
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        return g.channels.length * (m.rfOutPerCh || 1);
+      }
+      function xlrInPortsOf(g) {
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        return g.channels.length * (m.xlrInPerCh || 0);
+      }
       function groupBlockH(g) {
-        const n = S.connMode === 'rf' ? numUnitsOf(g) : g.channels.length;
-        return HDR + Math.max(n, 1) * PORT_SP + 16;
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        if (S.connMode === 'rf') return HDR + Math.max(rfPortsOf(g), 1) * PORT_SP + 16;
+        const sigRows = Math.max(g.channels.length, xlrInPortsOf(g), 1);
+        return HDR + sigRows * PORT_SP + 16;
       }
       function splitterBlockH(node) {
         const sp = SPLITTERS[node.splitterKey] || SPLITTERS['none'];
@@ -4542,20 +4565,46 @@
         let ports = '';
 
         if (S.connMode === 'rf') {
-          for (let u = 0; u < nu; u++) {
-            const py = HDR + PORT_SP + u * PORT_SP;
-            const pid = `rf_out_${u}`;
-            S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
-            const pp = isPend && S.pendingPort.portId === pid;
-            ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
-            fill="#999" font-size="8" font-family="monospace">RF${u + 1}</text>
-          <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
-            stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
-            onclick="clickPort(${g.id},'${pid}','group')"/>`;
-          }
-        } else {
+          const mRf = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+          const rfPerCh = mRf.rfOutPerCh || 1;
+          let portIdx = 0;
           g.channels.forEach((ch, c) => {
-            const py = HDR + PORT_SP + c * PORT_SP;
+            for (let r = 0; r < rfPerCh; r++, portIdx++) {
+              const py = HDR + PORT_SP + portIdx * PORT_SP;
+              const pid = `rf_out_${c}_${r}`;
+              S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+              const pp = isPend && S.pendingPort.portId === pid;
+              const label = rfPerCh > 1 ? `RF${c + 1}${String.fromCharCode(97 + r).toUpperCase()}` : `RF${c + 1}`;
+              ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+              fill="#999" font-size="8" font-family="monospace">${label}</text>
+            <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
+              stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
+              onclick="clickPort(${g.id},'${pid}','group')"/>`;
+            }
+          });
+        } else {
+          const mSig = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+          const xlrPerCh = mSig.xlrInPerCh || 0;
+          // XLR IN ports (left side)
+          if (xlrPerCh > 0) {
+            g.channels.forEach((ch, c) => {
+              for (let x = 0; x < xlrPerCh; x++) {
+                const rowIdx = c * xlrPerCh + x;
+                const py = HDR + PORT_SP + rowIdx * PORT_SP;
+                const pid = `xlr_in_${c}_${x}`;
+                S._portPos['g_' + g.id][pid] = { x: g.x, y: g.y + py };
+                const label = xlrPerCh > 1 ? `XLR${c + 1}${String.fromCharCode(76 + x)}` : `XLR${c + 1}`;
+                ports += `<circle cx="0" cy="${py}" r="${PORT_R}" fill="${SIG_COLOR}"
+                  stroke="none" class="rdc-port"/>
+                <text x="8" y="${py}" dominant-baseline="middle"
+                  fill="#999" font-size="8" font-family="monospace">${label}</text>`;
+              }
+            });
+          }
+          // Signal OUT ports (right side)
+          g.channels.forEach((ch, c) => {
+            const rowIdx = xlrPerCh > 0 ? c * Math.max(xlrPerCh, 1) : c;
+            const py = HDR + PORT_SP + rowIdx * PORT_SP;
             const pid = `sig_out_${c}`;
             S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
             const pp = isPend && S.pendingPort.portId === pid;
