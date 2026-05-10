@@ -560,9 +560,26 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
           </div>
           <div class="pg"><div class="pl">Cable Type</div>
             <select class="pi" id="rgCableType" style="font-size:10px;" onchange="updateRackWiringCalc()">
-              <option value="RG8">RG8 (0.05 dB/m)</option>
-              <option value="RG58">RG58 (0.2 dB/m)</option>
-              <option value="LMR400">LMR-400 (0.03 dB/m)</option>
+              <optgroup label="── RG Series ──">
+                <option value="RG58">RG58 (0.20 dB/m)</option>
+                <option value="RG8X">RG8X mini (0.10 dB/m)</option>
+                <option value="RG8">RG8 / RG213 (0.08 dB/m)</option>
+              </optgroup>
+              <optgroup label="── LMR Series ──">
+                <option value="LMR195">LMR-195 (0.064 dB/m)</option>
+                <option value="LMR240">LMR-240 (0.040 dB/m)</option>
+                <option value="LMR400" selected>LMR-400 (0.034 dB/m)</option>
+                <option value="LMR600">LMR-600 (0.022 dB/m)</option>
+                <option value="LMR900">LMR-900 (0.015 dB/m)</option>
+              </optgroup>
+              <optgroup label="── Ecoflex ──">
+                <option value="ECO10">Ecoflex 10 (0.10 dB/m)</option>
+                <option value="ECO15">Ecoflex 15 (0.065 dB/m)</option>
+                <option value="ECO15P">Ecoflex 15 Plus (0.050 dB/m)</option>
+              </optgroup>
+              <optgroup label="── Belden ──">
+                <option value="B9913">Belden 9913 (0.08 dB/m)</option>
+              </optgroup>
             </select>
           </div>
           <div class="pg"><div class="pl">Cable Length (m)</div>
@@ -1851,7 +1868,24 @@ const SPLITTERS = {
   'glen_ad4':      {name:'Glensound AD4',              loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +10 dB. 450–870 MHz. Broadcast grade.'},
 };
 
-const CABLE_LOSS_PER_M = { 'RG8':0.05, 'RG58':0.2, 'LMR400':0.03 };
+const CABLE_LOSS_PER_M = {
+  // RG Series — valores a ~700 MHz
+  'RG58':  0.20,  // RG58/U  — fino, flexible, uso en patch cortos
+  'RG8X':  0.10,  // RG8X mini — equilibrio peso/pérdida, touring
+  'RG8':   0.08,  // RG8 / RG213 — estándar broadcast
+  // LMR Series (Times Microwave) — valores a ~700 MHz
+  'LMR195': 0.064, // LMR-195 — compacto, racks portátiles
+  'LMR240': 0.040, // LMR-240 — distribución media distancia
+  'LMR400': 0.034, // LMR-400 — estándar touring, antenas principales
+  'LMR600': 0.022, // LMR-600 — instalaciones fijas, grandes distancias
+  'LMR900': 0.015, // LMR-900 — mínima pérdida, runs muy largos
+  // Ecoflex (SSB Electronic) — valores a ~700 MHz
+  'ECO10':  0.10,  // Ecoflex 10 — flexible europeo, equivalente RG8X
+  'ECO15':  0.065, // Ecoflex 15 — estándar instalación fija EU
+  'ECO15P': 0.050, // Ecoflex 15 Plus — versión mejorada
+  // Belden
+  'B9913':  0.08,  // Belden 9913 — equivalente RG8, live events
+};
 
 // Groups by brand for the filtered splitter select
 const SPLITTER_GROUPS = [
