@@ -1289,7 +1289,7 @@
       flex-shrink: 0;
     }
 
-    .proj-item-del {
+    .proj-item-del, .proj-item-save {
       background: transparent;
       border: none;
       color: #555;
@@ -1303,6 +1303,11 @@
     .proj-item-del:hover {
       color: #c06060;
       background: rgba(192, 74, 74, 0.12);
+    }
+
+    .proj-item-save:hover {
+      color: #60a0c0;
+      background: rgba(74, 127, 192, 0.12);
     }
 
     .proj-save-row {
@@ -5257,7 +5262,7 @@
     // ====================================================
     // SUPABASE AUTH + PROJECTS
     // ====================================================
-    let _sb = null, _sbUser = null;
+    let _sb = null, _sbUser = null, _currentProjectName = null;
 
     function _initSupabase() {
       if (_sb) return _sb;
@@ -5352,7 +5357,9 @@
       S.antDrag = null;
       S.antPlaceMode = false;
       updateAntList();
-      renderConnDiagram();
+      try { updateRackList(); } catch(e) {}
+      try { updateRackDetailArea(); } catch(e) {}
+      try { renderConnDiagram(); } catch(e) {}
       if (typeof refreshAll === 'function') refreshAll();
       else render();
       setStatus('Proyecto cargado');
@@ -5386,14 +5393,16 @@
         ({ error } = await _sb.from('rf_projects').insert(payload));
       }
       if (error) { setStatus('⚠ Error guardando: ' + error.message); return; }
+      _currentProjectName = name;
       setStatus(`✅ Proyecto "${name}" guardado`);
       _renderProjectsBody();
     }
 
-    async function _loadProject(id) {
+    async function _loadProject(id, name) {
       if (!_sb) return;
-      const { data, error } = await _sb.from('rf_projects').select('data').eq('id', id).single();
+      const { data, error } = await _sb.from('rf_projects').select('data,name').eq('id', id).single();
       if (error || !data) { setStatus('⚠ Error cargando proyecto'); return; }
+      _currentProjectName = data.name || name || null;
       document.getElementById('projectsModal').style.display = 'none';
       _deserializeState(data.data);
     }
@@ -5439,10 +5448,12 @@
           const d = new Date(p.updated_at);
           const dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
           return `
-          <div class="proj-item" onclick="_loadProject('${p.id}')">
+          <div class="proj-item" onclick="_loadProject('${p.id}','${p.name.replace(/'/g, "\\'")}')">
             <span style="font-size:14px;flex-shrink:0;">📄</span>
             <span class="proj-item-name">${p.name}</span>
             <span class="proj-item-date">${dateStr}</span>
+            <button class="proj-item-save" title="Sobrescribir"
+              onclick="event.stopPropagation();_saveProject('${p.name.replace(/'/g, "\\'")}')">💾</button>
             <button class="proj-item-del" title="Eliminar"
               onclick="event.stopPropagation();_deleteProject('${p.id}','${p.name.replace(/'/g, "\\'")}')">🗑</button>
           </div>`;
@@ -5461,7 +5472,9 @@
 
     <div class="proj-divider">Guardar proyecto actual</div>
     <div class="proj-save-row">
-      <input type="text" id="projNameInput" placeholder="Nombre del proyecto…" onkeydown="if(event.key==='Enter')_saveProjectFromInput()">
+      <input type="text" id="projNameInput" placeholder="Nombre del proyecto…"
+        value="${_currentProjectName ? _currentProjectName.replace(/"/g, '&quot;') : ''}"
+        onkeydown="if(event.key==='Enter')_saveProjectFromInput()">
       <button class="btn-primary" onclick="_saveProjectFromInput()">Guardar</button>
     </div>
 
