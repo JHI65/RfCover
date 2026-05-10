@@ -196,8 +196,8 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .rdc-mode-btn.active { background:rgba(74,127,192,0.35); border-color:rgba(74,127,192,0.6); color:#7bc; }
 .rdc-clear-btn { margin-left:auto; padding:3px 8px; border-radius:2px; border:1px solid rgba(192,74,74,0.4); background:rgba(192,74,74,0.15); color:#c06060; font-size:10px; cursor:pointer; }
 .rdc-clear-btn:hover { background:rgba(192,74,74,0.3); }
-#rackDiagramWrap { display:flex; flex-direction:column; width:100%; height:100%; overflow:hidden; }
-#rackDiagramSvg { flex:1; width:100%; min-height:0; }
+#rackDiagramWrap { display:flex; flex-direction:column; width:100%; min-height:100%; }
+#rackDiagramSvg { display:block; width:100%; }
 
 /* antenna item in list */
 .ant-item { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:flex-start; gap:5px; cursor:pointer; }
@@ -2768,29 +2768,31 @@ function renderConnDiagram() {
   const BLOCK_W = 200, BLOCK_PAD_X = 36, BLOCK_PAD_Y = 28;
   const PORT_R = 5, HEADER_H = 26, PORT_SPACING = 20;
 
-  // Build or retrieve wrapper
+  // Build wrapper if missing
   let wrap = document.getElementById('rackDiagramWrap');
   if(!wrap || body.firstChild !== wrap) {
     body.innerHTML = `
       <div id="rackDiagramWrap">
         <div class="rdc-toolbar">
           <span style="font-size:10px;color:var(--text-dim);margin-right:4px;">Layer:</span>
-          <button class="rdc-mode-btn active" data-mode="rf" onclick="setConnMode('rf')">RF</button>
+          <button class="rdc-mode-btn" data-mode="rf" onclick="setConnMode('rf')">RF</button>
           <button class="rdc-mode-btn" data-mode="signal" onclick="setConnMode('signal')">Signal</button>
           <button class="rdc-clear-btn" onclick="clearConnections()">Clear</button>
         </div>
         <svg id="rackDiagramSvg" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>`;
     wrap = document.getElementById('rackDiagramWrap');
-    // Sync active button
-    wrap.querySelectorAll('.rdc-mode-btn').forEach(b=>{
-      b.classList.toggle('active', b.dataset.mode === S.connMode);
-    });
+    // If no clientWidth yet, defer one frame
+    if(!wrap.clientWidth) { requestAnimationFrame(renderConnDiagram); return; }
   }
+  // Sync active mode button
+  wrap.querySelectorAll('.rdc-mode-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode === S.connMode);
+  });
 
   const svg = document.getElementById('rackDiagramSvg');
   if(!svg) return;
-  const svgW = svg.clientWidth || 600;
+  const svgW = body.clientWidth || wrap.clientWidth || 600;
 
   // Compute block heights
   function blockHeight(g) {
@@ -2926,8 +2928,11 @@ function renderConnDiagram() {
     }
   }
 
-  svg.setAttribute('viewBox', `0 0 ${svgW} ${Math.max(totalH, 100)}`);
-  svg.setAttribute('height', Math.max(totalH, 100));
+  const svgH = Math.max(totalH, 200);
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', svgH);
+  svg.style.minHeight = svgH + 'px';
   svg.innerHTML = html;
 
   // Track mouse for ghost line
