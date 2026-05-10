@@ -581,11 +581,11 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
                 <option value="B9913">Belden 9913 (0.08 dB/m)</option>
               </optgroup>
               <optgroup label="── Messi &amp; Paoloni ──">
-                <option value="MP_HF10">Hyperflex 10 .400&quot; (0.035 dB/m)</option>
-                <option value="MP_HF13">Hyperflex 13 .500&quot; (0.022 dB/m)</option>
-                <option value="MP_UF10">Ultraflex 10 .400&quot; (0.040 dB/m)</option>
-                <option value="MP_EF10">Extraflex Bury 10 .400&quot; (0.035 dB/m)</option>
-                <option value="MP_AB10">Airborne 10 .400&quot; (0.038 dB/m)</option>
+                <option value="MP_HF10">Hyperflex 10 .400&quot; (0.119 dB/m)</option>
+                <option value="MP_HF13">Hyperflex 13 .500&quot; (0.090 dB/m)</option>
+                <option value="MP_UF10">Ultraflex 10 .400&quot; (0.114 dB/m)</option>
+                <option value="MP_EF10">Extraflex Bury 10 .400&quot; (0.114 dB/m)</option>
+                <option value="MP_AB10">Airborne 10 .400&quot; (0.104 dB/m)</option>
               </optgroup>
             </select>
           </div>
@@ -1892,12 +1892,12 @@ const CABLE_LOSS_PER_M = {
   'ECO15P': 0.050, // Ecoflex 15 Plus — versión mejorada
   // Belden
   'B9913':  0.08,  // Belden 9913 — equivalente RG8, live events
-  // Messi & Paoloni — valores aprox. a ~700 MHz (Ø 10.3–12.7mm, 50Ω)
-  'MP_HF10': 0.035, // Hyperflex 10 .400" — equiv. LMR-400, touring/install
-  'MP_HF13': 0.022, // Hyperflex 13 .500" — equiv. LMR-600, larga distancia
-  'MP_UF10': 0.040, // Ultraflex 10 .400" — ultraflex, curvas cerradas
-  'MP_EF10': 0.035, // Extraflex Bury 10 .400" — enterramiento directo
-  'MP_AB10': 0.038, // Airborne 10 .400" — ligero, instalaciones aéreas
+  // Messi & Paoloni — valores reales @ 800 MHz (datasheets oficiales)
+  'MP_HF10': 0.119, // Hyperflex 10 .400" — 11.9 dB/100m @ 800 MHz
+  'MP_HF13': 0.090, // Hyperflex 13 .500" — 9.0 dB/100m @ 800 MHz
+  'MP_UF10': 0.114, // Ultraflex 10 .400" — 11.4 dB/100m @ 800 MHz
+  'MP_EF10': 0.114, // Extraflex Bury 10 .400" — 11.4 dB/100m @ 800 MHz
+  'MP_AB10': 0.104, // Airborne 10 .400" — 10.4 dB/100m @ 800 MHz
 };
 
 // Groups by brand for the filtered splitter select
