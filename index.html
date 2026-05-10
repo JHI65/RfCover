@@ -1735,6 +1735,8 @@ const RECV_MODELS = {
   'wisycom_mcr54':     {name:'MCR54',      ru:1, chPerUnit:4, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
   'wisycom_mcr54dual': {name:'MCR54-DUAL', ru:1, chPerUnit:8, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
   'wisycom_mpr52eng':  {name:'MPR52-ENG',  ru:1, chPerUnit:2, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
+  // Shure — Axient Digital IEM
+  'shure_adpsm_p10t':{name:'AD PSM P10T', ru:1, chPerUnit:1, color:'#1a1a5a', brand:'Shure', type:'IEM'},
   // Shure — IEM
   'shure_psm200':    {name:'PSM200',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
   'shure_psm300':    {name:'PSM300',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
@@ -1835,6 +1837,7 @@ const MODEL_GROUPS = [
   { brand:'Wisycom',    label:'IEM TX',        keys:['wisycom_mtk952_0w2_25k','wisycom_mtk952_0w2_5k','wisycom_mtk952_2w0_25k','wisycom_mtk952_2w0_5k','wisycom_mtk982_25k','wisycom_mtk982_5k'] },
   { brand:'Wisycom',    label:'MIC Rack',       keys:['wisycom_mrk16sca','wisycom_mrk16'] },
   { brand:'Wisycom',    label:'MIC Portable',   keys:['wisycom_mcr54','wisycom_mcr54dual','wisycom_mpr52eng'] },
+  { brand:'Shure',      label:'Axient Digital IEM', keys:['shure_adpsm_p10t'] },
   { brand:'Shure',      label:'IEM',            keys:['shure_psm200','shure_psm300','shure_psm400','shure_psm600','shure_psm700','shure_psm900','shure_psm1000'] },
   { brand:'Shure',      label:'Axient Digital', keys:['shure_ad4d','shure_ad4q','shure_adx5d'] },
   { brand:'Shure',      label:'ULX-D',          keys:['shure_ulxd4','shure_ulxd4d','shure_ulxd4q'] },
@@ -1864,6 +1867,13 @@ const MODEL_BANDS = {
   'wisycom_mrk16sca': _WB, 'wisycom_mrk16': _WB,
   'wisycom_mcr54': _WB, 'wisycom_mcr54dual': _WB, 'wisycom_mpr52eng': _WB,
 
+  // Shure Axient Digital IEM (P10T)
+  'shure_adpsm_p10t': [
+    {id:'A',   label:'A · 470–616 MHz'},
+    {id:'B',   label:'B · 614–703 MHz'},
+    {id:'C',   label:'C · 700–820 MHz'},
+    {id:'D',   label:'D · 820–865 MHz'},
+  ],
   // Shure IEM
   'shure_psm200': [
     {id:'H3E',  label:'H3E · 518–542 MHz'},
