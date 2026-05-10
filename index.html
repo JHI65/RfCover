@@ -159,6 +159,7 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .type-badge.iem { background:rgba(74,180,120,0.2); color:#6bc4a0; border-color:rgba(74,180,120,0.3); }
 .type-badge.mic { background:rgba(180,140,74,0.2); color:#c4a060; border-color:rgba(180,140,74,0.3); }
 .type-badge.bp  { background:rgba(140,74,180,0.2); color:#a060c4; border-color:rgba(140,74,180,0.3); }
+.type-badge.wisycom { background:rgba(180,100,20,0.2); color:#c88040; border-color:rgba(180,100,20,0.3); }
 .rack-mute { width:18px; height:16px; background:transparent; border:1px solid transparent; border-radius:2px; color:var(--text-dim); font-size:10px; cursor:pointer; flex-shrink:0; }
 .rack-mute:hover { background:var(--btn-bg); border-color:var(--border); color:var(--text); }
 .rack-mute.muted { color:#c04a4a; }
@@ -503,22 +504,22 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
               <option value="BP">Bodypack</option>
             </select>
           </div>
-          <div class="pg"><div class="pl">Receiver Model</div>
-            <select class="pi" id="rgModel" style="font-size:10px;">
-              <optgroup label="Shure">
-                <option value="shure_psm300">PSM300</option>
-                <option value="shure_psm900">PSM900</option>
-                <option value="shure_psm1000">PSM1000</option>
-                <option value="shure_ulxd4">ULXD4</option>
-                <option value="shure_ulxd4d">ULXD4D (2ch)</option>
-                <option value="shure_ad4q">AD4Q (4ch)</option>
-              </optgroup>
-              <optgroup label="Sennheiser">
-                <option value="senn_sr2050">SR2050 IEM</option>
-                <option value="senn_ewdx_iem">EW-DX IEM (2ch)</option>
-                <option value="senn_em6000">EM6000 (2ch)</option>
-                <option value="senn_ewdx_hh">EW-DX HH (2ch)</option>
-              </optgroup>
+          <div class="pg"><div class="pl">Manufacturer</div>
+            <select class="pi" id="rgManufacturer" style="font-size:10px;" onchange="filterModelsByManufacturer()">
+              <option value="">Select manufacturer</option>
+              <option value="Wisycom">Wisycom</option>
+              <option value="Shure">Shure</option>
+              <option value="Sennheiser">Sennheiser</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl">Model</div>
+            <select class="pi" id="rgModel" style="font-size:10px;" onchange="filterBandsByModel()">
+              <option value="">Select model</option>
+            </select>
+          </div>
+          <div class="pg"><div class="pl">Frequency Band</div>
+            <select class="pi" id="rgBand" style="font-size:10px;">
+              <option value="">Select band</option>
             </select>
           </div>
           <div class="pr">
@@ -1720,16 +1721,62 @@ S.nextRackId = 1;
 S.rackDetailTab = 'channels';
 
 const RECV_MODELS = {
-  'shure_psm300':  {name:'Shure PSM300',     ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
-  'shure_psm900':  {name:'Shure PSM900',     ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
-  'shure_psm1000': {name:'Shure PSM1000',    ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure'},
-  'shure_ulxd4':   {name:'Shure ULXD4',      ru:1, chPerUnit:1, color:'#3a1a6a', brand:'Shure'},
-  'shure_ulxd4d':  {name:'Shure ULXD4D',     ru:1, chPerUnit:2, color:'#3a1a6a', brand:'Shure'},
-  'shure_ad4q':    {name:'Shure AD4Q',        ru:1, chPerUnit:4, color:'#3a1a6a', brand:'Shure'},
-  'senn_sr2050':   {name:'Senn. SR2050 IEM', ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser'},
-  'senn_ewdx_iem': {name:'Senn. EW-DX IEM',  ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
-  'senn_em6000':   {name:'Senn. EM6000',      ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
-  'senn_ewdx_hh':  {name:'Senn. EW-DX HH',   ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser'},
+  // Wisycom — IEM TX
+  'wisycom_mtk952_0w2_25k': {name:'MTK952-0W2 [25k]', ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  'wisycom_mtk952_0w2_5k':  {name:'MTK952-0W2 [5k]',  ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  'wisycom_mtk952_2w0_25k': {name:'MTK952-2W0 [25k]', ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  'wisycom_mtk952_2w0_5k':  {name:'MTK952-2W0 [5k]',  ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  'wisycom_mtk982_25k':     {name:'MTK982 [25k]',     ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  'wisycom_mtk982_5k':      {name:'MTK982 [5k]',      ru:1, chPerUnit:1, color:'#3a2a10', brand:'Wisycom', type:'IEM'},
+  // Wisycom — MIC RX Rack
+  'wisycom_mrk16sca': {name:'MRK16-SCA', ru:2, chPerUnit:16, color:'#2a1a0a', brand:'Wisycom', type:'MIC'},
+  'wisycom_mrk16':    {name:'MRK16',     ru:2, chPerUnit:16, color:'#2a1a0a', brand:'Wisycom', type:'MIC'},
+  // Wisycom — MIC RX Portable
+  'wisycom_mcr54':     {name:'MCR54',      ru:1, chPerUnit:4, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
+  'wisycom_mcr54dual': {name:'MCR54-DUAL', ru:1, chPerUnit:8, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
+  'wisycom_mpr52eng':  {name:'MPR52-ENG',  ru:1, chPerUnit:2, color:'#3a2a1a', brand:'Wisycom', type:'MIC'},
+  // Shure — IEM
+  'shure_psm200':    {name:'PSM200',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm300':    {name:'PSM300',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm400':    {name:'PSM400',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm600':    {name:'PSM600',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm700':    {name:'PSM700',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm900':    {name:'PSM900',   ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  'shure_psm1000':   {name:'PSM1000',  ru:1, chPerUnit:1, color:'#1a3a6a', brand:'Shure', type:'IEM'},
+  // Shure — Axient Digital (MIC)
+  'shure_ad4d':      {name:'AD4D',     ru:1, chPerUnit:2, color:'#2a1a5a', brand:'Shure', type:'MIC'},
+  'shure_ad4q':      {name:'AD4Q',     ru:1, chPerUnit:4, color:'#2a1a5a', brand:'Shure', type:'MIC'},
+  'shure_adx5d':     {name:'ADX5D',    ru:1, chPerUnit:2, color:'#2a1a5a', brand:'Shure', type:'MIC'},
+  // Shure — ULX-D (MIC)
+  'shure_ulxd4':     {name:'ULXD4',    ru:1, chPerUnit:1, color:'#3a1a6a', brand:'Shure', type:'MIC'},
+  'shure_ulxd4d':    {name:'ULXD4D',   ru:1, chPerUnit:2, color:'#3a1a6a', brand:'Shure', type:'MIC'},
+  'shure_ulxd4q':    {name:'ULXD4Q',   ru:1, chPerUnit:4, color:'#3a1a6a', brand:'Shure', type:'MIC'},
+  // Shure — QLX-D (MIC)
+  'shure_qlxd4':     {name:'QLXD4',    ru:1, chPerUnit:1, color:'#3a2a5a', brand:'Shure', type:'MIC'},
+  // Shure — SLX-D (MIC)
+  'shure_slxd4':     {name:'SLXD4',    ru:1, chPerUnit:1, color:'#3a1a5a', brand:'Shure', type:'MIC'},
+  'shure_slxd4d':    {name:'SLXD4D',   ru:1, chPerUnit:2, color:'#3a1a5a', brand:'Shure', type:'MIC'},
+  'shure_slxd4qp':   {name:'SLXD4Q+',  ru:1, chPerUnit:4, color:'#3a1a5a', brand:'Shure', type:'MIC'},
+  'shure_slxd4qdan': {name:'SLXD4QDAN+',ru:1,chPerUnit:4, color:'#3a1a5a', brand:'Shure', type:'MIC'},
+  // Shure — BLX (MIC)
+  'shure_blx4':      {name:'BLX4',     ru:1, chPerUnit:1, color:'#2a2a5a', brand:'Shure', type:'MIC'},
+  'shure_blx4r':     {name:'BLX4R',    ru:1, chPerUnit:1, color:'#2a2a5a', brand:'Shure', type:'MIC'},
+  'shure_blx88':     {name:'BLX88',    ru:1, chPerUnit:2, color:'#2a2a5a', brand:'Shure', type:'MIC'},
+  // Shure — Descontinuados (MIC)
+  'shure_ur4d':      {name:'UR4D †',   ru:1, chPerUnit:2, color:'#2a2a3a', brand:'Shure', type:'MIC'},
+  'shure_ur4s':      {name:'UR4S †',   ru:1, chPerUnit:1, color:'#2a2a3a', brand:'Shure', type:'MIC'},
+  'shure_pgxd4':     {name:'PGXD4 †',  ru:1, chPerUnit:1, color:'#2a2a3a', brand:'Shure', type:'MIC'},
+  // Sennheiser — IEM
+  'senn_sr2050':   {name:'SR 2050 IEM',  ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  'senn_ewdx_iem': {name:'EW-DX IEM TX', ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser', type:'IEM'},
+  // Sennheiser — MIC
+  'senn_ew100g4':  {name:'EW 100 G4',    ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'MIC'},
+  'senn_ew300g4':  {name:'EW 300 G4',    ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'MIC'},
+  'senn_ew500g4':  {name:'EW 500 G4',    ru:1, chPerUnit:1, color:'#1a3a2a', brand:'Sennheiser', type:'MIC'},
+  'senn_ewdx_em2': {name:'EW-DX EM 2',   ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser', type:'MIC'},
+  'senn_ewdx_hh':  {name:'EW-DX EM HH',  ru:1, chPerUnit:2, color:'#1a3a2a', brand:'Sennheiser', type:'MIC'},
+  'senn_em6000':   {name:'EM 6000 Dig.',  ru:1, chPerUnit:2, color:'#0a2a1a', brand:'Sennheiser', type:'MIC'},
+  'senn_em9046':   {name:'EM 9046 Dig.',  ru:1, chPerUnit:2, color:'#0a2a1a', brand:'Sennheiser', type:'MIC'},
 };
 
 const SPLITTERS = {
@@ -1784,7 +1831,335 @@ const SPLITTER_GROUPS = [
   { label: 'Glensound',        keys: ['glen_ad4'] },
 ];
 
+const MODEL_GROUPS = [
+  { brand:'Wisycom',    label:'IEM TX',        keys:['wisycom_mtk952_0w2_25k','wisycom_mtk952_0w2_5k','wisycom_mtk952_2w0_25k','wisycom_mtk952_2w0_5k','wisycom_mtk982_25k','wisycom_mtk982_5k'] },
+  { brand:'Wisycom',    label:'MIC Rack',       keys:['wisycom_mrk16sca','wisycom_mrk16'] },
+  { brand:'Wisycom',    label:'MIC Portable',   keys:['wisycom_mcr54','wisycom_mcr54dual','wisycom_mpr52eng'] },
+  { brand:'Shure',      label:'IEM',            keys:['shure_psm200','shure_psm300','shure_psm400','shure_psm600','shure_psm700','shure_psm900','shure_psm1000'] },
+  { brand:'Shure',      label:'Axient Digital', keys:['shure_ad4d','shure_ad4q','shure_adx5d'] },
+  { brand:'Shure',      label:'ULX-D',          keys:['shure_ulxd4','shure_ulxd4d','shure_ulxd4q'] },
+  { brand:'Shure',      label:'QLX-D',          keys:['shure_qlxd4'] },
+  { brand:'Shure',      label:'SLX-D',          keys:['shure_slxd4','shure_slxd4d','shure_slxd4qp','shure_slxd4qdan'] },
+  { brand:'Shure',      label:'BLX',            keys:['shure_blx4','shure_blx4r','shure_blx88'] },
+  { brand:'Shure',      label:'Descontinuados', keys:['shure_ur4d','shure_ur4s','shure_pgxd4'] },
+  { brand:'Sennheiser', label:'IEM',            keys:['senn_sr2050','senn_ewdx_iem'] },
+  { brand:'Sennheiser', label:'EW G4',          keys:['senn_ew100g4','senn_ew300g4','senn_ew500g4'] },
+  { brand:'Sennheiser', label:'EW-DX',          keys:['senn_ewdx_em2','senn_ewdx_hh'] },
+  { brand:'Sennheiser', label:'Digital 6000/9000', keys:['senn_em6000','senn_em9046'] },
+];
+
+// Frequency bands per model key
+const _WB = [ // Wisycom wideband — common to all Wisycom models
+  {id:'BPN', label:'BPN · 470–548 MHz'},
+  {id:'BPF', label:'BPF · 518–608 MHz'},
+  {id:'BPL', label:'BPL · 606–694 MHz'},
+  {id:'BPC', label:'BPC · 694–806 MHz'},
+  {id:'BPB', label:'BPB · 798–870 MHz'},
+];
+const MODEL_BANDS = {
+  // Wisycom — all share same bands
+  'wisycom_mtk952_0w2_25k': _WB, 'wisycom_mtk952_0w2_5k': _WB,
+  'wisycom_mtk952_2w0_25k': _WB, 'wisycom_mtk952_2w0_5k': _WB,
+  'wisycom_mtk982_25k': _WB, 'wisycom_mtk982_5k': _WB,
+  'wisycom_mrk16sca': _WB, 'wisycom_mrk16': _WB,
+  'wisycom_mcr54': _WB, 'wisycom_mcr54dual': _WB, 'wisycom_mpr52eng': _WB,
+
+  // Shure IEM
+  'shure_psm200': [
+    {id:'H3E',  label:'H3E · 518–542 MHz'},
+    {id:'K6E',  label:'K6E · 596–620 MHz'},
+    {id:'L6E',  label:'L6E · 630–654 MHz'},
+  ],
+  'shure_psm300': [
+    {id:'G30',  label:'G30 · 470–542 MHz'},
+    {id:'H20',  label:'H20 · 518–542 MHz'},
+    {id:'J13',  label:'J13 · 566–590 MHz'},
+    {id:'K3E',  label:'K3E · 606–630 MHz'},
+    {id:'L19',  label:'L19 · 630–654 MHz'},
+    {id:'P9',   label:'P9  · 702–726 MHz'},
+    {id:'S8',   label:'S8  · 823–865 MHz'},
+  ],
+  'shure_psm400': [
+    {id:'H',    label:'H · 518–542 MHz'},
+    {id:'J',    label:'J · 566–590 MHz'},
+    {id:'K',    label:'K · 606–630 MHz'},
+    {id:'L',    label:'L · 630–654 MHz'},
+  ],
+  'shure_psm600': [
+    {id:'H',    label:'H · 518–542 MHz'},
+    {id:'J',    label:'J · 566–590 MHz'},
+    {id:'K',    label:'K · 606–630 MHz'},
+    {id:'L',    label:'L · 630–654 MHz'},
+    {id:'P',    label:'P · 702–726 MHz'},
+  ],
+  'shure_psm700': [
+    {id:'H',    label:'H · 518–542 MHz'},
+    {id:'J',    label:'J · 566–590 MHz'},
+    {id:'K',    label:'K · 606–630 MHz'},
+    {id:'L',    label:'L · 630–654 MHz'},
+    {id:'P',    label:'P · 702–726 MHz'},
+  ],
+  'shure_psm900': [
+    {id:'G7W',  label:'G7W · 470–534 MHz'},
+    {id:'H20',  label:'H20 · 518–542 MHz'},
+    {id:'J10',  label:'J10 · 584–608 MHz'},
+    {id:'K9W',  label:'K9W · 606–670 MHz'},
+    {id:'L6',   label:'L6  · 638–662 MHz'},
+    {id:'P9',   label:'P9  · 702–726 MHz'},
+  ],
+  'shure_psm1000': [
+    {id:'G10',  label:'G10 · 470–542 MHz'},
+    {id:'H10',  label:'H10 · 542–616 MHz'},
+    {id:'J10',  label:'J10 · 584–616 MHz'},
+    {id:'K10',  label:'K10 · 614–678 MHz'},
+    {id:'L10',  label:'L10 · 650–714 MHz'},
+    {id:'P10',  label:'P10 · 710–782 MHz'},
+  ],
+  // Shure Axient Digital
+  'shure_ad4d': [
+    {id:'A',    label:'A · 470–616 MHz'},
+    {id:'B',    label:'B · 614–703 MHz'},
+    {id:'C',    label:'C · 700–820 MHz'},
+    {id:'D',    label:'D · 820–865 MHz'},
+  ],
+  'shure_ad4q': [
+    {id:'A',    label:'A · 470–616 MHz'},
+    {id:'B',    label:'B · 614–703 MHz'},
+    {id:'C',    label:'C · 700–820 MHz'},
+    {id:'D',    label:'D · 820–865 MHz'},
+  ],
+  'shure_adx5d': [
+    {id:'A',    label:'A · 470–616 MHz'},
+    {id:'B',    label:'B · 614–703 MHz'},
+    {id:'C',    label:'C · 700–820 MHz'},
+  ],
+  // Shure ULX-D
+  'shure_ulxd4': [
+    {id:'G50',  label:'G50 · 470–534 MHz'},
+    {id:'H50',  label:'H50 · 534–598 MHz'},
+    {id:'J50',  label:'J50 · 572–636 MHz'},
+    {id:'K51',  label:'K51 · 606–670 MHz'},
+    {id:'L50',  label:'L50 · 632–696 MHz'},
+    {id:'P51',  label:'P51 · 710–782 MHz'},
+    {id:'Q51',  label:'Q51 · 748–812 MHz'},
+  ],
+  'shure_ulxd4d': [
+    {id:'G50',  label:'G50 · 470–534 MHz'},
+    {id:'H50',  label:'H50 · 534–598 MHz'},
+    {id:'J50',  label:'J50 · 572–636 MHz'},
+    {id:'K51',  label:'K51 · 606–670 MHz'},
+    {id:'L50',  label:'L50 · 632–696 MHz'},
+    {id:'P51',  label:'P51 · 710–782 MHz'},
+    {id:'Q51',  label:'Q51 · 748–812 MHz'},
+  ],
+  'shure_ulxd4q': [
+    {id:'G50',  label:'G50 · 470–534 MHz'},
+    {id:'H50',  label:'H50 · 534–598 MHz'},
+    {id:'J50',  label:'J50 · 572–636 MHz'},
+    {id:'K51',  label:'K51 · 606–670 MHz'},
+    {id:'L50',  label:'L50 · 632–696 MHz'},
+    {id:'P51',  label:'P51 · 710–782 MHz'},
+    {id:'Q51',  label:'Q51 · 748–812 MHz'},
+  ],
+  // Shure QLX-D
+  'shure_qlxd4': [
+    {id:'G50',  label:'G50 · 470–534 MHz'},
+    {id:'H50',  label:'H50 · 534–598 MHz'},
+    {id:'J50',  label:'J50 · 572–636 MHz'},
+    {id:'K51',  label:'K51 · 606–670 MHz'},
+    {id:'L50',  label:'L50 · 632–696 MHz'},
+    {id:'P51',  label:'P51 · 710–782 MHz'},
+  ],
+  // Shure SLX-D
+  'shure_slxd4': [
+    {id:'G58',  label:'G58 · 470–514 MHz'},
+    {id:'H55',  label:'H55 · 514–558 MHz'},
+    {id:'J53',  label:'J53 · 558–602 MHz'},
+    {id:'K54',  label:'K54 · 606–650 MHz'},
+    {id:'L54',  label:'L54 · 650–694 MHz'},
+  ],
+  'shure_slxd4d': [
+    {id:'G58',  label:'G58 · 470–514 MHz'},
+    {id:'H55',  label:'H55 · 514–558 MHz'},
+    {id:'J53',  label:'J53 · 558–602 MHz'},
+    {id:'K54',  label:'K54 · 606–650 MHz'},
+    {id:'L54',  label:'L54 · 650–694 MHz'},
+  ],
+  'shure_slxd4qp': [
+    {id:'G58',  label:'G58 · 470–514 MHz'},
+    {id:'H55',  label:'H55 · 514–558 MHz'},
+    {id:'J53',  label:'J53 · 558–602 MHz'},
+    {id:'K54',  label:'K54 · 606–650 MHz'},
+    {id:'L54',  label:'L54 · 650–694 MHz'},
+  ],
+  'shure_slxd4qdan': [
+    {id:'G58',  label:'G58 · 470–514 MHz'},
+    {id:'H55',  label:'H55 · 514–558 MHz'},
+    {id:'J53',  label:'J53 · 558–602 MHz'},
+    {id:'K54',  label:'K54 · 606–650 MHz'},
+    {id:'L54',  label:'L54 · 650–694 MHz'},
+  ],
+  // Shure BLX
+  'shure_blx4': [
+    {id:'H8E',  label:'H8E · 518–542 MHz'},
+    {id:'H10',  label:'H10 · 542–572 MHz'},
+    {id:'J10',  label:'J10 · 584–608 MHz'},
+    {id:'K12',  label:'K12 · 614–638 MHz'},
+    {id:'M17',  label:'M17 · 662–686 MHz'},
+  ],
+  'shure_blx4r': [
+    {id:'H8E',  label:'H8E · 518–542 MHz'},
+    {id:'H10',  label:'H10 · 542–572 MHz'},
+    {id:'J10',  label:'J10 · 584–608 MHz'},
+    {id:'K12',  label:'K12 · 614–638 MHz'},
+    {id:'M17',  label:'M17 · 662–686 MHz'},
+  ],
+  'shure_blx88': [
+    {id:'H8E',  label:'H8E · 518–542 MHz'},
+    {id:'H10',  label:'H10 · 542–572 MHz'},
+    {id:'J10',  label:'J10 · 584–608 MHz'},
+    {id:'K12',  label:'K12 · 614–638 MHz'},
+    {id:'M17',  label:'M17 · 662–686 MHz'},
+  ],
+  // Shure Descontinuados
+  'shure_ur4d': [
+    {id:'H4',   label:'H4 · 518–542 MHz'},
+    {id:'J5',   label:'J5 · 578–602 MHz'},
+    {id:'K5',   label:'K5 · 606–630 MHz'},
+    {id:'L1',   label:'L1 · 630–654 MHz'},
+    {id:'M1',   label:'M1 · 662–686 MHz'},
+  ],
+  'shure_ur4s': [
+    {id:'H4',   label:'H4 · 518–542 MHz'},
+    {id:'J5',   label:'J5 · 578–602 MHz'},
+    {id:'K5',   label:'K5 · 606–630 MHz'},
+    {id:'L1',   label:'L1 · 630–654 MHz'},
+  ],
+  'shure_pgxd4': [
+    {id:'H20',  label:'H20 · 518–542 MHz'},
+    {id:'J11',  label:'J11 · 584–608 MHz'},
+  ],
+  // Sennheiser IEM
+  'senn_sr2050': [
+    {id:'A',    label:'A  · 516–558 MHz'},
+    {id:'B',    label:'B  · 626–668 MHz'},
+    {id:'C',    label:'C  · 734–776 MHz'},
+    {id:'G',    label:'G  · 566–608 MHz'},
+    {id:'GW',   label:'GW · 558–626 MHz'},
+  ],
+  'senn_ewdx_iem': [
+    {id:'Q1-9', label:'Q1-9 · 470–558 MHz'},
+    {id:'R1-9', label:'R1-9 · 520–558 MHz'},
+    {id:'S1-7', label:'S1-7 · 558–608 MHz'},
+    {id:'U1-8', label:'U1-8 · 714–798 MHz'},
+  ],
+  // Sennheiser EW G4
+  'senn_ew100g4': [
+    {id:'A',    label:'A  · 516–558 MHz'},
+    {id:'AW',   label:'AW · 516–558 + 626–668 MHz'},
+    {id:'B',    label:'B  · 626–668 MHz'},
+    {id:'C',    label:'C  · 734–776 MHz'},
+    {id:'D',    label:'D  · 786–822 MHz'},
+    {id:'E',    label:'E  · 821–865 MHz'},
+    {id:'G',    label:'G  · 566–608 MHz'},
+    {id:'GW',   label:'GW · 558–626 MHz'},
+  ],
+  'senn_ew300g4': [
+    {id:'A',    label:'A  · 516–558 MHz'},
+    {id:'AW',   label:'AW · 516–558 + 626–668 MHz'},
+    {id:'B',    label:'B  · 626–668 MHz'},
+    {id:'C',    label:'C  · 734–776 MHz'},
+    {id:'D',    label:'D  · 786–822 MHz'},
+    {id:'E',    label:'E  · 821–865 MHz'},
+    {id:'G',    label:'G  · 566–608 MHz'},
+    {id:'GW',   label:'GW · 558–626 MHz'},
+  ],
+  'senn_ew500g4': [
+    {id:'A',    label:'A  · 516–558 MHz'},
+    {id:'AW',   label:'AW · 516–558 + 626–668 MHz'},
+    {id:'B',    label:'B  · 626–668 MHz'},
+    {id:'C',    label:'C  · 734–776 MHz'},
+    {id:'D',    label:'D  · 786–822 MHz'},
+    {id:'E',    label:'E  · 821–865 MHz'},
+    {id:'G',    label:'G  · 566–608 MHz'},
+    {id:'GW',   label:'GW · 558–626 MHz'},
+  ],
+  // Sennheiser EW-DX
+  'senn_ewdx_em2': [
+    {id:'Q1-9', label:'Q1-9 · 470–558 MHz'},
+    {id:'R1-9', label:'R1-9 · 520–558 MHz'},
+    {id:'S1-7', label:'S1-7 · 558–608 MHz'},
+    {id:'U1-8', label:'U1-8 · 714–798 MHz'},
+  ],
+  'senn_ewdx_hh': [
+    {id:'Q1-9', label:'Q1-9 · 470–558 MHz'},
+    {id:'R1-9', label:'R1-9 · 520–558 MHz'},
+    {id:'S1-7', label:'S1-7 · 558–608 MHz'},
+    {id:'U1-8', label:'U1-8 · 714–798 MHz'},
+  ],
+  // Sennheiser Digital 6000 / 9000
+  'senn_em6000': [
+    {id:'A1-8', label:'A1-8 · 470–558 MHz'},
+    {id:'B1-8', label:'B1-8 · 558–638 MHz'},
+    {id:'L1-8', label:'L1-8 · 606–694 MHz'},
+    {id:'U1-8', label:'U1-8 · 714–798 MHz'},
+  ],
+  'senn_em9046': [
+    {id:'A1-8', label:'A1-8 · 470–558 MHz'},
+    {id:'B1-8', label:'B1-8 · 558–638 MHz'},
+    {id:'L1-8', label:'L1-8 · 606–694 MHz'},
+    {id:'U1-8', label:'U1-8 · 714–798 MHz'},
+    {id:'V1-8', label:'V1-8 · 780–865 MHz'},
+  ],
+};
+
+function filterModelsByType() {
+  // Reset cascading selects when type changes
+  document.getElementById('rgManufacturer').value = '';
+  document.getElementById('rgModel').innerHTML = '<option value="">Select model</option>';
+  document.getElementById('rgBand').innerHTML  = '<option value="">Select band</option>';
+}
+
+function filterModelsByManufacturer() {
+  const type  = document.getElementById('rgType').value;
+  const brand = document.getElementById('rgManufacturer').value;
+  const sel   = document.getElementById('rgModel');
+
+  document.getElementById('rgBand').innerHTML = '<option value="">Select band</option>';
+
+  if (!brand) { sel.innerHTML = '<option value="">Select model</option>'; return; }
+
+  let html = '<option value="">Select model</option>';
+  for (const grp of MODEL_GROUPS) {
+    if (grp.brand !== brand) continue;
+    const filtered = grp.keys.filter(k => RECV_MODELS[k] && RECV_MODELS[k].type === type);
+    if (!filtered.length) continue;
+    html += `<optgroup label="── ${grp.label} ──">`;
+    for (const k of filtered) {
+      const m = RECV_MODELS[k];
+      const suffix = m.chPerUnit > 1 ? ` (${m.chPerUnit}ch)` : '';
+      html += `<option value="${k}">${m.name}${suffix}</option>`;
+    }
+    html += '</optgroup>';
+  }
+  sel.innerHTML = html;
+}
+
+function filterBandsByModel() {
+  const modelKey = document.getElementById('rgModel').value;
+  const sel      = document.getElementById('rgBand');
+  const bands    = modelKey && MODEL_BANDS[modelKey];
+
+  if (!bands || !bands.length) {
+    sel.innerHTML = '<option value="">Select band</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Select band</option>' +
+    bands.map(b => `<option value="${b.id}">${b.label}</option>`).join('');
+}
+
 function filterSplittersByType() {
+  filterModelsByType();
   const type = document.getElementById('rgType').value;
   const isIEM = type === 'IEM';
   const allowedCats = isIEM ? ['c','b'] : ['s','b'];
@@ -1819,6 +2194,7 @@ function addRackGroup() {
   const name     = document.getElementById('rgName').value.trim() || `Group ${S.nextRackId}`;
   const type     = document.getElementById('rgType').value;
   const modelKey = document.getElementById('rgModel').value;
+  const band     = document.getElementById('rgBand').value;
   const numCh    = Math.max(1, Math.min(32, parseInt(document.getElementById('rgChannels').value)||4));
   const color    = document.getElementById('rgColor').value;
   const freqStart= parseFloat(document.getElementById('rgFreqStart').value)||606.0;
@@ -1839,7 +2215,7 @@ function addRackGroup() {
 
   const group = {
     id: S.nextRackId++,
-    name, type, modelKey, color,
+    name, type, modelKey, band, color,
     channels, antRuns, splitter, cableType, cableLen,
     muted: false
   };
