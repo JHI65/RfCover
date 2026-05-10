@@ -1310,6 +1310,42 @@
       background: rgba(74, 127, 192, 0.12);
     }
 
+    #powerPicker {
+      position: fixed;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 6px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      min-width: 110px;
+    }
+    #powerPicker .pp-title {
+      font-size: 9px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0 2px 2px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 2px;
+    }
+    #powerPicker button {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 4px;
+      color: #bbb;
+      font-size: 11px;
+      font-family: monospace;
+      padding: 4px 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    #powerPicker button:hover { background: #383838; color: #fff; }
+    #powerPicker button.active { border-color: #e8c040; color: #e8c040; }
+
     .proj-save-row {
       display: flex;
       gap: 8px;
@@ -3198,16 +3234,16 @@
       'wisycom_mcr54dual': { name: 'MCR54-DUAL', ru: 1, chPerUnit: 8, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       'wisycom_mpr52eng': { name: 'MPR52-ENG', ru: 1, chPerUnit: 2, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       // Shure — Axient Digital IEM
-      'shure_adtd': { name: 'ADTD (2ch)', ru: 1, chPerUnit: 2, color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
-      'shure_adtq': { name: 'ADTQ (4ch)', ru: 1, chPerUnit: 4, color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
+      'shure_adtd': { name: 'ADTD (2ch)', ru: 1, chPerUnit: 2, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
+      'shure_adtq': { name: 'ADTQ (4ch)', ru: 1, chPerUnit: 4, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
       // Shure — IEM
-      'shure_psm200': { name: 'PSM200', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm300': { name: 'PSM300', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm400': { name: 'PSM400', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm600': { name: 'PSM600', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm700': { name: 'PSM700', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm900': { name: 'PSM900', ru: 1, chPerUnit: 1, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
-      'shure_psm1000': { name: 'PSM1000', ru: 1, chPerUnit: 2, rfOutPerCh: 1, xlrInPerCh: 2, color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm200': { name: 'PSM200', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm300': { name: 'PSM300', ru: 1, chPerUnit: 1, txPowers: [1, 10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm400': { name: 'PSM400', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm600': { name: 'PSM600', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm700': { name: 'PSM700', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm900': { name: 'PSM900', ru: 1, chPerUnit: 1, txPowers: [1, 10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
+      'shure_psm1000': { name: 'PSM1000', ru: 1, chPerUnit: 2, rfOutPerCh: 1, xlrInPerCh: 2, txPowers: [10, 20, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       // Shure — Axient Digital (MIC)
       'shure_ad4d': { name: 'AD4D', ru: 1, chPerUnit: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
       'shure_ad4q': { name: 'AD4Q', ru: 1, chPerUnit: 4, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
@@ -3232,10 +3268,10 @@
       'shure_ur4s': { name: 'UR4S †', ru: 1, chPerUnit: 1, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       'shure_pgxd4': { name: 'PGXD4 †', ru: 1, chPerUnit: 1, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       // Sennheiser — IEM (actuales)
-      'senn_ew_iem_g4': { name: 'EW IEM G4', ru: 1, chPerUnit: 1, color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 1, color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_ewdx_iem': { name: 'EW-DX IEM TX', ru: 1, chPerUnit: 2, color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_xsw_iem': { name: 'XSW IEM', ru: 1, chPerUnit: 1, color: '#2a3a1a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_ew_iem_g4': { name: 'EW IEM G4', ru: 1, chPerUnit: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_ewdx_iem': { name: 'EW-DX IEM TX', ru: 1, chPerUnit: 2, txPowers: [2, 10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_xsw_iem': { name: 'XSW IEM', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#2a3a1a', brand: 'Sennheiser', type: 'IEM' },
       // Sennheiser — IEM (descontinuados)
       'senn_ew_iem_g3': { name: 'EW IEM G3 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
       'senn_ew_iem_g2': { name: 'EW IEM G2 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
@@ -4039,6 +4075,62 @@
     // ====================================================
     const rackCanvas = document.getElementById('rackCanvas');
     const rackCtx = rackCanvas.getContext('2d');
+
+    let _rackGeom = null; // set by drawRack so click handler can use it
+
+    rackCanvas.addEventListener('click', e => {
+      const g = _rackGeom;
+      if (!g) return;
+      const rect = rackCanvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (rackCanvas.width / rect.width);
+      const my = (e.clientY - rect.top) * (rackCanvas.height / rect.height);
+      // Check if click is inside a receiver unit row (skip row 0 = ANT DIST, last = PSU)
+      for (let u = 0; u < g.numUnits; u++) {
+        const rowY = g.rackY + (u + 1) * g.RU_H;
+        if (mx >= g.moduleX && mx <= g.moduleX + g.moduleW &&
+            my >= rowY && my < rowY + g.RU_H * g.ru) {
+          _showPowerPicker(g.group, u, e.clientX, e.clientY);
+          return;
+        }
+      }
+      _hidePowerPicker();
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#powerPicker') && !e.target.closest('#rackCanvas')) _hidePowerPicker();
+    });
+
+    function _showPowerPicker(group, unitIdx, cx, cy) {
+      const m = RECV_MODELS[group.modelKey] || RECV_MODELS['shure_psm300'];
+      const powers = m.txPowers;
+      if (!powers || !powers.length) return;
+      const current = (group.unitPowers || [])[unitIdx];
+      const picker = document.getElementById('powerPicker');
+      picker.innerHTML = `<div class="pp-title">TX Power · Unit ${unitIdx + 1}</div>` +
+        powers.map(p => `<button class="${p === current ? 'active' : ''}"
+          onclick="setUnitPower(${group.id},${unitIdx},${p})">${p} mW</button>`).join('');
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let left = cx + 8, top = cy - 10;
+      picker.style.display = 'flex';
+      if (left + 130 > vw) left = cx - 138;
+      if (top + picker.offsetHeight > vh) top = cy - picker.offsetHeight;
+      picker.style.left = left + 'px';
+      picker.style.top = top + 'px';
+    }
+
+    function _hidePowerPicker() {
+      document.getElementById('powerPicker').style.display = 'none';
+    }
+
+    function setUnitPower(groupId, unitIdx, power) {
+      const g = S.rackGroups.find(g => g.id === groupId);
+      if (!g) return;
+      if (!g.unitPowers) g.unitPowers = [];
+      g.unitPowers[unitIdx] = power;
+      _hidePowerPicker();
+      drawRackCanvases();
+    }
+
     const connCanvas = document.getElementById('connCanvas');
     const connCtx = connCanvas.getContext('2d');
 
@@ -4958,6 +5050,9 @@
       const moduleX = rackX + railW + 2;
       const moduleW = rackW - railW * 2 - 4;
 
+      // Store geometry for click handler
+      _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru };
+
       // --- 1U: Antenna Distribution unit ---
       const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
       const aduY = rackY;
@@ -5007,11 +5102,15 @@
         const chNums = chPerUnit === 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
         ctx.fillText(`${m.name}  ${chNums}`, moduleX + 22, modY + slotH / 2);
 
-        // Frequency on right
-        ctx.fillStyle = 'rgba(200,220,255,0.7)'; ctx.font = '9px monospace';
-        ctx.textAlign = 'right';
+        // Frequency + TX power on right
+        const power = (group.unitPowers || [])[unitIdx];
+        const hasPowers = m.txPowers && m.txPowers.length;
+        const powerLabel = hasPowers ? (power != null ? `${power}mW` : '— mW') : '';
         const freqLabels = group.channels.slice(chStart, chEnd).map(c => c.freq.toFixed(3) + ' MHz').join(' / ');
-        ctx.fillText(freqLabels, moduleX + moduleW - 6, modY + slotH / 2);
+        const rightLabel = powerLabel ? `${powerLabel}  |  ${freqLabels}` : freqLabels;
+        ctx.fillStyle = power != null ? '#e8c040' : 'rgba(200,220,255,0.4)';
+        ctx.font = '9px monospace'; ctx.textAlign = 'right';
+        ctx.fillText(rightLabel, moduleX + moduleW - 6, modY + slotH / 2);
 
         ruOffset++;
         unitIdx++;
@@ -5483,6 +5582,7 @@
     }
     _initSupabase();
   </script>
+  <div id="powerPicker"></div>
 </body>
 
 </html>
