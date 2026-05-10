@@ -580,6 +580,13 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
               <optgroup label="── Belden ──">
                 <option value="B9913">Belden 9913 (0.08 dB/m)</option>
               </optgroup>
+              <optgroup label="── Messi &amp; Paoloni ──">
+                <option value="MP_HF10">Hyperflex 10 .400&quot; (0.035 dB/m)</option>
+                <option value="MP_HF13">Hyperflex 13 .500&quot; (0.022 dB/m)</option>
+                <option value="MP_UF10">Ultraflex 10 .400&quot; (0.040 dB/m)</option>
+                <option value="MP_EF10">Extraflex Bury 10 .400&quot; (0.035 dB/m)</option>
+                <option value="MP_AB10">Airborne 10 .400&quot; (0.038 dB/m)</option>
+              </optgroup>
             </select>
           </div>
           <div class="pg"><div class="pl">Cable Length (m)</div>
@@ -1885,6 +1892,12 @@ const CABLE_LOSS_PER_M = {
   'ECO15P': 0.050, // Ecoflex 15 Plus — versión mejorada
   // Belden
   'B9913':  0.08,  // Belden 9913 — equivalente RG8, live events
+  // Messi & Paoloni — valores aprox. a ~700 MHz (Ø 10.3–12.7mm, 50Ω)
+  'MP_HF10': 0.035, // Hyperflex 10 .400" — equiv. LMR-400, touring/install
+  'MP_HF13': 0.022, // Hyperflex 13 .500" — equiv. LMR-600, larga distancia
+  'MP_UF10': 0.040, // Ultraflex 10 .400" — ultraflex, curvas cerradas
+  'MP_EF10': 0.035, // Extraflex Bury 10 .400" — enterramiento directo
+  'MP_AB10': 0.038, // Airborne 10 .400" — ligero, instalaciones aéreas
 };
 
 // Groups by brand for the filtered splitter select
