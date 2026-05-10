@@ -3874,6 +3874,7 @@
       updateRackList();
       updateRackDetailArea();
       drawRackCanvases();
+      if (S.rackCenterView === 'diagram') renderConnDiagram();
     }
 
     function dupRackGroup() {
@@ -3954,6 +3955,7 @@
       if (!g) return;
       if (S.rackDetailTab === 'channels') updateRackChannelTab(g, body);
       else updateRackWiringTab(g, body);
+      if (S.rackCenterView === 'diagram') renderConnDiagram();
     }
 
     function updateRackChannelTab(g, body) {
