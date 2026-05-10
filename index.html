@@ -5193,6 +5193,12 @@
         color: '#6b7280', show: true, locked: false, transp: false, z: 0, h: 0,
         verts: [{ x: -20, y: 12 }, { x: 20, y: 12 }, { x: 20, y: -12 }, { x: -20, y: -12 }]
       });
+      // Default stage
+      S.els.push({
+        id: S.nextId++, name: 'Stage', shape: 'quadrangular', type: 'Stage',
+        color: '#7c3aed', show: true, locked: false, transp: false, z: 0, h: 0,
+        verts: [{ x: -8, y: 6 }, { x: 8, y: 6 }, { x: 8, y: -6 }, { x: -8, y: -6 }]
+      });
       palIdx = 1;
       saveHist();
       refreshAll();
