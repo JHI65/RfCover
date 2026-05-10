@@ -2720,9 +2720,6 @@ function onTDblClick(e) {
 function setConnMode(mode) {
   S.connMode = mode;
   S.pendingPort = null;
-  document.querySelectorAll('.rdc-mode-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.mode === mode);
-  });
   renderConnDiagram();
 }
 
@@ -2765,191 +2762,115 @@ function renderConnDiagram() {
   const body = document.getElementById('rackDetailBody');
   if(!body) return;
 
-  const BLOCK_W = 200, BLOCK_PAD_X = 36, BLOCK_PAD_Y = 28;
-  const PORT_R = 5, HEADER_H = 26, PORT_SPACING = 20;
+  const BLOCK_W = 130, GAP_X = 20, GAP_Y = 30, PORT_R = 5, HDR = 22, PORT_SP = 16;
+  const RF_COLOR = '#e8c040', SIG_COLOR = '#40c890';
+  const svgW = body.clientWidth || 256;
+  const cols = Math.max(1, Math.floor((svgW + GAP_X) / (BLOCK_W + GAP_X)));
 
-  // Build wrapper if missing
-  let wrap = document.getElementById('rackDiagramWrap');
-  if(!wrap || body.firstChild !== wrap) {
-    body.innerHTML = `
-      <div id="rackDiagramWrap">
-        <div class="rdc-toolbar">
-          <span style="font-size:10px;color:var(--text-dim);margin-right:4px;">Layer:</span>
-          <button class="rdc-mode-btn" data-mode="rf" onclick="setConnMode('rf')">RF</button>
-          <button class="rdc-mode-btn" data-mode="signal" onclick="setConnMode('signal')">Signal</button>
-          <button class="rdc-clear-btn" onclick="clearConnections()">Clear</button>
-        </div>
-        <svg id="rackDiagramSvg" xmlns="http://www.w3.org/2000/svg"></svg>
-      </div>`;
-    wrap = document.getElementById('rackDiagramWrap');
-    // If no clientWidth yet, defer one frame
-    if(!wrap.clientWidth) { requestAnimationFrame(renderConnDiagram); return; }
-  }
-  // Sync active mode button
-  wrap.querySelectorAll('.rdc-mode-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.mode === S.connMode);
-  });
+  // Port positions map: portPos[groupId][portId] = {x,y}
+  const portPos = {};
 
-  const svg = document.getElementById('rackDiagramSvg');
-  if(!svg) return;
-  const svgW = body.clientWidth || wrap.clientWidth || 600;
-
-  // Compute block heights
-  function blockHeight(g) {
+  function numUnitsOf(g) {
     const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-    const numUnits = Math.ceil(g.channels.length / m.chPerUnit);
-    const rfPorts  = numUnits;
-    const sigPorts = g.channels.length;
-    const ports = S.connMode==='rf' ? rfPorts+1 : sigPorts; // +1 for ant_in in RF mode
-    return HEADER_H + Math.max(ports, 1) * PORT_SPACING + 10;
+    return Math.ceil(g.channels.length / m.chPerUnit);
+  }
+  function blockH(g) {
+    const n = S.connMode==='rf' ? numUnitsOf(g)+1 : g.channels.length;
+    return HDR + Math.max(n,1)*PORT_SP + 16;
   }
 
-  // Layout: compute positions
-  const cols = Math.max(1, Math.floor(svgW / (BLOCK_W + BLOCK_PAD_X)));
-  S._portPos = {};
-  const positions = [];
-  let totalH = BLOCK_PAD_Y;
-
-  for(let i=0; i<S.rackGroups.length; i++) {
-    const g = S.rackGroups[i];
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    if(col === 0 && i > 0) {
-      // new row: find tallest block in previous row
-      const prevRowBlocks = S.rackGroups.slice(i - cols, i);
-      const maxH = Math.max(...prevRowBlocks.map(blockHeight));
-      totalH += maxH + BLOCK_PAD_Y;
-    }
-    const bh = blockHeight(g);
-    const bx = BLOCK_PAD_X + col * (BLOCK_W + BLOCK_PAD_X);
-    const by = totalH;
-    positions.push({bx, by, bh});
+  // Layout
+  let rowHeights = [];
+  for(let r=0; r*cols < S.rackGroups.length; r++) {
+    const rowGroups = S.rackGroups.slice(r*cols, r*cols+cols);
+    rowHeights.push(Math.max(...rowGroups.map(blockH)));
   }
-  // final total height
-  if(S.rackGroups.length > 0) {
-    const lastRowStart = Math.floor((S.rackGroups.length-1) / cols) * cols;
-    const lastRowBlocks = S.rackGroups.slice(lastRowStart);
-    totalH += Math.max(...lastRowBlocks.map(blockHeight)) + BLOCK_PAD_Y;
-  }
+  const totalH = GAP_Y + rowHeights.reduce((a,h)=>a+h+GAP_Y, 0);
 
-  let html = '';
-  const RF_COLOR = '#e8c040';
-  const SIG_COLOR = '#40c890';
-  const portColor = S.connMode==='rf' ? RF_COLOR : SIG_COLOR;
-
-  // Draw blocks and ports, collect port positions
+  // Build SVG blocks
+  let blocks = '';
   S.rackGroups.forEach((g, i) => {
-    const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-    const numUnits = Math.ceil(g.channels.length / m.chPerUnit);
-    const {bx, by, bh} = positions[i];
-    S._portPos[g.id] = {};
+    portPos[g.id] = {};
+    const col = i % cols, row = Math.floor(i / cols);
+    const bx = GAP_X + col*(BLOCK_W+GAP_X);
+    const by = GAP_Y + rowHeights.slice(0,row).reduce((a,h)=>a+h+GAP_Y, 0);
+    const bh = blockH(g);
+    const bc = g.color || '#1a3a6a';
+    const nu = numUnitsOf(g);
+    const isPend = S.pendingPort?.groupId === g.id;
 
-    const blockColor = g.color || '#1a3a6a';
-    const isPending = S.pendingPort && S.pendingPort.groupId === g.id;
-
-    // Block rect
-    html += `<rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${bh}" rx="4" ry="4"
-      fill="${blockColor}" fill-opacity="0.35" stroke="${blockColor}" stroke-opacity="0.7" stroke-width="1.5"/>`;
-
-    // Header
-    html += `<rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${HEADER_H}" rx="4" ry="4"
-      fill="${blockColor}" fill-opacity="0.55"/>`;
-    html += `<text x="${bx + BLOCK_W/2}" y="${by + HEADER_H/2 + 1}" text-anchor="middle"
-      dominant-baseline="middle" fill="#ddd" font-family="monospace" font-size="11" font-weight="bold">${g.name}</text>`;
-
-    // Type badge
-    const typeLabel = g.type === 'IEM' ? 'IEM' : 'MIC';
-    html += `<text x="${bx + 6}" y="${by + 11}" dominant-baseline="middle"
-      fill="${portColor}" font-family="monospace" font-size="8">${typeLabel}</text>`;
+    blocks += `<rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${bh}" rx="3"
+      fill="${bc}" fill-opacity="0.25" stroke="${bc}" stroke-opacity="0.6" stroke-width="1.5"/>
+    <rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${HDR}" rx="3"
+      fill="${bc}" fill-opacity="0.5"/>
+    <text x="${bx+BLOCK_W/2}" y="${by+HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
+      fill="#ddd" font-size="10" font-weight="bold" font-family="monospace">${g.name}</text>
+    <text x="${bx+BLOCK_W-4}" y="${by+HDR/2+1}" text-anchor="end" dominant-baseline="middle"
+      fill="${S.connMode==='rf'?RF_COLOR:SIG_COLOR}" font-size="8" font-family="monospace">${g.type}</text>`;
 
     if(S.connMode === 'rf') {
-      // ant_in — left center
-      const portY = by + HEADER_H + PORT_SPACING;
-      S._portPos[g.id]['ant_in'] = {x: bx, y: portY};
-      const isPendingPort = isPending && S.pendingPort.portId === 'ant_in';
-      html += `<circle cx="${bx}" cy="${portY}" r="${PORT_R}" fill="${RF_COLOR}"
-        stroke="${isPendingPort?'#fff':RF_COLOR}" stroke-width="${isPendingPort?2:0}"
-        class="rdc-port" style="cursor:crosshair"
-        onclick="clickPort(${g.id},'ant_in')" title="Antenna IN"/>`;
-      html += `<text x="${bx + 8}" y="${portY}" dominant-baseline="middle"
-        fill="#aaa" font-family="monospace" font-size="8">ANT IN</text>`;
-
-      // rf_out_N — right side
-      for(let u=0; u<numUnits; u++) {
-        const py = by + HEADER_H + PORT_SPACING + u * PORT_SPACING;
-        const portId = `rf_out_${u}`;
-        S._portPos[g.id][portId] = {x: bx + BLOCK_W, y: py};
-        const isPP = isPending && S.pendingPort.portId === portId;
-        const chStart = u * m.chPerUnit;
-        const chLabel = m.chPerUnit===1 ? `RF Ch${chStart+1}` : `RF Ch${chStart+1}-${Math.min(chStart+m.chPerUnit, g.channels.length)}`;
-        html += `<text x="${bx + BLOCK_W - 8}" y="${py}" dominant-baseline="middle"
-          text-anchor="end" fill="#aaa" font-family="monospace" font-size="8">${chLabel}</text>`;
-        html += `<circle cx="${bx + BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
-          stroke="${isPP?'#fff':RF_COLOR}" stroke-width="${isPP?2:0}"
-          class="rdc-port" style="cursor:crosshair"
-          onclick="clickPort(${g.id},'${portId}')" title="${chLabel}"/>`;
+      // ant_in left
+      const ay = by + HDR + PORT_SP;
+      portPos[g.id]['ant_in'] = {x:bx, y:ay};
+      const pend = isPend && S.pendingPort.portId==='ant_in';
+      blocks += `<circle cx="${bx}" cy="${ay}" r="${PORT_R}" fill="${RF_COLOR}"
+        stroke="${pend?'#fff':RF_COLOR}" stroke-width="${pend?2.5:0}" class="rdc-port"
+        onclick="clickPort(${g.id},'ant_in')"/>
+      <text x="${bx+8}" y="${ay}" dominant-baseline="middle" fill="#999" font-size="8" font-family="monospace">ANT</text>`;
+      // rf_out right
+      for(let u=0;u<nu;u++) {
+        const py = by + HDR + PORT_SP + u*PORT_SP;
+        const pid = `rf_out_${u}`;
+        portPos[g.id][pid] = {x:bx+BLOCK_W, y:py};
+        const pp = isPend && S.pendingPort.portId===pid;
+        blocks += `<text x="${bx+BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+          fill="#999" font-size="8" font-family="monospace">RF${u+1}</text>
+        <circle cx="${bx+BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
+          stroke="${pp?'#fff':RF_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
+          onclick="clickPort(${g.id},'${pid}')"/>`;
       }
     } else {
-      // sig_out_N — right side, one per channel
-      for(let c=0; c<g.channels.length; c++) {
-        const py = by + HEADER_H + PORT_SPACING + c * PORT_SPACING;
-        const portId = `sig_out_${c}`;
-        S._portPos[g.id][portId] = {x: bx + BLOCK_W, y: py};
-        const isPP = isPending && S.pendingPort.portId === portId;
-        const chName = g.channels[c].name || `Ch ${c+1}`;
-        html += `<text x="${bx + BLOCK_W - 8}" y="${py}" dominant-baseline="middle"
-          text-anchor="end" fill="#aaa" font-family="monospace" font-size="8">${chName}</text>`;
-        html += `<circle cx="${bx + BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${SIG_COLOR}"
-          stroke="${isPP?'#fff':SIG_COLOR}" stroke-width="${isPP?2:0}"
-          class="rdc-port" style="cursor:crosshair"
-          onclick="clickPort(${g.id},'${portId}')" title="${chName}"/>`;
+      // sig_out right, one per channel
+      for(let c=0;c<g.channels.length;c++) {
+        const py = by + HDR + PORT_SP + c*PORT_SP;
+        const pid = `sig_out_${c}`;
+        portPos[g.id][pid] = {x:bx+BLOCK_W, y:py};
+        const pp = isPend && S.pendingPort.portId===pid;
+        const cn = g.channels[c].name||`Ch${c+1}`;
+        blocks += `<text x="${bx+BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+          fill="#999" font-size="8" font-family="monospace">${cn}</text>
+        <circle cx="${bx+BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${SIG_COLOR}"
+          stroke="${pp?'#fff':SIG_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
+          onclick="clickPort(${g.id},'${pid}')"/>`;
       }
     }
   });
 
-  // Draw connections for current mode
-  S.rackConnections.filter(c=>c.type===S.connMode).forEach(conn => {
-    const fp = S._portPos[conn.fromGroupId]?.[conn.fromPort];
-    const tp = S._portPos[conn.toGroupId]?.[conn.toPort];
-    if(!fp || !tp) return;
-    const dx = Math.abs(tp.x - fp.x) * 0.5;
-    const color = conn.type==='rf' ? RF_COLOR : SIG_COLOR;
-    html += `<path d="M${fp.x},${fp.y} C${fp.x+dx},${fp.y} ${tp.x-dx},${tp.y} ${tp.x},${tp.y}"
-      stroke="${color}" stroke-width="2" fill="none" stroke-opacity="0.85"
-      ondblclick="removeConn(${conn.id})" style="cursor:pointer" title="Double-click to remove"/>`;
+  // Build connection paths
+  let conns = '';
+  S.rackConnections.filter(c=>c.type===S.connMode).forEach(c=>{
+    const fp = portPos[c.fromGroupId]?.[c.fromPort];
+    const tp = portPos[c.toGroupId]?.[c.toPort];
+    if(!fp||!tp) return;
+    const color = c.type==='rf' ? RF_COLOR : SIG_COLOR;
+    conns += `<path d="M${fp.x},${fp.y} C${fp.x+50},${fp.y} ${tp.x-50},${tp.y} ${tp.x},${tp.y}"
+      stroke="${color}" stroke-width="2" fill="none" opacity="0.85" style="cursor:pointer"
+      ondblclick="removeConn(${c.id})" title="Double-click to remove"/>`;
   });
 
-  // Pending ghost line (cursor follows last port)
-  if(S.pendingPort) {
-    const pp = S._portPos[S.pendingPort.groupId]?.[S.pendingPort.portId];
-    if(pp) {
-      html += `<line id="rdcGhost" x1="${pp.x}" y1="${pp.y}" x2="${pp.x}" y2="${pp.y}"
-        stroke="#fff" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>`;
-    }
-  }
+  // Toolbar
+  const toolbar = `<div class="rdc-toolbar">
+    <span style="font-size:10px;color:var(--text-dim)">Layer:</span>
+    <button class="rdc-mode-btn${S.connMode==='rf'?' active':''}" onclick="setConnMode('rf')">RF</button>
+    <button class="rdc-mode-btn${S.connMode==='signal'?' active':''}" onclick="setConnMode('signal')">Signal</button>
+    <button class="rdc-clear-btn" onclick="clearConnections()">Clear</button>
+  </div>`;
 
-  const svgH = Math.max(totalH, 200);
-  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-  svg.setAttribute('width', svgW);
-  svg.setAttribute('height', svgH);
-  svg.style.minHeight = svgH + 'px';
-  svg.innerHTML = html;
-
-  // Track mouse for ghost line
-  if(S.pendingPort) {
-    svg.onmousemove = (e) => {
-      const ghost = svg.querySelector('#rdcGhost');
-      if(!ghost) return;
-      const r = svg.getBoundingClientRect();
-      const sx = svgW / r.width;
-      const x = (e.clientX - r.left) * sx;
-      const y = (e.clientY - r.top) * (Math.max(totalH,100) / r.height);
-      ghost.setAttribute('x2', x);
-      ghost.setAttribute('y2', y);
-    };
-  } else {
-    svg.onmousemove = null;
-  }
+  body.innerHTML = toolbar +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${totalH}"
+      viewBox="0 0 ${svgW} ${totalH}" style="display:block;background:#0d0d0d">
+      ${blocks}${conns}
+    </svg>`;
 }
 
 function removeConn(id) {
