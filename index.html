@@ -1831,7 +1831,7 @@ const SPLITTERS = {
   'senn_asa1':     {name:'Sennheiser ASA1 NT',         loss:0,    gain:10, active:true,  ways:2,  cat:'s', notes:'Active 2-way antenna splitter for receivers. +10 dB. 470–866 MHz.'},
   'senn_asa3000':  {name:'Sennheiser ASA3000',         loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter for receivers. +10 dB. Evolution G3/G4/G10. 470–866 MHz.'},
   'senn_ac3200':   {name:'Sennheiser AC3200-II',       loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way for Digital 6000/9000. Cascade up to 3 units.'},
-  'senn_ac31':     {name:'Sennheiser AC31',            loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way combiner/splitter. 3.5 dB loss. 174–1800 MHz.'},
+  'senn_ac41':     {name:'Sennheiser AC 41',            loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way combiner/splitter. 3.5 dB loss. 470–1800 MHz.'},
   // Audio-Technica — active splitters for receivers
   'at_aewda':      {name:'AT AEW-DA Active Distro',    loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +12 dB. 500–900 MHz. For AEW Series.'},
   'at_aewt3000':   {name:'AT AEW-T3000',               loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way for System 10 Pro / 3000 series.'},
@@ -1857,7 +1857,7 @@ const CABLE_LOSS_PER_M = { 'RG8':0.05, 'RG58':0.2, 'LMR400':0.03 };
 const SPLITTER_GROUPS = [
   { label: 'Passive',          keys: ['passive_t','passive_2w','passive_4w','passive_8w'] },
   { label: 'Shure',            keys: ['shure_ua844','shure_ua845','shure_axt600','shure_ua221','shure_ua400b','shure_pa821b'] },
-  { label: 'Sennheiser',       keys: ['senn_asa1','senn_asa3000','senn_ac3200','senn_ac31'] },
+  { label: 'Sennheiser',       keys: ['senn_asa1','senn_asa3000','senn_ac3200','senn_ac41'] },
   { label: 'Audio-Technica',   keys: ['at_aewda','at_aewt3000'] },
   { label: 'Wisycom',          keys: ['wisycom_rab1','wisycom_ldq04','wisycom_rab5'] },
   { label: 'Lectrosonics',     keys: ['lectro_a1626','lectro_da6','lectro_pa'] },
