@@ -172,8 +172,14 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 .rack-ch-name:focus { border-color:var(--accent); }
 #rackView { display:none; flex:1; flex-direction:column; overflow:hidden; background:#111; }
 #rackView.visible { display:flex; }
+#rackViewTabBar { display:flex; background:var(--panel-hdr); border-bottom:1px solid var(--border); flex-shrink:0; }
+.rack-view-tab { padding:5px 12px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:10px; cursor:pointer; }
+.rack-view-tab:hover { color:var(--text); }
+.rack-view-tab.active { color:var(--text-bright); border-bottom-color:var(--accent); }
+#rackCanvasSection { display:flex; flex:1; flex-direction:column; min-height:0; }
 .rack-canvas-wrap { flex:1; position:relative; min-height:0; border-bottom:1px solid var(--border); }
 .rack-conn-wrap { height:180px; flex-shrink:0; position:relative; }
+#rfDiagramWrap { display:none; flex:1; flex-direction:column; min-height:0; overflow-y:auto; }
 #rackCanvas { position:absolute; top:0; left:0; }
 #connCanvas { position:absolute; top:0; left:0; }
 .rack-empty-msg { display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--text-dim); font-size:12px; }
@@ -211,6 +217,74 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 
 .place-banner { padding:5px 8px; background:rgba(74,127,192,0.2); border-bottom:1px solid rgba(74,127,192,0.3); font-size:10px; color:#6ab; display:none; }
 .place-banner.visible { display:block; }
+
+/* ── PROJECTS / AUTH ─────────────────────────────── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:9000;
+  display:flex; align-items:center; justify-content:center;
+}
+.modal-box {
+  background:#1e1e1e; border:1px solid #3a3a3a; border-radius:10px;
+  width:460px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-hdr {
+  padding:14px 16px; border-bottom:1px solid #333; display:flex; align-items:center; gap:8px;
+}
+.modal-hdr-title { font-size:13px; font-weight:600; color:#ddd; flex:1; }
+.modal-close { background:transparent; border:none; color:#666; font-size:16px; cursor:pointer; line-height:1; }
+.modal-close:hover { color:#ccc; }
+.modal-body { padding:16px; overflow-y:auto; flex:1; }
+.modal-footer { padding:12px 16px; border-top:1px solid #333; display:flex; gap:8px; justify-content:flex-end; }
+.btn-primary {
+  padding:7px 16px; background:var(--accent); border:none; border-radius:5px;
+  color:#fff; font-size:12px; cursor:pointer; font-weight:500;
+}
+.btn-primary:hover { filter:brightness(1.15); }
+.btn-secondary {
+  padding:7px 16px; background:#2d2d2d; border:1px solid #444; border-radius:5px;
+  color:#bbb; font-size:12px; cursor:pointer;
+}
+.btn-secondary:hover { background:#383838; }
+.btn-google {
+  display:flex; align-items:center; gap:10px; padding:10px 20px;
+  background:#fff; border:none; border-radius:6px; cursor:pointer;
+  font-size:13px; font-weight:500; color:#333; width:100%;
+  justify-content:center; transition:box-shadow 0.15s;
+}
+.btn-google:hover { box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.btn-google svg { flex-shrink:0; }
+.proj-item {
+  display:flex; align-items:center; gap:8px; padding:9px 10px;
+  border-radius:6px; cursor:pointer; border:1px solid transparent;
+  margin-bottom:4px;
+}
+.proj-item:hover { background:rgba(255,255,255,0.04); border-color:#333; }
+.proj-item-name { flex:1; font-size:12px; color:#ddd; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.proj-item-date { font-size:10px; color:#666; flex-shrink:0; }
+.proj-item-del { background:transparent; border:none; color:#555; font-size:13px; cursor:pointer; flex-shrink:0; padding:2px 5px; border-radius:3px; }
+.proj-item-del:hover { color:#c06060; background:rgba(192,74,74,0.12); }
+.proj-save-row { display:flex; gap:8px; margin-bottom:12px; }
+.proj-save-row input { flex:1; padding:7px 10px; background:#141414; border:1px solid #3a3a3a; border-radius:5px; color:#ddd; font-size:12px; }
+.proj-divider { font-size:10px; color:#555; text-transform:uppercase; letter-spacing:0.06em; margin:10px 0 6px; }
+.user-badge {
+  display:flex; align-items:center; gap:7px; padding:0 8px; cursor:pointer;
+  border-radius:5px; height:26px; margin-left:8px;
+  background:rgba(74,127,192,0.12); border:1px solid rgba(74,127,192,0.25);
+}
+.user-badge:hover { background:rgba(74,127,192,0.22); }
+.user-badge img { width:20px; height:20px; border-radius:50%; object-fit:cover; }
+.user-badge-name { font-size:10px; color:#8ab; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.btn-login {
+  padding:4px 12px; background:rgba(74,127,192,0.2); border:1px solid rgba(74,127,192,0.4);
+  border-radius:5px; color:#7ab; font-size:11px; cursor:pointer; margin-left:8px;
+}
+.btn-login:hover { background:rgba(74,127,192,0.35); }
+.proj-btn {
+  padding:4px 12px; background:rgba(255,255,255,0.06); border:1px solid #3a3a3a;
+  border-radius:5px; color:#bbb; font-size:11px; cursor:pointer; margin-left:4px;
+}
+.proj-btn:hover { background:rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
@@ -221,7 +295,42 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
   <button class="nav-tab" onclick="switchTab('cobertura',this)">Cobertura</button>
   <button class="nav-tab" onclick="switchTab('racks',this)">Racks</button>
   <div class="nav-status" id="navStatus">Listo</div>
+  <button class="proj-btn" onclick="openProjectsModal()">📁 Proyectos</button>
+  <div id="userBadgeWrap"></div>
 </nav>
+
+<!-- ── AUTH MODAL ───────────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="width:340px;">
+    <div class="modal-hdr">
+      <span class="modal-hdr-title">Iniciar sesión</span>
+      <button class="modal-close" onclick="document.getElementById('authModal').style.display='none'">×</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px;">
+      <div style="font-size:30px;margin-bottom:12px;">📡</div>
+      <div style="font-size:13px;color:#ccc;margin-bottom:6px;font-weight:500;">RF Coverage Planner</div>
+      <div style="font-size:11px;color:#666;margin-bottom:24px;">Inicia sesión para guardar y cargar tus proyectos</div>
+      <button class="btn-google" onclick="sbLoginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continuar con Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROJECTS MODAL ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="projectsModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:16px;">📁</span>
+      <span class="modal-hdr-title">Proyectos</span>
+      <button class="modal-close" onclick="document.getElementById('projectsModal').style.display='none'">×</button>
+    </div>
+    <div class="modal-body" id="projectsModalBody">
+      <p style="color:#666;font-size:11px;">Cargando...</p>
+    </div>
+  </div>
+</div>
 
 <div class="main-layout">
   <!-- LEFT PANEL -->
@@ -294,7 +403,6 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
         <div class="rack-detail-tabs">
           <button class="rack-tab-btn active" onclick="setRackDetailTab('channels',this)">Channels</button>
           <button class="rack-tab-btn" onclick="setRackDetailTab('wiring',this)">Wiring</button>
-          <button class="rack-tab-btn" onclick="setRackDetailTab('diagram',this)">Diagram</button>
         </div>
         <div id="rackDetailBody" style="flex:1;overflow-y:auto;padding:0;"></div>
       </div>
@@ -320,16 +428,23 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 
     <!-- RACKS center view -->
     <div id="rackView">
-      <div class="rack-canvas-wrap" id="rackCanvasWrap">
-        <canvas id="rackCanvas"></canvas>
-        <div class="rack-empty-msg" id="rackEmptyMsg">Add a system group to see the rack diagram.</div>
+      <div id="rackViewTabBar">
+        <button class="rack-view-tab active" onclick="setRackCenterView('rack',this)">Rack</button>
+        <button class="rack-view-tab" onclick="setRackCenterView('diagram',this)">Diagram</button>
       </div>
-      <div style="height:22px;background:var(--panel-hdr);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 8px;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;">
-        Signal chain diagram
+      <div id="rackCanvasSection">
+        <div class="rack-canvas-wrap" id="rackCanvasWrap">
+          <canvas id="rackCanvas"></canvas>
+          <div class="rack-empty-msg" id="rackEmptyMsg">Add a system group to see the rack diagram.</div>
+        </div>
+        <div style="height:22px;background:var(--panel-hdr);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 8px;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;">
+          Signal chain diagram
+        </div>
+        <div class="rack-conn-wrap" id="rackConnWrap">
+          <canvas id="connCanvas"></canvas>
+        </div>
       </div>
-      <div class="rack-conn-wrap" id="rackConnWrap">
-        <canvas id="connCanvas"></canvas>
-      </div>
+      <div id="rfDiagramWrap"></div>
     </div>
   </div>
 
@@ -636,7 +751,30 @@ body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:
 <!-- hidden color picker -->
 <input type="color" id="colorPicker" class="color-input-hidden" onchange="onColorPicked(this.value)">
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ── SUPABASE CONFIG ─────────────────────────────────────────────
+// Replace with your project values from supabase.com → Project Settings → API
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+
+/*
+  Run this SQL once in your Supabase SQL editor (supabase.com → SQL Editor):
+
+  create table rf_projects (
+    id         uuid default gen_random_uuid() primary key,
+    user_id    uuid references auth.users not null,
+    name       text not null,
+    data       jsonb not null,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+  );
+  alter table rf_projects enable row level security;
+  create policy "own projects" on rf_projects
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+*/
+// ────────────────────────────────────────────────────────────────
+
 // ====================================================
 // STATE
 // ====================================================
@@ -919,15 +1057,27 @@ function zoomOut() { S.tv.zoom=Math.max(2,  S.tv.zoom*0.8);  render(); }
 // ANTENNA SYSTEM
 // ====================================================
 const ANT_MODELS = {
+  // Omni
   'omni_2.5_360': { gain:2.5, beamwidth:360, type:'omni' },
   'omni_2_360':   { gain:2,   beamwidth:360, type:'omni' },
   'omni_5_360':   { gain:5,   beamwidth:360, type:'omni' },
   'omni_5_180':   { gain:5,   beamwidth:180, type:'omni' },
   'omni_9_360':   { gain:9,   beamwidth:360, type:'omni' },
+  // Panel
   'panel_9_120':  { gain:9,   beamwidth:120, type:'panel' },
   'panel_10_120': { gain:10,  beamwidth:120, type:'panel' },
   'panel_11_100': { gain:11,  beamwidth:100, type:'panel' },
   'panel_14_90':  { gain:14,  beamwidth:90,  type:'panel' },
+  // LPDA
+  'lpda_6_100':   { gain:6,   beamwidth:100, type:'lpda' },
+  'lpda_8_80':    { gain:8,   beamwidth:80,  type:'lpda' },
+  'lpda_10_65':   { gain:10,  beamwidth:65,  type:'lpda' },
+  'lpda_12_50':   { gain:12,  beamwidth:50,  type:'lpda' },
+  // Helical
+  'helix_10_35':  { gain:10,  beamwidth:35,  type:'helix' },
+  'helix_12_30':  { gain:12,  beamwidth:30,  type:'helix' },
+  'helix_15_25':  { gain:15,  beamwidth:25,  type:'helix' },
+  // Yagi / Directional
   'dir_7_90':     { gain:7,   beamwidth:90,  type:'dir' },
   'dir_10_60':    { gain:10,  beamwidth:60,  type:'dir' },
   'dir_12_45':    { gain:12,  beamwidth:45,  type:'dir' },
@@ -988,11 +1138,42 @@ function clearAllAnts() {
 
 function updateAntList() {
   const body = document.getElementById('antListBody');
-  if(!S.antennas.length) {
+
+  // ── Diagram antennas section ──────────────────────────────────────
+  const diagNodes = (S.rfAntennaNodes||[]).filter(n=>ANT_MODELS[n.modelKey]);
+  let diagHtml = '';
+  if(diagNodes.length) {
+    const rows = diagNodes.map(n=>{
+      const m = ANT_MODELS[n.modelKey];
+      const loss = calcDiagramChainLoss(n.id);
+      const name = antModelName(n.modelKey);
+      const lossStr = loss>0 ? ` · -${loss.toFixed(1)}dB` : '';
+      return `
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:bold;color:#30b0a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📡 ${name}</div>
+          <div style="font-size:9px;color:#888;">${m.gain} dBi · ${m.beamwidth<360?m.beamwidth+'°':'360°'}${lossStr}</div>
+        </div>
+        <button onclick="exportAntennaToMap(${n.id})"
+          style="flex-shrink:0;font-size:9px;padding:3px 7px;background:rgba(48,176,160,0.18);border:1px solid #30b0a0;color:#30b0a0;border-radius:4px;cursor:pointer;white-space:nowrap;">→ Colocar</button>
+      </div>`;
+    }).join('');
+    diagHtml = `
+    <div style="padding:4px 8px 2px;font-size:9px;font-weight:bold;color:#30b0a0;letter-spacing:0.05em;text-transform:uppercase;opacity:0.8;">
+      Del diagrama
+    </div>
+    ${rows}`;
+  }
+
+  if(!S.antennas.length && !diagNodes.length) {
     body.innerHTML='<p class="dim-msg" style="padding:8px;">Sin antenas. Configura y pulsa "Colocar Antena" →</p>';
     return;
   }
-  const listHtml = S.antennas.map(a=>`
+
+  const listHtml = S.antennas.length ? `
+    <div style="padding:4px 8px 2px;font-size:9px;font-weight:bold;color:var(--accent);letter-spacing:0.05em;text-transform:uppercase;opacity:0.8;${diagNodes.length?'margin-top:4px;':''}">
+      Colocadas
+    </div>` + S.antennas.map(a=>`
     <div class="ant-item${a.id===S.selAntId?' sel':''}" onclick="selAnt(${a.id})">
       <div class="ant-item-info">
         <div class="ant-item-name">${a.name}</div>
@@ -1001,7 +1182,7 @@ function updateAntList() {
       </div>
       <button class="ant-rm" onclick="event.stopPropagation();rmAnt(${a.id})">✕</button>
     </div>
-  `).join('');
+  `).join('') : '';
 
   // Edit panel for selected antenna
   const sel=S.antennas.find(a=>a.id===S.selAntId);
@@ -1037,7 +1218,7 @@ function updateAntList() {
       </div>
     </div>` : '';
 
-  body.innerHTML = listHtml + editHtml;
+  body.innerHTML = diagHtml + listHtml + editHtml;
 }
 
 function updAnt(id, key, val) {
@@ -1815,6 +1996,14 @@ S.connMode = 'rf';
 S.pendingPort = null;
 S.nextConnId = 1;
 S._portPos = {};
+S.rfSplitterNodes = [];
+S.nextSplitterNodeId = 1;
+S.rfAntennaNodes = [];
+S.nextAntennaNodeId = 1;
+S.rfCableNodes = [];
+S.nextCableNodeId = 1;
+S.rdDrag = null;
+S.rackCenterView = 'rack';
 
 const RECV_MODELS = {
   // Wisycom — IEM TX
@@ -1922,12 +2111,31 @@ const SPLITTERS = {
   'shure_axt600':  {name:'Shure AXT600 Axient',        loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'High-isolation active distro for Axient Digital. Includes redundant RF + audio feed.'},
   'shure_ua221':   {name:'Shure UA221 Passive',        loss:3,    gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way splitter/combiner. 3 dB loss. 400–900 MHz.'},
   'shure_ua400b':  {name:'Shure UA400B',               loss:6,    gain:0,  active:false, ways:4,  cat:'b', notes:'Passive 4-way. 6 dB loss. 400–900 MHz.'},
-  'shure_pa821b':  {name:'Shure PA821B',               loss:3.5,  gain:0,  active:false, ways:2,  cat:'c', notes:'Passive 2-way combiner. 3.5 dB loss. 470–952 MHz. Designed to combine two IEM transmitters onto one shared antenna.'},
+  'shure_pa821b':  {name:'Shure PA821B', loss:3.5, gain:0, active:false, ways:8, cat:'c',
+    notes:'8-input passive combiner. 3.5 dB loss. 470–952 MHz. 8 rear inputs, Main OUT, and expansion port (A IN / B IN / A+B OUT) for cascading two units.',
+    ports:{
+      inputs: [
+        {id:'in_1',label:'IN 1'},{id:'in_2',label:'IN 2'},{id:'in_3',label:'IN 3'},
+        {id:'in_4',label:'IN 4'},{id:'in_5',label:'IN 5'},{id:'in_6',label:'IN 6'},
+        {id:'in_7',label:'IN 7'},{id:'in_8',label:'IN 8'},
+        {id:'exp_a_in',label:'EXP A IN'},{id:'exp_b_in',label:'EXP B IN'}
+      ],
+      outputs:[
+        {id:'main_out',label:'Main OUT'},{id:'exp_ab_out',label:'EXP A+B OUT'}
+      ]
+    }
+  },
   // Sennheiser — active = splitter for receivers; passive = both
   'senn_asa1':     {name:'Sennheiser ASA1 NT',         loss:0,    gain:10, active:true,  ways:2,  cat:'s', notes:'Active 2-way antenna splitter for receivers. +10 dB. 470–866 MHz.'},
   'senn_asa3000':  {name:'Sennheiser ASA3000',         loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter for receivers. +10 dB. Evolution G3/G4/G10. 470–866 MHz.'},
   'senn_ac3200':   {name:'Sennheiser AC3200-II',       loss:0,    gain:10, active:true,  ways:4,  cat:'s', notes:'Active 4-way for Digital 6000/9000. Cascade up to 3 units.'},
-  'senn_ac41':     {name:'Sennheiser AC 41',            loss:3.5,  gain:0,  active:false, ways:2,  cat:'b', notes:'Passive 2-way combiner/splitter. 3.5 dB loss. 470–1800 MHz.'},
+  'senn_ac41':     {name:'Sennheiser AC 41', loss:3.5, gain:0, active:false, ways:4, cat:'b',
+    notes:'4-input passive combiner. 3.5 dB loss. 470–1800 MHz. 4 RF IN, 1 RF OUT.',
+    ports:{
+      inputs:  [{id:'in_1',label:'RF IN 1'},{id:'in_2',label:'RF IN 2'},{id:'in_3',label:'RF IN 3'},{id:'in_4',label:'RF IN 4'}],
+      outputs: [{id:'out',label:'RF OUT'}]
+    }
+  },
   // Audio-Technica — active splitters for receivers
   'at_aewda':      {name:'AT AEW-DA Active Distro',    loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way splitter. +12 dB. 500–900 MHz. For AEW Series.'},
   'at_aewt3000':   {name:'AT AEW-T3000',               loss:0,    gain:12, active:true,  ways:4,  cat:'s', notes:'Active 4-way for System 10 Pro / 3000 series.'},
@@ -2534,15 +2742,26 @@ function setRackDetailTab(tab, btn) {
   updateRackDetailArea();
 }
 
+function setRackCenterView(view, btn) {
+  S.rackCenterView = view;
+  document.querySelectorAll('.rack-view-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const canvasSection = document.getElementById('rackCanvasSection');
+  const diagramWrap   = document.getElementById('rfDiagramWrap');
+  if(view === 'diagram') {
+    canvasSection.style.display = 'none';
+    diagramWrap.style.display   = 'flex';
+    renderConnDiagram();
+  } else {
+    canvasSection.style.display = '';
+    diagramWrap.style.display   = 'none';
+    setTimeout(()=>{ resizeRackCanvases(); }, 10);
+  }
+}
+
 function updateRackDetailArea() {
   const area = document.getElementById('rackDetailArea');
   const body = document.getElementById('rackDetailBody');
-  if(S.rackDetailTab === 'diagram') {
-    if(!S.rackGroups.length) { area.style.display='none'; return; }
-    area.style.display='flex';
-    renderConnDiagram();
-    return;
-  }
   if(!S.selRackId) { area.style.display='none'; return; }
   area.style.display='flex';
   const g = S.rackGroups.find(g=>g.id===S.selRackId);
@@ -2730,27 +2949,34 @@ function clearConnections() {
   renderConnDiagram();
 }
 
-function clickPort(groupId, portId) {
+// entityType: 'group' | 'splitter'
+function clickPort(entityId, portId, entityType) {
+  entityType = entityType || 'group';
   if(!S.pendingPort) {
-    S.pendingPort = {groupId, portId};
+    S.pendingPort = {entityId, portId, entityType};
     renderConnDiagram();
     return;
   }
-  if(S.pendingPort.groupId === groupId && S.pendingPort.portId === portId) {
+  if(S.pendingPort.entityId === entityId && S.pendingPort.portId === portId && S.pendingPort.entityType === entityType) {
     S.pendingPort = null;
     renderConnDiagram();
     return;
   }
   const dup = S.rackConnections.find(c=>
     c.type===S.connMode &&
-    c.fromGroupId===S.pendingPort.groupId && c.fromPort===S.pendingPort.portId &&
-    c.toGroupId===groupId && c.toPort===portId
+    (c.fromEntityType||'group')===S.pendingPort.entityType &&
+    c.fromEntityId===S.pendingPort.entityId && c.fromPort===S.pendingPort.portId &&
+    (c.toEntityType||'group')===entityType &&
+    c.toEntityId===entityId && c.toPort===portId
   );
   if(!dup) {
     S.rackConnections.push({
       id: S.nextConnId++,
-      fromGroupId: S.pendingPort.groupId, fromPort: S.pendingPort.portId,
-      toGroupId: groupId, toPort: portId,
+      fromEntityId: S.pendingPort.entityId, fromPort: S.pendingPort.portId, fromEntityType: S.pendingPort.entityType,
+      toEntityId: entityId, toPort: portId, toEntityType: entityType,
+      // backward-compat aliases
+      fromGroupId: S.pendingPort.entityType==='group' ? S.pendingPort.entityId : null,
+      toGroupId:   entityType==='group' ? entityId : null,
       type: S.connMode
     });
   }
@@ -2758,119 +2984,666 @@ function clickPort(groupId, portId) {
   renderConnDiagram();
 }
 
+function addRfSplitterNode(splitterKey) {
+  const sp = SPLITTERS[splitterKey];
+  if(!sp) return;
+  const HDR = 22, PORT_SP = 16;
+  function nodeH(s) {
+    if(s.ports) return HDR + Math.max(s.ports.inputs.length, s.ports.outputs.length)*PORT_SP + 16;
+    return HDR + Math.max(s.ways,1)*PORT_SP + 16;
+  }
+  const y = 44 + S.rfSplitterNodes.reduce((acc,n)=>{
+    return acc + nodeH(SPLITTERS[n.splitterKey]||SPLITTERS['none']) + 20;
+  }, 0);
+  S.rfSplitterNodes.push({id: S.nextSplitterNodeId++, splitterKey, x: 10, y});
+  renderConnDiagram();
+}
+
+function removeRfSplitterNode(id) {
+  S.rfSplitterNodes = S.rfSplitterNodes.filter(n=>n.id!==id);
+  S.rackConnections = S.rackConnections.filter(c=>
+    !(c.fromEntityType==='splitter' && c.fromEntityId===id) &&
+    !(c.toEntityType==='splitter' && c.toEntityId===id)
+  );
+  renderConnDiagram();
+}
+
+// ── ANTENNA NODES ────────────────────────────────────────────────────────
+function antModelName(key) {
+  const m = ANT_MODELS[key]; if(!m) return key;
+  const t = {omni:'Omni',panel:'Panel',lpda:'LPDA',helix:'Helix',dir:'Yagi'}[m.type]||'Dir';
+  return `${t} ${m.gain}dBi${m.beamwidth<360?' '+m.beamwidth+'°':''}`;
+}
+function addRfAntennaNode(modelKey) {
+  if(!ANT_MODELS[modelKey]) return;
+  const ANT_BH = 22 + 64 + 20; // HDR + ANT_DRAW_H + ANT_FOOTER_H
+  const y = 44 + (S.rfAntennaNodes.length)*(ANT_BH+16);
+  S.rfAntennaNodes.push({id:S.nextAntennaNodeId++, modelKey, x:10, y});
+  renderConnDiagram();
+}
+function removeRfAntennaNode(id) {
+  S.rfAntennaNodes = S.rfAntennaNodes.filter(n=>n.id!==id);
+  S.rackConnections = S.rackConnections.filter(c=>
+    !(c.fromEntityType==='antenna'&&c.fromEntityId===id) &&
+    !(c.toEntityType==='antenna'&&c.toEntityId===id));
+  renderConnDiagram();
+}
+
+// ── COAXIAL CABLE NODES ──────────────────────────────────────────────────
+function addRfCableNode(cableType, len) {
+  len = parseFloat(len)||10;
+  if(!CABLE_LOSS_PER_M[cableType]) return;
+  const HDR=22, PORT_SP=16, BH=HDR+PORT_SP*2+16;
+  const y = 44 + (S.rfCableNodes.length)*(BH+16);
+  S.rfCableNodes.push({id:S.nextCableNodeId++, cableType, len, x:160, y});
+  renderConnDiagram();
+}
+function removeRfCableNode(id) {
+  S.rfCableNodes = S.rfCableNodes.filter(n=>n.id!==id);
+  S.rackConnections = S.rackConnections.filter(c=>
+    !(c.fromEntityType==='cable'&&c.fromEntityId===id) &&
+    !(c.toEntityType==='cable'&&c.toEntityId===id));
+  renderConnDiagram();
+}
+function editCableLen(id) {
+  const node = S.rfCableNodes.find(n=>n.id===id); if(!node) return;
+  const v = prompt('Cable length (m):', node.len);
+  if(v===null) return;
+  const n = parseFloat(v); if(isNaN(n)||n<=0) return;
+  node.len = n;
+  renderConnDiagram();
+}
+
+// ── ANTENNA SVG SHAPES ───────────────────────────────────────────────────
+function antSvgShape(type, color, W, H) {
+  const cx = W/2;
+  switch(type) {
+    case 'omni': {
+      // Vertical whip + ground plane radials
+      const baseY = H*0.82, tipY = H*0.08;
+      return `
+        <line x1="${cx}" y1="${tipY}" x2="${cx}" y2="${baseY}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${tipY}" r="2.5" fill="${color}"/>
+        <line x1="${cx-W*0.28}" y1="${baseY}" x2="${cx+W*0.28}" y2="${baseY}" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+        <line x1="${cx-W*0.28}" y1="${baseY}" x2="${cx-W*0.38}" y2="${H*0.95}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="${cx+W*0.28}" y1="${baseY}" x2="${cx+W*0.38}" y2="${H*0.95}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="${cx}" y1="${baseY}" x2="${cx}" y2="${H*0.95}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`;
+    }
+    case 'lpda': {
+      // Log-periodic dipole array: horizontal boom + dipoles decreasing left→right
+      const boomY = H*0.5;
+      const n = 7, x0 = W*0.08, x1 = W*0.90;
+      let s = `<line x1="${x0}" y1="${boomY}" x2="${x1}" y2="${boomY}" stroke="${color}" stroke-width="2"/>`;
+      // Arrow at right end (beam direction)
+      s += `<polyline points="${x1-6},${boomY-4} ${x1},${boomY} ${x1-6},${boomY+4}" stroke="${color}" fill="none" stroke-width="1.5"/>`;
+      for(let i=0; i<n; i++) {
+        const x = x0 + i*(x1-x0)/(n-1);
+        const h = H*(0.78 - i*0.07);
+        const sw = i===0 ? 2.5 : i===1 ? 2 : 1.5;
+        s += `<line x1="${x}" y1="${boomY-h/2}" x2="${x}" y2="${boomY+h/2}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+      }
+      return s;
+    }
+    case 'helix': {
+      // Helical coil + ground disc at bottom
+      const turns = 4, groundY = H*0.88;
+      const hy = H*0.78, coilW = W*0.32;
+      const xl = cx-coilW/2, xr = cx+coilW/2;
+      let s = `<ellipse cx="${cx}" cy="${groundY}" rx="${W*0.28}" ry="${H*0.06}" fill="${color}" fill-opacity="0.15" stroke="${color}" stroke-width="1.5"/>`;
+      // Feed stub
+      s += `<line x1="${cx}" y1="${groundY}" x2="${cx}" y2="${groundY-H*0.05}" stroke="${color}" stroke-width="2"/>`;
+      // Draw coil turns as alternating bezier arcs (front=solid, back=dashed)
+      const stepY = hy / turns;
+      const baseY2 = groundY - H*0.05;
+      for(let t=0; t<turns; t++) {
+        const y1 = baseY2 - t*stepY, y2 = baseY2 - (t+0.5)*stepY, y3 = baseY2 - (t+1)*stepY;
+        // front half-turn
+        s += `<path d="M${xl},${y1} C${xl-8},${(y1+y2)/2} ${xr+8},${(y1+y2)/2} ${xr},${y2}" stroke="${color}" fill="none" stroke-width="2"/>`;
+        // back half-turn (lighter/dashed)
+        s += `<path d="M${xr},${y2} C${xr+8},${(y2+y3)/2} ${xl-8},${(y2+y3)/2} ${xl},${y3}" stroke="${color}" fill="none" stroke-width="1.2" stroke-dasharray="3,2" opacity="0.55"/>`;
+      }
+      return s;
+    }
+    case 'panel': {
+      // Flat panel face (front view) with mounting bracket
+      const pw = W*0.55, ph = H*0.75, px = cx-pw/2, py = H*0.1, cy = py+ph/2;
+      return `
+        <rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="3" fill="${color}" fill-opacity="0.14" stroke="${color}" stroke-width="2"/>
+        <rect x="${px+4}" y="${py+4}" width="${pw-8}" height="${ph-8}" rx="1" fill="none" stroke="${color}" stroke-width="0.8" opacity="0.4"/>
+        <line x1="${cx}" y1="${py+8}" x2="${cx}" y2="${py+ph-8}" stroke="${color}" stroke-width="0.8" opacity="0.4"/>
+        <line x1="${px+8}" y1="${cy}" x2="${px+pw-8}" y2="${cy}" stroke="${color}" stroke-width="0.8" opacity="0.4"/>
+        <line x1="${cx}" y1="${py+ph}" x2="${cx}" y2="${H*0.95}" stroke="${color}" stroke-width="2"/>`;
+    }
+    case 'dir':
+    default: {
+      // Yagi-Uda: reflector (back) + driven element + directors (front right)
+      const bY = H*0.50;
+      const x0 = W*0.05, x1 = W*0.92;
+      let s = `<line x1="${x0}" y1="${bY}" x2="${x1}" y2="${bY}" stroke="${color}" stroke-width="1.5"/>`;
+      s += `<polyline points="${x1-6},${bY-4} ${x1},${bY} ${x1-6},${bY+4}" stroke="${color}" fill="none" stroke-width="1.5"/>`;
+      // Reflector (tallest, leftmost)
+      s += `<line x1="${W*0.10}" y1="${bY-H*0.38}" x2="${W*0.10}" y2="${bY+H*0.38}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`;
+      // Driven element
+      s += `<line x1="${W*0.26}" y1="${bY-H*0.28}" x2="${W*0.26}" y2="${bY+H*0.28}" stroke="${color}" stroke-width="2" stroke-linecap="round"/>`;
+      // Directors
+      [[0.42,0.22],[0.55,0.18],[0.66,0.15],[0.76,0.13],[0.85,0.11]].forEach(([x,h])=>{
+        s += `<line x1="${W*x}" y1="${bY-H*h}" x2="${W*x}" y2="${bY+H*h}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`;
+      });
+      return s;
+    }
+  }
+}
+
+// ── DIAGRAM CHAIN LOSS & EXPORT ──────────────────────────────────────────
+function calcDiagramChainLoss(antennaNodeId) {
+  const visited = new Set(['antenna_'+antennaNodeId]);
+  const queue = [['antenna', antennaNodeId]];
+  let totalLoss = 0;
+  while(queue.length) {
+    const [eType, eId] = queue.shift();
+    S.rackConnections.filter(c=>c.type==='rf').forEach(c=>{
+      const ft = c.fromEntityType||'group', fi = c.fromEntityId??c.fromGroupId;
+      const tt = c.toEntityType||'group',   ti = c.toEntityId??c.toGroupId;
+      let nextType, nextId;
+      if(ft===eType && fi===eId)       { nextType=tt; nextId=ti; }
+      else if(tt===eType && ti===eId)  { nextType=ft; nextId=fi; }
+      else return;
+      const nk = nextType+'_'+nextId;
+      if(visited.has(nk)) return;
+      visited.add(nk);
+      if(nextType==='cable') {
+        const n=(S.rfCableNodes||[]).find(n=>n.id===nextId);
+        if(n) totalLoss += (CABLE_LOSS_PER_M[n.cableType]||0)*n.len;
+      } else if(nextType==='splitter') {
+        const n=(S.rfSplitterNodes||[]).find(n=>n.id===nextId);
+        if(n){ const sp=SPLITTERS[n.splitterKey]; if(sp) totalLoss += sp.active?-sp.gain:sp.loss; }
+      }
+      queue.push([nextType, nextId]);
+    });
+  }
+  return totalLoss;
+}
+
+function exportAntennaToMap(antennaNodeId) {
+  const node=(S.rfAntennaNodes||[]).find(n=>n.id===antennaNodeId); if(!node) return;
+  const m=ANT_MODELS[node.modelKey]; if(!m) return;
+  const loss = calcDiagramChainLoss(antennaNodeId);
+  const defaultTx = 20;
+  const n = S.antennas.length+1;
+  S.antennas.push({
+    id: S.nextAntId++,
+    name: `ANT-${n}`,
+    modelKey: node.modelKey,
+    x: 0, y: 0,
+    tx: defaultTx - loss,
+    height: 3, freq: 711, angle: 0,
+    gain: m.gain,
+    beamwidth: m.beamwidth,
+    antType: m.type,
+    chainLoss: parseFloat(loss.toFixed(2))
+  });
+  S.selAntId = S.antennas[S.antennas.length-1].id;
+  updateAntList();
+  render();
+  setStatus(`📡 ${antModelName(node.modelKey)} añadida al mapa — pérdida cadena: ${loss.toFixed(1)} dB | TX efectivo: ${(defaultTx-loss).toFixed(1)} dBm`);
+}
+
+// ── SVG DRAG (grupos y splitters) ────────────────────────────────────────
+function svgPt(svg, evt) {
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function _rdNodeForDrag(dtype, did) {
+  if(dtype==='s') return (S.rfSplitterNodes||[]).find(n=>n.id===did);
+  if(dtype==='a') return (S.rfAntennaNodes||[]).find(n=>n.id===did);
+  if(dtype==='c') return (S.rfCableNodes||[]).find(n=>n.id===did);
+  return S.rackGroups.find(g=>g.id===did);
+}
+function _rdElemId(dtype, did) {
+  return {s:'spnode_',a:'antnode_',c:'cabnode_',g:'grpnode_'}[dtype]+did;
+}
+
+function rdSvgMousedown(evt) {
+  const dragVal = evt.target.getAttribute('data-drag');
+  if(!dragVal) return;
+  const sep = dragVal.indexOf('_');
+  const dtype = dragVal.slice(0, sep);
+  const did   = parseInt(dragVal.slice(sep+1));
+  const node  = _rdNodeForDrag(dtype, did);
+  if(!node || node.x == null) return;
+  const pt = svgPt(evt.currentTarget, evt);
+  S.rdDrag = {dtype, did, ox: pt.x - node.x, oy: pt.y - node.y};
+  evt.preventDefault();
+  evt.stopPropagation();
+}
+
+function rdSvgMousemove(evt) {
+  if(!S.rdDrag) return;
+  const {dtype, did} = S.rdDrag;
+  const node = _rdNodeForDrag(dtype, did);
+  if(!node) return;
+  const pt = svgPt(evt.currentTarget, evt);
+  node.x = pt.x - S.rdDrag.ox;
+  node.y = pt.y - S.rdDrag.oy;
+  const el = document.getElementById(_rdElemId(dtype, did));
+  if(el) el.setAttribute('transform', `translate(${node.x},${node.y})`);
+  rdUpdateConns();
+  evt.preventDefault();
+}
+
+function rdSvgMouseup() {
+  if(S.rdDrag) { S.rdDrag = null; renderConnDiagram(); }
+}
+
+function rdUpdateConns() {
+  const BLOCK_W = 130, HDR = 22, PORT_SP = 16;
+  const pp = S._portPos;
+
+  const ek = t=>({splitter:'s',antenna:'a',cable:'c',group:'g'})[t]||'g';
+
+  // Recompute splitter port positions
+  (S.rfSplitterNodes||[]).forEach(node => {
+    const sp = SPLITTERS[node.splitterKey]||SPLITTERS['none'];
+    const key = 's_'+node.id;
+    if(!pp[key]) pp[key] = {};
+    if(sp.ports) {
+      sp.ports.inputs.forEach((p,i)  => { pp[key][p.id] = {x: node.x,        y: node.y+HDR+PORT_SP+i*PORT_SP}; });
+      sp.ports.outputs.forEach((p,i) => { pp[key][p.id] = {x: node.x+BLOCK_W, y: node.y+HDR+PORT_SP+i*PORT_SP}; });
+    } else {
+      pp[key]['in'] = {x: node.x, y: node.y+HDR+PORT_SP};
+      for(let o=0; o<sp.ways; o++) pp[key]['out_'+o] = {x: node.x+BLOCK_W, y: node.y+HDR+PORT_SP+o*PORT_SP};
+    }
+  });
+
+  // Recompute antenna port positions (RF port is centered in the 64px drawing area: HDR+32=54)
+  const ANT_PORT_Y_OFF = 54;
+  (S.rfAntennaNodes||[]).forEach(node => {
+    const key = 'a_'+node.id;
+    if(!pp[key]) pp[key] = {};
+    pp[key]['rf'] = {x: node.x, y: node.y+ANT_PORT_Y_OFF};
+  });
+
+  // Recompute cable port positions
+  (S.rfCableNodes||[]).forEach(node => {
+    const key = 'c_'+node.id;
+    if(!pp[key]) pp[key] = {};
+    pp[key]['in']  = {x: node.x,        y: node.y+HDR+PORT_SP};
+    pp[key]['out'] = {x: node.x+BLOCK_W, y: node.y+HDR+PORT_SP};
+  });
+
+  // Recompute group port positions
+  S.rackGroups.forEach(g => {
+    if(g.x == null) return;
+    const m  = RECV_MODELS[g.modelKey]||RECV_MODELS['shure_psm300'];
+    const nu = Math.ceil(g.channels.length/m.chPerUnit);
+    const key = 'g_'+g.id;
+    if(!pp[key]) pp[key] = {};
+    for(let u=0; u<nu; u++) pp[key]['rf_out_'+u] = {x: g.x+BLOCK_W, y: g.y+HDR+PORT_SP+u*PORT_SP};
+    // signal ports
+    g.channels.forEach((ch,c) => { pp[key]['sig_out_'+c] = {x: g.x+BLOCK_W, y: g.y+HDR+PORT_SP+c*PORT_SP}; });
+  });
+
+  S.rackConnections.filter(c=>c.type===S.connMode).forEach(c=>{
+    const el = document.getElementById('conn_'+c.id);
+    if(!el) return;
+    const fromType = c.fromEntityType||'group';
+    const toType   = c.toEntityType||'group';
+    const fp = pp[ek(fromType)+'_'+(c.fromEntityId??c.fromGroupId)]?.[c.fromPort];
+    const tp = pp[ek(toType)  +'_'+(c.toEntityId??c.toGroupId)]?.[c.toPort];
+    if(!fp||!tp) return;
+    const mx = (fp.x+tp.x)/2, my = (fp.y+tp.y)/2;
+    el.setAttribute('d', `M${fp.x},${fp.y} C${fp.x+50},${fp.y} ${tp.x-50},${tp.y} ${tp.x},${tp.y}`);
+    const dot = document.getElementById('conndot_'+c.id);
+    if(dot) { dot.setAttribute('cx', mx); dot.setAttribute('cy', my); }
+  });
+}
+
 function renderConnDiagram() {
-  const body = document.getElementById('rackDetailBody');
+  const body = document.getElementById('rfDiagramWrap');
   if(!body) return;
+  if(!S.rfSplitterNodes) S.rfSplitterNodes = [];
+  if(!S.rfAntennaNodes)  S.rfAntennaNodes  = [];
+  if(!S.rfCableNodes)    S.rfCableNodes    = [];
+  if(S.rdDrag === undefined) S.rdDrag = null;
 
   const BLOCK_W = 130, GAP_X = 20, GAP_Y = 30, PORT_R = 5, HDR = 22, PORT_SP = 16;
-  const RF_COLOR = '#e8c040', SIG_COLOR = '#40c890';
-  const svgW = body.clientWidth || 256;
+  const RF_COLOR = '#e8c040', SIG_COLOR = '#40c890', SP_COLOR = '#a060e0';
+  const svgW = Math.max(body.clientWidth || 300, 300);
   const cols = Math.max(1, Math.floor((svgW + GAP_X) / (BLOCK_W + GAP_X)));
 
-  // Port positions map: portPos[groupId][portId] = {x,y}
-  const portPos = {};
+  S._portPos = {}; // reset absolute port position cache
 
   function numUnitsOf(g) {
     const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
     return Math.ceil(g.channels.length / m.chPerUnit);
   }
-  function blockH(g) {
-    const n = S.connMode==='rf' ? numUnitsOf(g)+1 : g.channels.length;
+  function groupBlockH(g) {
+    const n = S.connMode==='rf' ? numUnitsOf(g) : g.channels.length;
     return HDR + Math.max(n,1)*PORT_SP + 16;
   }
-
-  // Layout
-  let rowHeights = [];
-  for(let r=0; r*cols < S.rackGroups.length; r++) {
-    const rowGroups = S.rackGroups.slice(r*cols, r*cols+cols);
-    rowHeights.push(Math.max(...rowGroups.map(blockH)));
+  function splitterBlockH(node) {
+    const sp = SPLITTERS[node.splitterKey] || SPLITTERS['none'];
+    if(sp.ports) return HDR + Math.max(sp.ports.inputs.length, sp.ports.outputs.length)*PORT_SP + 16;
+    return HDR + Math.max(sp.ways,1)*PORT_SP + 16;
   }
-  const totalH = GAP_Y + rowHeights.reduce((a,h)=>a+h+GAP_Y, 0);
 
-  // Build SVG blocks
-  let blocks = '';
-  S.rackGroups.forEach((g, i) => {
-    portPos[g.id] = {};
-    const col = i % cols, row = Math.floor(i / cols);
-    const bx = GAP_X + col*(BLOCK_W+GAP_X);
-    const by = GAP_Y + rowHeights.slice(0,row).reduce((a,h)=>a+h+GAP_Y, 0);
-    const bh = blockH(g);
+  // Assign default grid positions to groups that haven't been placed yet
+  {
+    let rowHeightsTmp = [];
+    for(let r=0; r*cols < S.rackGroups.length; r++) {
+      const row = S.rackGroups.slice(r*cols, r*cols+cols);
+      rowHeightsTmp.push(Math.max(...row.map(groupBlockH)));
+    }
+    S.rackGroups.forEach((g, i) => {
+      if(g.x == null) {
+        const col = i%cols, row = Math.floor(i/cols);
+        g.x = GAP_X + col*(BLOCK_W+GAP_X);
+        g.y = GAP_Y + rowHeightsTmp.slice(0,row).reduce((a,h)=>a+h+GAP_Y,0);
+      }
+    });
+  }
+
+  // ── SYSTEM GROUP BLOCKS (free-floating, draggable) ────────────────
+  let groupSvg = '';
+  S.rackGroups.forEach(g => {
+    S._portPos['g_'+g.id] = {};
+    const bh = groupBlockH(g);
     const bc = g.color || '#1a3a6a';
     const nu = numUnitsOf(g);
-    const isPend = S.pendingPort?.groupId === g.id;
-
-    blocks += `<rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${bh}" rx="3"
-      fill="${bc}" fill-opacity="0.25" stroke="${bc}" stroke-opacity="0.6" stroke-width="1.5"/>
-    <rect x="${bx}" y="${by}" width="${BLOCK_W}" height="${HDR}" rx="3"
-      fill="${bc}" fill-opacity="0.5"/>
-    <text x="${bx+BLOCK_W/2}" y="${by+HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
-      fill="#ddd" font-size="10" font-weight="bold" font-family="monospace">${g.name}</text>
-    <text x="${bx+BLOCK_W-4}" y="${by+HDR/2+1}" text-anchor="end" dominant-baseline="middle"
-      fill="${S.connMode==='rf'?RF_COLOR:SIG_COLOR}" font-size="8" font-family="monospace">${g.type}</text>`;
+    const isPend = S.pendingPort?.entityType!=='splitter' && S.pendingPort?.entityId===g.id;
+    let ports = '';
 
     if(S.connMode === 'rf') {
-      // ant_in left
-      const ay = by + HDR + PORT_SP;
-      portPos[g.id]['ant_in'] = {x:bx, y:ay};
-      const pend = isPend && S.pendingPort.portId==='ant_in';
-      blocks += `<circle cx="${bx}" cy="${ay}" r="${PORT_R}" fill="${RF_COLOR}"
-        stroke="${pend?'#fff':RF_COLOR}" stroke-width="${pend?2.5:0}" class="rdc-port"
-        onclick="clickPort(${g.id},'ant_in')"/>
-      <text x="${bx+8}" y="${ay}" dominant-baseline="middle" fill="#999" font-size="8" font-family="monospace">ANT</text>`;
-      // rf_out right
-      for(let u=0;u<nu;u++) {
-        const py = by + HDR + PORT_SP + u*PORT_SP;
+      for(let u=0; u<nu; u++) {
+        const py = HDR + PORT_SP + u*PORT_SP;
         const pid = `rf_out_${u}`;
-        portPos[g.id][pid] = {x:bx+BLOCK_W, y:py};
+        S._portPos['g_'+g.id][pid] = {x: g.x+BLOCK_W, y: g.y+py};
         const pp = isPend && S.pendingPort.portId===pid;
-        blocks += `<text x="${bx+BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
-          fill="#999" font-size="8" font-family="monospace">RF${u+1}</text>
-        <circle cx="${bx+BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
-          stroke="${pp?'#fff':RF_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
-          onclick="clickPort(${g.id},'${pid}')"/>`;
+        ports += `<text x="${BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+            fill="#999" font-size="8" font-family="monospace">RF${u+1}</text>
+          <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
+            stroke="${pp?'#fff':RF_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
+            onclick="clickPort(${g.id},'${pid}','group')"/>`;
       }
     } else {
-      // sig_out right, one per channel
-      for(let c=0;c<g.channels.length;c++) {
-        const py = by + HDR + PORT_SP + c*PORT_SP;
+      g.channels.forEach((ch, c) => {
+        const py = HDR + PORT_SP + c*PORT_SP;
         const pid = `sig_out_${c}`;
-        portPos[g.id][pid] = {x:bx+BLOCK_W, y:py};
+        S._portPos['g_'+g.id][pid] = {x: g.x+BLOCK_W, y: g.y+py};
         const pp = isPend && S.pendingPort.portId===pid;
-        const cn = g.channels[c].name||`Ch${c+1}`;
-        blocks += `<text x="${bx+BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
-          fill="#999" font-size="8" font-family="monospace">${cn}</text>
-        <circle cx="${bx+BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${SIG_COLOR}"
-          stroke="${pp?'#fff':SIG_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
-          onclick="clickPort(${g.id},'${pid}')"/>`;
-      }
+        const cn = ch.name||`Ch${c+1}`;
+        ports += `<text x="${BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+            fill="#999" font-size="8" font-family="monospace">${cn}</text>
+          <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${SIG_COLOR}"
+            stroke="${pp?'#fff':SIG_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
+            onclick="clickPort(${g.id},'${pid}','group')"/>`;
+      });
     }
+
+    groupSvg += `
+    <g id="grpnode_${g.id}" transform="translate(${g.x},${g.y})" style="cursor:default">
+      <rect x="0" y="0" width="${BLOCK_W}" height="${bh}" rx="3"
+        fill="${bc}" fill-opacity="0.25" stroke="${bc}" stroke-opacity="0.6" stroke-width="1.5"/>
+      <rect x="0" y="0" width="${BLOCK_W}" height="${HDR}" rx="3"
+        fill="${bc}" fill-opacity="0.5"
+        data-drag="g_${g.id}" style="cursor:grab"/>
+      <text x="${BLOCK_W/2}" y="${HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
+        fill="#ddd" font-size="10" font-weight="bold" font-family="monospace"
+        data-drag="g_${g.id}" style="cursor:grab;user-select:none">${g.name}</text>
+      <text x="${BLOCK_W-4}" y="${HDR/2+1}" text-anchor="end" dominant-baseline="middle"
+        fill="${S.connMode==='rf'?RF_COLOR:SIG_COLOR}" font-size="8" font-family="monospace">${g.type}</text>
+      ${ports}
+    </g>`;
   });
 
-  // Build connection paths
+  // ── SPLITTER/COMBINER NODES — free-floating, draggable (RF mode only) ──
+  let splitterSvg = '';
+  if(S.connMode === 'rf') {
+    S.rfSplitterNodes.forEach(node => {
+      const sp = SPLITTERS[node.splitterKey] || SPLITTERS['none'];
+      const bh = splitterBlockH(node);
+      const bc = '#1c1030';
+      const isPend = S.pendingPort?.entityType==='splitter' && S.pendingPort?.entityId===node.id;
+      const label = sp.active ? `+${sp.gain}dB` : sp.loss ? `-${sp.loss}dB` : '0dB';
+      const shortName = sp.name.length > 17 ? sp.name.substring(0,16)+'…' : sp.name;
+
+      // Store absolute port positions and build port SVG (local coords inside <g>)
+      S._portPos['s_'+node.id] = {};
+      let ports = '';
+
+      if(sp.ports) {
+        // Custom port layout (e.g. PA821B)
+        sp.ports.inputs.forEach((p, i) => {
+          const py = HDR + PORT_SP + i*PORT_SP;
+          S._portPos['s_'+node.id][p.id] = {x: node.x, y: node.y + py};
+          const pend = isPend && S.pendingPort.portId===p.id;
+          ports += `<circle cx="0" cy="${py}" r="${PORT_R}" fill="${SP_COLOR}"
+              stroke="${pend?'#fff':SP_COLOR}" stroke-width="${pend?2.5:0}" class="rdc-port"
+              onclick="clickPort(${node.id},'${p.id}','splitter')"/>
+            <text x="8" y="${py}" dominant-baseline="middle" fill="#aaa" font-size="8" font-family="monospace">${p.label}</text>`;
+        });
+        sp.ports.outputs.forEach((p, i) => {
+          const py = HDR + PORT_SP + i*PORT_SP;
+          S._portPos['s_'+node.id][p.id] = {x: node.x+BLOCK_W, y: node.y + py};
+          const pend = isPend && S.pendingPort.portId===p.id;
+          ports += `<text x="${BLOCK_W-8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+              fill="#aaa" font-size="8" font-family="monospace">${p.label}</text>
+            <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${SP_COLOR}"
+              stroke="${pend?'#fff':SP_COLOR}" stroke-width="${pend?2.5:0}" class="rdc-port"
+              onclick="clickPort(${node.id},'${p.id}','splitter')"/>`;
+        });
+      } else {
+        // Default: 1 IN left, N OUT right
+        S._portPos['s_'+node.id]['in'] = {x: node.x, y: node.y + HDR + PORT_SP};
+        const inPend = isPend && S.pendingPort.portId==='in';
+        ports += `<circle cx="0" cy="${HDR+PORT_SP}" r="${PORT_R}" fill="${SP_COLOR}"
+            stroke="${inPend?'#fff':SP_COLOR}" stroke-width="${inPend?2.5:0}" class="rdc-port"
+            onclick="clickPort(${node.id},'in','splitter')"/>
+          <text x="8" y="${HDR+PORT_SP}" dominant-baseline="middle" fill="#aaa" font-size="8" font-family="monospace">IN</text>`;
+        for(let o=0; o<sp.ways; o++) {
+          const oy = HDR + PORT_SP + o*PORT_SP;
+          const pid = `out_${o}`;
+          S._portPos['s_'+node.id][pid] = {x: node.x+BLOCK_W, y: node.y+HDR+PORT_SP+o*PORT_SP};
+          const pp = isPend && S.pendingPort.portId===pid;
+          ports += `<text x="${BLOCK_W-8}" y="${oy}" text-anchor="end" dominant-baseline="middle"
+              fill="#aaa" font-size="8" font-family="monospace">OUT ${o+1}</text>
+            <circle cx="${BLOCK_W}" cy="${oy}" r="${PORT_R}" fill="${SP_COLOR}"
+              stroke="${pp?'#fff':SP_COLOR}" stroke-width="${pp?2.5:0}" class="rdc-port"
+              onclick="clickPort(${node.id},'${pid}','splitter')"/>`;
+        }
+      }
+
+      splitterSvg += `
+      <g id="spnode_${node.id}" transform="translate(${node.x},${node.y})" style="cursor:default">
+        <rect x="0" y="0" width="${BLOCK_W}" height="${bh}" rx="4"
+          fill="${bc}" fill-opacity="0.85" stroke="${SP_COLOR}" stroke-opacity="0.7" stroke-width="1.5"/>
+        <rect x="0" y="0" width="${BLOCK_W}" height="${HDR}" rx="4"
+          fill="${SP_COLOR}" fill-opacity="0.18"
+          data-drag="s_${node.id}" style="cursor:grab"/>
+        <line x1="0" y1="${HDR}" x2="${BLOCK_W}" y2="${HDR}" stroke="${SP_COLOR}" stroke-opacity="0.3" stroke-width="1"/>
+        <text x="${BLOCK_W/2}" y="${HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
+          fill="#ddd" font-size="9" font-weight="bold" font-family="monospace"
+          data-drag="s_${node.id}" style="cursor:grab;user-select:none">${shortName}</text>
+        <text x="${BLOCK_W-5}" y="${HDR/2+1}" text-anchor="end" dominant-baseline="middle"
+          fill="${SP_COLOR}" font-size="8" font-family="monospace" opacity="0.8">${label}</text>
+        <text x="${BLOCK_W-2}" y="2" text-anchor="end" dominant-baseline="hanging"
+          fill="#c05050" font-size="11" font-family="monospace" style="cursor:pointer"
+          onclick="removeRfSplitterNode(${node.id})" title="Remove">×</text>
+        ${ports}
+      </g>`;
+    });
+
+    // ── ANTENNA NODES ──────────────────────────────────────────────
+    const ANT_COLOR = '#30b0a0';
+    const ANT_DRAW_H = 64, ANT_FOOTER_H = 20;
+    const ANT_BH = HDR + ANT_DRAW_H + ANT_FOOTER_H;
+    const ANT_PORT_Y = HDR + ANT_DRAW_H / 2; // = 54, centered in drawing area
+    (S.rfAntennaNodes||[]).forEach(node => {
+      const m = ANT_MODELS[node.modelKey]; if(!m) return;
+      const name = antModelName(node.modelKey);
+      const isPend = S.pendingPort?.entityType==='antenna' && S.pendingPort?.entityId===node.id;
+      const pend = isPend && S.pendingPort.portId==='rf';
+      S._portPos['a_'+node.id] = {};
+      S._portPos['a_'+node.id]['rf'] = {x: node.x, y: node.y+ANT_PORT_Y};
+      const loss = calcDiagramChainLoss(node.id);
+      const lossLabel = loss > 0 ? `-${loss.toFixed(1)}dB` : '0dB';
+      const shape = antSvgShape(m.type||'dir', ANT_COLOR, BLOCK_W, ANT_DRAW_H);
+      const footerY = HDR + ANT_DRAW_H;
+      splitterSvg += `
+      <g id="antnode_${node.id}" transform="translate(${node.x},${node.y})" style="cursor:default">
+        <rect x="0" y="0" width="${BLOCK_W}" height="${ANT_BH}" rx="4"
+          fill="#0d2820" fill-opacity="0.9" stroke="${ANT_COLOR}" stroke-opacity="0.7" stroke-width="1.5"/>
+        <rect x="0" y="0" width="${BLOCK_W}" height="${HDR}" rx="4"
+          fill="${ANT_COLOR}" fill-opacity="0.2"
+          data-drag="a_${node.id}" style="cursor:grab"/>
+        <line x1="0" y1="${HDR}" x2="${BLOCK_W}" y2="${HDR}" stroke="${ANT_COLOR}" stroke-opacity="0.3" stroke-width="1"/>
+        <text x="8" y="${HDR/2+1}" dominant-baseline="middle"
+          fill="${ANT_COLOR}" font-size="9" font-family="monospace" opacity="0.9">📡</text>
+        <text x="${BLOCK_W/2+6}" y="${HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
+          fill="#ddd" font-size="9" font-weight="bold" font-family="monospace"
+          data-drag="a_${node.id}" style="cursor:grab;user-select:none">${name}</text>
+        <text x="${BLOCK_W-2}" y="2" text-anchor="end" dominant-baseline="hanging"
+          fill="#c05050" font-size="11" font-family="monospace" style="cursor:pointer"
+          onclick="removeRfAntennaNode(${node.id})">×</text>
+        <g transform="translate(0,${HDR})">${shape}</g>
+        <line x1="0" y1="${footerY}" x2="${BLOCK_W}" y2="${footerY}" stroke="${ANT_COLOR}" stroke-opacity="0.2" stroke-width="1"/>
+        <text x="${BLOCK_W*0.33}" y="${footerY+10}" text-anchor="middle" dominant-baseline="middle"
+          fill="${ANT_COLOR}" font-size="8" font-family="monospace" opacity="0.9">${lossLabel}</text>
+        <rect x="${BLOCK_W*0.54}" y="${footerY+2}" width="${BLOCK_W*0.43}" height="16" rx="3"
+          fill="${ANT_COLOR}" fill-opacity="0.18" stroke="${ANT_COLOR}" stroke-opacity="0.5" stroke-width="1"
+          style="cursor:pointer" onclick="exportAntennaToMap(${node.id})"/>
+        <text x="${BLOCK_W*0.755}" y="${footerY+10}" text-anchor="middle" dominant-baseline="middle"
+          fill="${ANT_COLOR}" font-size="8" font-weight="bold" font-family="monospace"
+          style="cursor:pointer" onclick="exportAntennaToMap(${node.id})">→ Map</text>
+        <text x="8" y="${ANT_PORT_Y}" text-anchor="start" dominant-baseline="middle"
+          fill="#aaa" font-size="8" font-family="monospace">RF</text>
+        <circle cx="0" cy="${ANT_PORT_Y}" r="${PORT_R}" fill="${ANT_COLOR}"
+          stroke="${pend?'#fff':ANT_COLOR}" stroke-width="${pend?2.5:0}" class="rdc-port"
+          onclick="clickPort(${node.id},'rf','antenna')"/>
+      </g>`;
+    });
+
+    // ── COAXIAL CABLE NODES ────────────────────────────────────────
+    const CAB_COLOR = '#c09040';
+    (S.rfCableNodes||[]).forEach(node => {
+      const lossPerM = CABLE_LOSS_PER_M[node.cableType]||0;
+      const totalLoss = (lossPerM * node.len).toFixed(2);
+      const bh = HDR + PORT_SP + 16;
+      const isPend = S.pendingPort?.entityType==='cable' && S.pendingPort?.entityId===node.id;
+      S._portPos['c_'+node.id] = {};
+      S._portPos['c_'+node.id]['in']  = {x: node.x,        y: node.y+HDR+PORT_SP};
+      S._portPos['c_'+node.id]['out'] = {x: node.x+BLOCK_W, y: node.y+HDR+PORT_SP};
+      const pIn  = isPend && S.pendingPort.portId==='in';
+      const pOut = isPend && S.pendingPort.portId==='out';
+      splitterSvg += `
+      <g id="cabnode_${node.id}" transform="translate(${node.x},${node.y})" style="cursor:default">
+        <rect x="0" y="0" width="${BLOCK_W}" height="${bh}" rx="4"
+          fill="#1a1000" fill-opacity="0.9" stroke="${CAB_COLOR}" stroke-opacity="0.7" stroke-width="1.5"/>
+        <rect x="0" y="0" width="${BLOCK_W}" height="${HDR}" rx="4"
+          fill="${CAB_COLOR}" fill-opacity="0.2"
+          data-drag="c_${node.id}" style="cursor:grab"/>
+        <line x1="0" y1="${HDR}" x2="${BLOCK_W}" y2="${HDR}" stroke="${CAB_COLOR}" stroke-opacity="0.3" stroke-width="1"/>
+        <text x="${BLOCK_W/2}" y="${HDR/2+1}" text-anchor="middle" dominant-baseline="middle"
+          fill="#ddd" font-size="9" font-weight="bold" font-family="monospace"
+          data-drag="c_${node.id}" style="cursor:grab;user-select:none">${node.cableType}</text>
+        <text x="${BLOCK_W-2}" y="2" text-anchor="end" dominant-baseline="hanging"
+          fill="#c05050" font-size="11" font-family="monospace" style="cursor:pointer"
+          onclick="removeRfCableNode(${node.id})">×</text>
+        <circle cx="0" cy="${HDR+PORT_SP}" r="${PORT_R}" fill="${CAB_COLOR}"
+          stroke="${pIn?'#fff':CAB_COLOR}" stroke-width="${pIn?2.5:0}" class="rdc-port"
+          onclick="clickPort(${node.id},'in','cable')"/>
+        <text x="${BLOCK_W/2}" y="${HDR+PORT_SP}" text-anchor="middle" dominant-baseline="middle"
+          fill="#aaa" font-size="8" font-family="monospace" style="cursor:pointer"
+          ondblclick="editCableLen(${node.id})" title="Double-click to edit length">${node.len}m / -${totalLoss}dB</text>
+        <circle cx="${BLOCK_W}" cy="${HDR+PORT_SP}" r="${PORT_R}" fill="${CAB_COLOR}"
+          stroke="${pOut?'#fff':CAB_COLOR}" stroke-width="${pOut?2.5:0}" class="rdc-port"
+          onclick="clickPort(${node.id},'out','cable')"/>
+      </g>`;
+    });
+  }
+
+  // ── CONNECTIONS ──────────────────────────────────────────────────
+  const _ek = t=>({splitter:'s',antenna:'a',cable:'c',group:'g'})[t]||'g';
   let conns = '';
   S.rackConnections.filter(c=>c.type===S.connMode).forEach(c=>{
-    const fp = portPos[c.fromGroupId]?.[c.fromPort];
-    const tp = portPos[c.toGroupId]?.[c.toPort];
+    const fromType = c.fromEntityType||'group';
+    const toType   = c.toEntityType||'group';
+    const fp = S._portPos[_ek(fromType)+'_'+(c.fromEntityId??c.fromGroupId)]?.[c.fromPort];
+    const tp = S._portPos[_ek(toType)  +'_'+(c.toEntityId??c.toGroupId)]?.[c.toPort];
     if(!fp||!tp) return;
-    const color = c.type==='rf' ? RF_COLOR : SIG_COLOR;
-    conns += `<path d="M${fp.x},${fp.y} C${fp.x+50},${fp.y} ${tp.x-50},${tp.y} ${tp.x},${tp.y}"
-      stroke="${color}" stroke-width="2" fill="none" opacity="0.85" style="cursor:pointer"
+    const color = fromType==='splitter'||toType==='splitter' ? SP_COLOR :
+                  c.type==='rf' ? RF_COLOR : SIG_COLOR;
+    const mx = (fp.x+tp.x)/2, my = (fp.y+tp.y)/2;
+    conns += `<path id="conn_${c.id}" d="M${fp.x},${fp.y} C${fp.x+50},${fp.y} ${tp.x-50},${tp.y} ${tp.x},${tp.y}"
+      stroke="${color}" stroke-width="2" fill="none" opacity="0.85"/>
+    <circle id="conndot_${c.id}" cx="${mx}" cy="${my}" r="5"
+      fill="${color}" fill-opacity="0.9" stroke="#0d0d0d" stroke-width="1.5" style="cursor:pointer"
       ondblclick="removeConn(${c.id})" title="Double-click to remove"/>`;
   });
 
-  // Toolbar
-  const toolbar = `<div class="rdc-toolbar">
+  // ── CANVAS SIZE — bounding box of all elements ───────────────────
+  const FIXED_BH = HDR + PORT_SP + 16;
+  const _ANT_BH = HDR + 64 + 20; // HDR + ANT_DRAW_H + ANT_FOOTER_H
+  let maxY = 200;
+  S.rackGroups.forEach(g => { if(g.x != null) maxY = Math.max(maxY, g.y + groupBlockH(g) + GAP_Y); });
+  if(S.connMode === 'rf') {
+    S.rfSplitterNodes.forEach(n  => { maxY = Math.max(maxY, n.y  + splitterBlockH(n) + GAP_Y); });
+    (S.rfAntennaNodes||[]).forEach(n => { maxY = Math.max(maxY, n.y + _ANT_BH + GAP_Y); });
+    (S.rfCableNodes||[]).forEach(n   => { maxY = Math.max(maxY, n.y + FIXED_BH + GAP_Y); });
+  }
+  const totalH = maxY;
+
+  // ── TOOLBAR ──────────────────────────────────────────────────────
+  const spOptions = Object.entries(SPLITTERS)
+    .filter(([,v])=>v.ways>1)
+    .map(([k,v])=>`<option value="${k}">${v.name} (${v.ways}-way${v.active?' active':''})</option>`)
+    .join('');
+
+  const SEP = `<span style="width:1px;height:14px;background:#444;display:inline-block;flex-shrink:0"></span>`;
+
+  const rfAdders = S.connMode==='rf' ? `
+    ${SEP}
+    <span style="font-size:9px;color:#30b0a0;flex-shrink:0">Ant:</span>
+    <select id="rfAntSelect" style="font-size:10px;background:#1a1a1a;color:var(--text);border:1px solid var(--border);border-radius:2px;padding:1px 3px;max-width:120px">
+      ${Object.entries(ANT_MODELS).map(([k])=>`<option value="${k}">${antModelName(k)}</option>`).join('')}
+    </select>
+    <button class="rdc-mode-btn" style="flex-shrink:0;color:#30b0a0;border-color:#30b0a060"
+      onclick="addRfAntennaNode(document.getElementById('rfAntSelect').value)">+ Add</button>
+    ${SEP}
+    <span style="font-size:9px;color:#c09040;flex-shrink:0">Cable:</span>
+    <select id="rfCabSelect" style="font-size:10px;background:#1a1a1a;color:var(--text);border:1px solid var(--border);border-radius:2px;padding:1px 3px;max-width:90px">
+      ${Object.keys(CABLE_LOSS_PER_M).map(k=>`<option value="${k}">${k}</option>`).join('')}
+    </select>
+    <input id="rfCabLen" type="number" min="1" max="999" value="10" step="1"
+      style="width:42px;font-size:10px;background:#1a1a1a;color:var(--text);border:1px solid var(--border);border-radius:2px;padding:1px 4px;text-align:center" title="Length (m)">
+    <span style="font-size:9px;color:#888;flex-shrink:0">m</span>
+    <button class="rdc-mode-btn" style="flex-shrink:0;color:#c09040;border-color:#c0904060"
+      onclick="addRfCableNode(document.getElementById('rfCabSelect').value,document.getElementById('rfCabLen').value)">+ Add</button>
+    ${SEP}
+    <span style="font-size:9px;color:#a060e0;flex-shrink:0">Splitter:</span>
+    <select id="rfSpSelect" style="font-size:10px;background:#1a1a1a;color:var(--text);border:1px solid var(--border);border-radius:2px;padding:1px 3px;max-width:130px">${spOptions}</select>
+    <button class="rdc-mode-btn" style="flex-shrink:0;color:#a060e0;border-color:#a060e060"
+      onclick="addRfSplitterNode(document.getElementById('rfSpSelect').value)">+ Add</button>` : '';
+
+  const toolbar = `<div class="rdc-toolbar" style="flex-wrap:wrap;gap:4px 6px;">
     <span style="font-size:10px;color:var(--text-dim)">Layer:</span>
     <button class="rdc-mode-btn${S.connMode==='rf'?' active':''}" onclick="setConnMode('rf')">RF</button>
     <button class="rdc-mode-btn${S.connMode==='signal'?' active':''}" onclick="setConnMode('signal')">Signal</button>
+    ${rfAdders}
     <button class="rdc-clear-btn" onclick="clearConnections()">Clear</button>
   </div>`;
 
+  // splitters rendered on top (after groups) so they overlay and can be dragged freely
   body.innerHTML = toolbar +
     `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${totalH}"
-      viewBox="0 0 ${svgW} ${totalH}" style="display:block;background:#0d0d0d">
-      ${blocks}${conns}
+      viewBox="0 0 ${svgW} ${totalH}" style="display:block;background:#0d0d0d;user-select:none"
+      onmousedown="rdSvgMousedown(event)" onmousemove="rdSvgMousemove(event)"
+      onmouseup="rdSvgMouseup(event)" onmouseleave="rdSvgMouseup(event)">
+      ${groupSvg}${conns}${splitterSvg}
     </svg>`;
+  updateAntList(); // keep left-panel antenna list in sync with diagram nodes
 }
 
 function removeConn(id) {
@@ -3193,7 +3966,15 @@ function switchTab(tab, btn) {
   }
 
   updateAntList();
-  if(showRacks) { updateRackList(); updateRackDetailArea(); }
+  if(showRacks) {
+    updateRackList(); updateRackDetailArea();
+    // Restore center view state without triggering btn highlight (no btn arg)
+    setRackCenterView(S.rackCenterView||'rack');
+    // Re-highlight the correct tab button
+    document.querySelectorAll('.rack-view-tab').forEach(b=>{
+      b.classList.toggle('active', b.textContent.toLowerCase().trim()===(S.rackCenterView||'rack'));
+    });
+  }
 }
 
 function setViewMode(mode, btn) {
@@ -3235,6 +4016,209 @@ resize();
 initDefaults();
 filterSplittersByType();
 updateRackWiringCalc();
+
+// ====================================================
+// SUPABASE AUTH + PROJECTS
+// ====================================================
+let _sb = null, _sbUser = null;
+
+function _initSupabase() {
+  if(_sb) return _sb;
+  if(SUPABASE_URL === 'YOUR_SUPABASE_URL') return null;
+  _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  _sb.auth.onAuthStateChange((_event, session) => {
+    _sbUser = session?.user || null;
+    _renderUserBadge();
+    if(document.getElementById('projectsModal').style.display !== 'none') _renderProjectsBody();
+  });
+  _sb.auth.getSession().then(({data:{session}}) => {
+    _sbUser = session?.user || null;
+    _renderUserBadge();
+  });
+  return _sb;
+}
+
+function _renderUserBadge() {
+  const wrap = document.getElementById('userBadgeWrap');
+  if(!wrap) return;
+  if(!_sbUser) {
+    wrap.innerHTML = `<button class="btn-login" onclick="document.getElementById('authModal').style.display='flex'">Entrar</button>`;
+    return;
+  }
+  const name = _sbUser.user_metadata?.full_name || _sbUser.email?.split('@')[0] || 'User';
+  const avatar = _sbUser.user_metadata?.avatar_url;
+  wrap.innerHTML = `
+    <div class="user-badge" onclick="openProjectsModal()" title="Proyectos / Cerrar sesión">
+      ${avatar ? `<img src="${avatar}" alt="">` : `<span style="font-size:14px;">👤</span>`}
+      <span class="user-badge-name">${name}</span>
+    </div>`;
+}
+
+async function sbLoginGoogle() {
+  const sb = _initSupabase(); if(!sb) return;
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function sbLogout() {
+  if(!_sb) return;
+  await _sb.auth.signOut();
+  _sbUser = null;
+  _renderUserBadge();
+  _renderProjectsBody();
+}
+
+// ── State serialisation ──────────────────────────────────────────
+const _SKIP_KEYS = new Set(['_portPos','rdDrag','pendingPort','antDrag','antPlaceMode',
+  'connDragFrom','isDragging','dragItem','paintMode']);
+
+function _serializeState() {
+  const out = {};
+  for(const [k,v] of Object.entries(S)) {
+    if(!_SKIP_KEYS.has(k)) out[k] = v;
+  }
+  return out;
+}
+
+function _deserializeState(data) {
+  Object.assign(S, data);
+  S._portPos    = {};
+  S.rdDrag      = null;
+  S.pendingPort = null;
+  S.antDrag     = null;
+  S.antPlaceMode= false;
+  updateAntList();
+  renderConnDiagram();
+  if(typeof refreshAll === 'function') refreshAll();
+  else render();
+  setStatus('Proyecto cargado');
+}
+
+// ── CRUD ─────────────────────────────────────────────────────────
+async function _listProjects() {
+  if(!_sb || !_sbUser) return [];
+  const { data, error } = await _sb.from('rf_projects')
+    .select('id,name,updated_at')
+    .eq('user_id', _sbUser.id)
+    .order('updated_at', {ascending:false});
+  if(error) { console.error(error); return []; }
+  return data || [];
+}
+
+async function _saveProject(name) {
+  if(!_sb || !_sbUser) return null;
+  const payload = {
+    user_id: _sbUser.id, name,
+    data: _serializeState(),
+    updated_at: new Date().toISOString()
+  };
+  // upsert by user+name
+  const existing = await _sb.from('rf_projects')
+    .select('id').eq('user_id',_sbUser.id).eq('name',name).maybeSingle();
+  let error;
+  if(existing?.data?.id) {
+    ({error} = await _sb.from('rf_projects').update({data:payload.data, updated_at:payload.updated_at}).eq('id',existing.data.id));
+  } else {
+    ({error} = await _sb.from('rf_projects').insert(payload));
+  }
+  if(error) { setStatus('⚠ Error guardando: '+error.message); return; }
+  setStatus(`✅ Proyecto "${name}" guardado`);
+  _renderProjectsBody();
+}
+
+async function _loadProject(id) {
+  if(!_sb) return;
+  const { data, error } = await _sb.from('rf_projects').select('data').eq('id',id).single();
+  if(error || !data) { setStatus('⚠ Error cargando proyecto'); return; }
+  document.getElementById('projectsModal').style.display = 'none';
+  _deserializeState(data.data);
+}
+
+async function _deleteProject(id, name) {
+  if(!_sb) return;
+  if(!confirm(`¿Eliminar proyecto "${name}"?`)) return;
+  await _sb.from('rf_projects').delete().eq('id',id);
+  _renderProjectsBody();
+}
+
+// ── Modals ───────────────────────────────────────────────────────
+async function openProjectsModal() {
+  _initSupabase();
+  if(!_sbUser) {
+    document.getElementById('authModal').style.display = 'flex';
+    return;
+  }
+  document.getElementById('projectsModal').style.display = 'flex';
+  _renderProjectsBody();
+}
+
+async function _renderProjectsBody() {
+  const body = document.getElementById('projectsModalBody');
+  if(!body) return;
+
+  if(!_sbUser) {
+    body.innerHTML = `
+      <p style="color:#888;font-size:11px;margin-bottom:16px;">Inicia sesión para gestionar proyectos.</p>
+      <button class="btn-google" onclick="sbLoginGoogle()">
+        <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continuar con Google
+      </button>`;
+    return;
+  }
+
+  const name = _sbUser.user_metadata?.full_name || _sbUser.email || '';
+  const avatar = _sbUser.user_metadata?.avatar_url;
+
+  body.innerHTML = `<p style="color:#555;font-size:10px;text-align:center;">Cargando proyectos…</p>`;
+
+  const projects = await _listProjects();
+
+  const projRows = projects.length
+    ? projects.map(p => {
+        const d = new Date(p.updated_at);
+        const dateStr = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+        return `
+          <div class="proj-item" onclick="_loadProject('${p.id}')">
+            <span style="font-size:14px;flex-shrink:0;">📄</span>
+            <span class="proj-item-name">${p.name}</span>
+            <span class="proj-item-date">${dateStr}</span>
+            <button class="proj-item-del" title="Eliminar"
+              onclick="event.stopPropagation();_deleteProject('${p.id}','${p.name.replace(/'/g,"\\'")}')">🗑</button>
+          </div>`;
+      }).join('')
+    : `<p style="color:#555;font-size:11px;padding:8px 0;">No tienes proyectos guardados aún.</p>`;
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:0 0 14px;border-bottom:1px solid #2a2a2a;margin-bottom:14px;">
+      ${avatar ? `<img src="${avatar}" style="width:32px;height:32px;border-radius:50%;">` : `<span style="font-size:24px;">👤</span>`}
+      <div>
+        <div style="font-size:12px;color:#ddd;font-weight:500;">${name}</div>
+        <div style="font-size:10px;color:#555;">${_sbUser.email||''}</div>
+      </div>
+      <button class="btn-secondary" style="margin-left:auto;font-size:10px;padding:4px 10px;" onclick="sbLogout()">Cerrar sesión</button>
+    </div>
+
+    <div class="proj-divider">Guardar proyecto actual</div>
+    <div class="proj-save-row">
+      <input type="text" id="projNameInput" placeholder="Nombre del proyecto…" onkeydown="if(event.key==='Enter')_saveProjectFromInput()">
+      <button class="btn-primary" onclick="_saveProjectFromInput()">Guardar</button>
+    </div>
+
+    <div class="proj-divider">Proyectos guardados</div>
+    ${projRows}`;
+}
+
+function _saveProjectFromInput() {
+  const inp = document.getElementById('projNameInput');
+  const name = inp?.value?.trim();
+  if(!name) { inp?.focus(); return; }
+  _saveProject(name);
+}
+
+// Auto-init on load (handles OAuth redirect callback)
+_initSupabase();
 </script>
 </body>
 </html>
