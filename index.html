@@ -5212,11 +5212,14 @@
       if (_sb) return _sb;
       if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return null;
       _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-        auth: { detectSessionInUrl: true, persistSession: true }
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          flowType: 'implicit'   // required for static HTML files — no server to exchange PKCE codes
+        }
       });
-      // onAuthStateChange fires immediately with INITIAL_SESSION in Supabase v2,
-      // including after an OAuth redirect — no need for a separate getSession() call.
       _sb.auth.onAuthStateChange((event, session) => {
+        console.log('[auth]', event, session?.user?.email);
         _sbUser = session?.user || null;
         _renderUserBadge();
         const pm = document.getElementById('projectsModal');
@@ -5263,9 +5266,10 @@
 
     async function sbLoginGoogle() {
       const sb = _initSupabase(); if (!sb) return;
+      const redirectTo = window.location.origin + window.location.pathname;
       await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.href }
+        options: { redirectTo }
       });
     }
 
