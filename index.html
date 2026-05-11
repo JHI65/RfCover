@@ -1683,6 +1683,9 @@
                   <option value="wisycom_lbp">LBP/LNP — LPDA 6 dBi 90° · 435-1300 MHz</option>
                   <option value="wisycom_lbn2">LBN2/LNN2 — LPDA pasiva 6.5 dBi 140° · 420-1300 MHz</option>
                 </optgroup>
+                <optgroup label="─ Sound Devices · Astral ─">
+                  <option value="sd_a20monarch">A20-Monarch — Omni 2.2 dBi · 470-1600 MHz · SMA</option>
+                </optgroup>
               </select>
             </div>
             <div class="pr">
@@ -2388,7 +2391,10 @@
       'wisycom_lbna2': { name: 'LBNA2',     gain: 8,   beamwidth: 90,  type: 'lpda',  active: true,  freq: '420-1300 MHz' },
       // Wisycom — LPDA pasiva / activa opcional
       'wisycom_lbp':   { name: 'LBP/LNP',  gain: 6,   beamwidth: 90,  type: 'lpda',  active: false, freq: '435-1300 MHz' },
-      'wisycom_lbn2':  { name: 'LBN2/LNN2',gain: 6.5, beamwidth: 140, type: 'lpda',  active: false, freq: '420-1300 MHz' }
+      'wisycom_lbn2':  { name: 'LBN2/LNN2',gain: 6.5, beamwidth: 140, type: 'lpda',  active: false, freq: '420-1300 MHz' },
+      // Sound Devices — Astral
+      // Whip antennas (A-SMA UHF/VHF, Astral VHF Whip) — pending review, not added yet
+      'sd_a20monarch': { name: 'A20-Monarch', gain: 2.2, beamwidth: 360, type: 'omni', active: false, freq: '470-1600 MHz' }
     };
 
     function onAntModelChange() { /* could auto-fill freq etc */ }
@@ -3462,6 +3468,12 @@
       'senn_xsw1': { name: 'XSW 1', ru: 1, chPerUnit: 1, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — Spectera
       'senn_spectera': { name: 'Spectera', ru: 1, chPerUnit: 2, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
+      // Sound Devices — Astral MIC Receivers
+      // Whip antennas (A-SMA, Astral VHF Whip) — not added to ANT_MODELS yet, pending review
+      'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx16': { name: 'Astral ARX16', ru: 1, chPerUnit: 16, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx8':  { name: 'Astral ARX8',  ru: 1, chPerUnit: 8,  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx2':  { name: 'Astral ARX2',  ru: 1, chPerUnit: 2,  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
     };
 
     const SPLITTERS = {
@@ -3627,6 +3639,7 @@
       { brand: 'Sennheiser', label: 'EW G4/G3/G2', keys: ['senn_ew550g2', 'senn_ew500g4', 'senn_ew500g3', 'senn_ew500g2', 'senn_ew300g4', 'senn_ew300g3', 'senn_ew300g2', 'senn_ew100g4', 'senn_ew100g3', 'senn_ew100g2'] },
       { brand: 'Sennheiser', label: 'XSW', keys: ['senn_xsw2', 'senn_xsw1dual', 'senn_xsw1'] },
       { brand: 'Sennheiser', label: 'Spectera', keys: ['senn_spectera'] },
+      { brand: 'Sound Devices', label: 'Astral MIC RX', keys: ['sd_arx32', 'sd_arx16', 'sd_arx8', 'sd_arx2'] },
     ];
 
     // Frequency bands per model key
@@ -3668,6 +3681,14 @@
       { id: 'B', label: 'B · 614–638 MHz' },
       { id: 'C', label: 'C · 662–686 MHz' },
       { id: 'D', label: 'D · 794–806 + 823–832 + 863–865 MHz' },
+    ];
+    const _SD_SB = [ // Sound Devices Astral — SpectraBand (470–1525 MHz, agile)
+      { id: 'SB-A', label: 'SB-A · 470–614 MHz' },
+      { id: 'SB-B', label: 'SB-B · 614–758 MHz' },
+      { id: 'SB-C', label: 'SB-C · 758–902 MHz' },
+      { id: 'SB-D', label: 'SB-D · 902–1046 MHz' },
+      { id: 'SB-E', label: 'SB-E · 1046–1190 MHz' },
+      { id: 'SB-F', label: 'SB-F · 1190–1525 MHz' },
     ];
     const _WB = [ // Wisycom wideband — common to all Wisycom models
       { id: 'BPN', label: 'BPN · 470–548 MHz' },
@@ -3978,6 +3999,8 @@
       'senn_xsw2': _SENN_XSW, 'senn_xsw1dual': _SENN_XSW, 'senn_xsw1': _SENN_XSW,
       // Sennheiser Spectera
       'senn_spectera': _SENN_DIG9,
+      // Sound Devices — Astral SpectraBand (470-1525 MHz true wideband, no fixed sub-bands)
+      'sd_arx32': _SD_SB, 'sd_arx16': _SD_SB, 'sd_arx8': _SD_SB, 'sd_arx2': _SD_SB,
     };
 
     function filterModelsByType() {
