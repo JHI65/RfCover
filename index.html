@@ -2586,12 +2586,13 @@
       const freq = ant.freq || 711;
       let pl = 0;
 
+      // FSPL formula: dist in metres, freq in MHz → constant = 32.44 − 60 = −27.56
       if (model === 'fspl') {
-        pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
+        pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) - 27.56;
       } else if (model === 'logdist') {
-        pl = 20 * Math.log10(freq) + 32.44 + 10 * 2.5 * Math.log10(Math.max(1, dist));
+        pl = 20 * Math.log10(freq) - 27.56 + 10 * 2.5 * Math.log10(Math.max(1, dist));
       } else { // multiwall
-        pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) + 32.44;
+        pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) - 27.56;
         pl += obstacleAttenuation(ant.x, ant.y, px, py);
       }
 
