@@ -5437,7 +5437,10 @@
         const power = (group.unitPowers || [])[unitIdx];
         const hasPowers = m.txPowers && m.txPowers.length;
         const powerLabel = hasPowers ? (power != null ? `${power}mW` : '— mW') : '';
-        const freqLabels = group.channels.slice(chStart, chEnd).map(c => c.freq.toFixed(3) + ' MHz').join(' / ');
+        const chSlice = group.channels.slice(chStart, chEnd);
+        const freqLabels = chSlice.length > 4
+          ? chSlice.slice(0, 4).map(c => c.freq.toFixed(3)).join(' / ') + ' / … (' + chSlice.length + ' ch)'
+          : chSlice.map(c => c.freq.toFixed(3) + ' MHz').join(' / ');
         const rightLabel = powerLabel ? `${powerLabel}  |  ${freqLabels}` : freqLabels;
         ctx.fillStyle = power != null ? '#e8c040' : 'rgba(200,220,255,0.4)';
         ctx.font = '9px monospace'; ctx.textAlign = 'right';
@@ -5540,7 +5543,10 @@
         const chLabel = m.chPerUnit === 1 ? `Ch.${chStart + 1}` : `Ch.${chStart + 1}/${chEnd}`;
         ctx.fillText(chLabel, rx + recvW / 2, ry + 4);
         // Freq label
-        const freqs = group.channels.slice(chStart, chEnd).map(c => c.freq.toFixed(3)).join('/');
+        const chSlice2 = group.channels.slice(chStart, chEnd);
+        const freqs = chSlice2.length > 4
+          ? chSlice2.slice(0, 2).map(c => c.freq.toFixed(3)).join('/') + '/…'
+          : chSlice2.map(c => c.freq.toFixed(3)).join('/');
         ctx.fillStyle = 'rgba(180,210,255,0.75)'; ctx.font = '7px monospace';
         ctx.textBaseline = 'bottom';
         ctx.fillText(freqs + ' MHz', rx + recvW / 2, ry + recvH - 3);
