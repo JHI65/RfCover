@@ -1732,25 +1732,28 @@
         <div class="r-sec">
           <div class="r-hdr">Leyenda RSSI</div>
           <div style="padding:7px 8px;">
+            <div style="font-size:9px;color:var(--text-dim);margin-bottom:5px;line-height:1.4;">
+              Calibrado para sistemas UHF profesionales (Shure, Sennheiser, Wisycom). Squelch típico: −90 a −95 dBm.
+            </div>
             <div style="display:flex;flex-direction:column;gap:3px;font-size:9px;color:var(--text-dim);">
               <div style="display:flex;align-items:center;gap:5px;"><span
                   style="width:12px;height:10px;background:rgba(22,163,74,0.7);display:inline-block;border-radius:1px;"></span>&gt;
-                −50 dBm (Excelente)</div>
+                −60 dBm — <b style="color:#bbb">Excelente</b> · margen &gt;30 dB</div>
               <div style="display:flex;align-items:center;gap:5px;"><span
                   style="width:12px;height:10px;background:rgba(132,204,22,0.7);display:inline-block;border-radius:1px;"></span>−60
-                a −50 dBm (Buena)</div>
+                a −70 dBm — <b style="color:#bbb">Buena</b> · uso profesional fiable</div>
               <div style="display:flex;align-items:center;gap:5px;"><span
-                  style="width:12px;height:10px;background:rgba(234,179,8,0.7);display:inline-block;border-radius:1px;"></span>−65
-                a −60 dBm (Aceptable)</div>
+                  style="width:12px;height:10px;background:rgba(234,179,8,0.7);display:inline-block;border-radius:1px;"></span>−70
+                a −80 dBm — <b style="color:#bbb">Aceptable</b> · margen operativo</div>
               <div style="display:flex;align-items:center;gap:5px;"><span
-                  style="width:12px;height:10px;background:rgba(249,115,22,0.7);display:inline-block;border-radius:1px;"></span>−70
-                a −65 dBm (Débil)</div>
+                  style="width:12px;height:10px;background:rgba(249,115,22,0.7);display:inline-block;border-radius:1px;"></span>−80
+                a −88 dBm — <b style="color:#bbb">Débil</b> · dropout en movimiento</div>
               <div style="display:flex;align-items:center;gap:5px;"><span
-                  style="width:12px;height:10px;background:rgba(239,68,68,0.7);display:inline-block;border-radius:1px;"></span>−80
-                a −70 dBm (Marginal)</div>
+                  style="width:12px;height:10px;background:rgba(239,68,68,0.7);display:inline-block;border-radius:1px;"></span>−88
+                a −95 dBm — <b style="color:#bbb">Marginal</b> · squelch activo</div>
               <div style="display:flex;align-items:center;gap:5px;"><span
                   style="width:12px;height:10px;background:rgba(120,20,20,0.7);display:inline-block;border-radius:1px;"></span>&lt;
-                −80 dBm (Sin cobertura)</div>
+                −95 dBm — <b style="color:#bbb">Sin cobertura</b> · bajo el squelch</div>
             </div>
           </div>
         </div>
@@ -2628,7 +2631,7 @@
           patLoss = Math.min(30, 30 * rolloff * rolloff);
         }
       }
-      return Math.max(-100, Math.min(0, ant.tx + ant.gain - pl - patLoss));
+      return Math.max(-120, Math.min(0, ant.tx + ant.gain - pl - patLoss));
     }
 
     function obstacleAttenuation(x1, y1, x2, y2) {
@@ -2692,12 +2695,12 @@
     }
 
     function rssiColor(v) {
-      if (v >= -50) return 'rgba(22,163,74,0.68)';
-      if (v >= -60) return 'rgba(132,204,22,0.68)';
-      if (v >= -65) return 'rgba(234,179,8,0.68)';
-      if (v >= -70) return 'rgba(249,115,22,0.68)';
-      if (v >= -80) return 'rgba(239,68,68,0.65)';
-      if (v >= -90) return 'rgba(120,20,20,0.60)';
+      if (v >= -60) return 'rgba(22,163,74,0.68)';    // Excelente
+      if (v >= -70) return 'rgba(132,204,22,0.68)';   // Buena
+      if (v >= -80) return 'rgba(234,179,8,0.68)';    // Aceptable
+      if (v >= -88) return 'rgba(249,115,22,0.68)';   // Débil
+      if (v >= -95) return 'rgba(239,68,68,0.65)';    // Marginal
+      if (v >= -105) return 'rgba(120,20,20,0.60)';   // Sin cobertura visible
       return null;
     }
 
