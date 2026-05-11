@@ -1,0 +1,35 @@
+{
+  "name": "rf-coverage-planner",
+  "version": "1.0.0",
+  "description": "RF Coverage Planner — aplicación de escritorio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.rfcoverplanner.app",
+    "productName": "RF Coverage Planner",
+    "files": [
+      "main.js",
+      "index.html"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }]
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "linux": {
+      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "category": "Utility"
+    }
+  }
+}

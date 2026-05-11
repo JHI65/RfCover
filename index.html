@@ -1635,13 +1635,29 @@
                   <option value="dir_10_60">Log-periódica 10 dBi (60°)</option>
                   <option value="dir_21_30">Direccional 21 dBi (30°)</option>
                 </optgroup>
-                <optgroup label="─ Shure ─">
-                  <option value="omni_2.5_360">HA-8089 (Dipolo 2.5 dBi)</option>
-                  <option value="omni_5_180">UA830WB (Activa 5 dBi)</option>
-                  <option value="dir_7_90">UA870WB (Direcc. 7 dBi 90°)</option>
-                  <option value="panel_9_120">PA805WB (Panel 9 dBi)</option>
-                  <option value="panel_11_100">PA820WB (Panel 11 dBi)</option>
-                  <option value="dir_10_60">UA8100WB (Log 10 dBi 60°)</option>
+                <optgroup label="─ Shure · Omni ─">
+                  <option value="shure_ua860swb">UA860SWB — Omni 2.15 dBi · 470-1100 MHz</option>
+                  <option value="shure_ua860v">UA860V — Omni 2.15 dBi · VHF 174-216 MHz</option>
+                  <option value="shure_ua8">UA8 — Omni ½λ 3 dBi · UHF</option>
+                  <option value="shure_ua8_vhf">UA8-174-216 — Omni ¼λ 2.15 dBi · VHF</option>
+                  <option value="shure_ua8_24">UA8-2.4-5.8 — Omni 2 dBi · 2.4/5.8 GHz</option>
+                </optgroup>
+                <optgroup label="─ Shure · Panel pasivo ─">
+                  <option value="shure_pa805swb">PA805SWB — Panel 6.5 dBi 100° · 470-900 MHz</option>
+                  <option value="shure_pa805x">PA805X — Panel 6 dBi 100° · Banda específica</option>
+                  <option value="shure_pa805z">PA805Z — Panel 6 dBi 100° · Banda específica</option>
+                  <option value="shure_pa805db">PA805DB-RSMA — Panel 6 dBi · 2.4/5.8 GHz</option>
+                </optgroup>
+                <optgroup label="─ Shure · Log-Per. Activa ─">
+                  <option value="shure_ua874us">UA874US — LPDA 7.5 dBi 70° · 470-698 MHz</option>
+                  <option value="shure_ua874wb">UA874WB — LPDA 7.5 dBi 70° · 470-900 MHz</option>
+                  <option value="shure_ua874_900">UA874 — LPDA 7.5 dBi 70° · 902-960 MHz</option>
+                  <option value="shure_ua870">UA870 — LPDA 7 dBi 90° · VHF/UHF (legacy)</option>
+                </optgroup>
+                <optgroup label="─ Shure · Helicoidal ─">
+                  <option value="shure_ha8089">HA-8089 — Helix 14 dBi 57° · 460-900 MHz</option>
+                  <option value="shure_ha8091">HA-8091 — Helix 13 dBi 57° · Banda específica</option>
+                  <option value="shure_ha8241">HA-8241 — Helix 14 dBi 57° · 944-952 MHz</option>
                 </optgroup>
                 <optgroup label="─ Sennheiser ─">
                   <option value="omni_5_360">A 50 CP (Omni 5 dBi)</option>
@@ -2312,7 +2328,27 @@
       'dir_7_90': { gain: 7, beamwidth: 90, type: 'dir' },
       'dir_10_60': { gain: 10, beamwidth: 60, type: 'dir' },
       'dir_12_45': { gain: 12, beamwidth: 45, type: 'dir' },
-      'dir_21_30': { gain: 21, beamwidth: 30, type: 'dir' }
+      'dir_21_30': { gain: 21, beamwidth: 30, type: 'dir' },
+      // Shure — Omnidireccional
+      'shure_ua860swb': { name: 'UA860SWB', gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '470-1100 MHz' },
+      'shure_ua860v':   { name: 'UA860V',   gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '174-216 MHz' },
+      'shure_ua8':      { name: 'UA8',      gain: 3,    beamwidth: 360, type: 'omni', active: false, freq: 'UHF' },
+      'shure_ua8_vhf':  { name: 'UA8-174-216', gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '174-216 MHz' },
+      'shure_ua8_24':   { name: 'UA8-2.4-5.8', gain: 2, beamwidth: 360, type: 'omni', active: false, freq: '2.4/5.8 GHz' },
+      // Shure — Panel pasivo (PA805)
+      'shure_pa805swb': { name: 'PA805SWB',      gain: 6.5, beamwidth: 100, type: 'panel', active: false, freq: '470-900 MHz' },
+      'shure_pa805x':   { name: 'PA805X',        gain: 6,   beamwidth: 100, type: 'panel', active: false, freq: 'Banda específica' },
+      'shure_pa805z':   { name: 'PA805Z',        gain: 6,   beamwidth: 100, type: 'panel', active: false, freq: 'Banda específica' },
+      'shure_pa805db':  { name: 'PA805DB-RSMA',  gain: 6,   beamwidth: 100, type: 'panel', active: false, freq: '2.4/5.8 GHz' },
+      // Shure — Log-Periódica activa (UA874 / UA870)
+      'shure_ua874us':  { name: 'UA874US',        gain: 7.5, beamwidth: 70, type: 'lpda', active: true, freq: '470-698 MHz' },
+      'shure_ua874wb':  { name: 'UA874WB',        gain: 7.5, beamwidth: 70, type: 'lpda', active: true, freq: '470-900 MHz' },
+      'shure_ua874_900':{ name: 'UA874 (902-960)',gain: 7.5, beamwidth: 70, type: 'lpda', active: true, freq: '902-960 MHz' },
+      'shure_ua870':    { name: 'UA870',          gain: 7,   beamwidth: 90, type: 'lpda', active: true, freq: 'VHF/UHF' },
+      // Shure — Helicoidal
+      'shure_ha8089': { name: 'HA-8089',  gain: 14, beamwidth: 57, type: 'helix', active: false, freq: '460-900 MHz' },
+      'shure_ha8091': { name: 'HA-8091',  gain: 13, beamwidth: 57, type: 'helix', active: false, freq: 'Banda específica' },
+      'shure_ha8241': { name: 'HA-8241',  gain: 14, beamwidth: 57, type: 'helix', active: false, freq: '944-952 MHz' }
     };
 
     function onAntModelChange() { /* could auto-fill freq etc */ }
@@ -4362,6 +4398,7 @@
     // ── ANTENNA NODES ────────────────────────────────────────────────────────
     function antModelName(key) {
       const m = ANT_MODELS[key]; if (!m) return key;
+      if (m.name) return m.name;
       const t = { omni: 'Omni', panel: 'Panel', lpda: 'LPDA', helix: 'Helix', dir: 'Yagi' }[m.type] || 'Dir';
       return `${t} ${m.gain}dBi${m.beamwidth < 360 ? ' ' + m.beamwidth + '°' : ''}`;
     }
@@ -4699,13 +4736,22 @@
         const xlrPerCh = m.xlrInPerCh || 0;
         const key = 'g_' + g.id;
         if (!pp[key]) pp[key] = {};
-        // RF OUT ports
+        // RF ports
         let portIdx = 0;
-        g.channels.forEach((ch, c) => {
-          for (let r = 0; r < rfPerCh; r++, portIdx++) {
-            pp[key][`rf_out_${c}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+        if (m.type === 'MIC') {
+          const nu = Math.ceil(g.channels.length / m.chPerUnit);
+          for (let u = 0; u < nu; u++) {
+            for (let r = 0; r < 2; r++, portIdx++) {
+              pp[key][`rf_in_${u}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+            }
           }
-        });
+        } else {
+          g.channels.forEach((ch, c) => {
+            for (let r = 0; r < rfPerCh; r++, portIdx++) {
+              pp[key][`rf_out_${c}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+            }
+          });
+        }
         // Signal OUT + XLR IN ports
         g.channels.forEach((ch, c) => {
           const rowIdx = xlrPerCh > 0 ? c * Math.max(xlrPerCh, 1) : c;
@@ -4752,6 +4798,7 @@
       }
       function rfPortsOf(g) {
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        if (m.type === 'MIC') return numUnitsOf(g) * 2;
         return g.channels.length * (m.rfOutPerCh || 1);
       }
       function xlrInPortsOf(g) {
@@ -4798,22 +4845,40 @@
 
         if (S.connMode === 'rf') {
           const mRf = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-          const rfPerCh = mRf.rfOutPerCh || 1;
           let portIdx = 0;
-          g.channels.forEach((ch, c) => {
-            for (let r = 0; r < rfPerCh; r++, portIdx++) {
-              const py = HDR + PORT_SP + portIdx * PORT_SP;
-              const pid = `rf_out_${c}_${r}`;
-              S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
-              const pp = isPend && S.pendingPort.portId === pid;
-              const label = rfPerCh > 1 ? `RF${c + 1}${String.fromCharCode(97 + r).toUpperCase()}` : `RF${c + 1}`;
-              ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
-              fill="#999" font-size="8" font-family="monospace">${label}</text>
-            <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
-              stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
-              onclick="clickPort(${g.id},'${pid}','group')"/>`;
+          if (mRf.type === 'MIC') {
+            const nu = numUnitsOf(g);
+            for (let u = 0; u < nu; u++) {
+              for (let r = 0; r < 2; r++, portIdx++) {
+                const py = HDR + PORT_SP + portIdx * PORT_SP;
+                const pid = `rf_in_${u}_${r}`;
+                S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+                const pp = isPend && S.pendingPort.portId === pid;
+                const label = `RF${portIdx + 1}`;
+                ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+                fill="#999" font-size="8" font-family="monospace">${label}</text>
+              <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
+                stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
+                onclick="clickPort(${g.id},'${pid}','group')"/>`;
+              }
             }
-          });
+          } else {
+            const rfPerCh = mRf.rfOutPerCh || 1;
+            g.channels.forEach((ch, c) => {
+              for (let r = 0; r < rfPerCh; r++, portIdx++) {
+                const py = HDR + PORT_SP + portIdx * PORT_SP;
+                const pid = `rf_out_${c}_${r}`;
+                S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+                const pp = isPend && S.pendingPort.portId === pid;
+                const label = rfPerCh > 1 ? `RF${c + 1}${String.fromCharCode(97 + r).toUpperCase()}` : `RF${c + 1}`;
+                ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+                fill="#999" font-size="8" font-family="monospace">${label}</text>
+              <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
+                stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
+                onclick="clickPort(${g.id},'${pid}','group')"/>`;
+              }
+            });
+          }
         } else {
           const mSig = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
           const xlrPerCh = mSig.xlrInPerCh || 0;
