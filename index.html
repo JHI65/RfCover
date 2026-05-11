@@ -1702,10 +1702,11 @@
             <div>
               <div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Modelo de propagación</div>
               <select class="pi" id="covModel" style="font-size:10px;">
-                <option value="multiwall">Multi-Wall (recomendado)</option>
-                <option value="logdist">Log-Distance (n=2.5)</option>
-                <option value="fspl">Espacio Libre (FSPL)</option>
+                <option value="logdist">Log-Distance — Teatro, arena, estadio</option>
+                <option value="multiwall">Multi-Wall — Oficinas, muros, salas cerradas</option>
+                <option value="fspl">FSPL — Exterior, campo abierto (caso ideal)</option>
               </select>
+              <div id="covModelDesc" style="font-size:9px;color:var(--text-dim);margin-top:4px;line-height:1.4;padding:4px 6px;background:rgba(255,255,255,0.03);border-radius:3px;border-left:2px solid var(--border-lt);"></div>
             </div>
             <div>
               <div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Resolución</div>
@@ -2642,6 +2643,19 @@
     }
 
     function clearCoverage() { S.coverage = null; S.showCov = false; render(); setStatus('Mapa de cobertura limpiado'); }
+
+    const _COV_DESCS = {
+      logdist: 'Log-Distance n=2.5 — Recomendado para <b style="color:#bbb">venues interiores semiabiertos</b>: teatros, arenas, estadios cubiertos. Modela dispersión por público, estructuras y equipos sin paredes densas.',
+      multiwall: 'Multi-Wall — Para <b style="color:#bbb">espacios cerrados con paredes reales</b>: salas de reuniones, hospitales, oficinas. Descuenta 10 dB por cada elemento Obstacle/Wall que cruce el rayo.',
+      fspl: 'FSPL — Espacio libre sin obstáculos. Útil para <b style="color:#bbb">exteriores, festivales al aire libre</b> o como referencia de cobertura máxima teórica. Sobreestima en interiores.'
+    };
+    function _updateCovModelDesc() {
+      const sel = document.getElementById('covModel');
+      const desc = document.getElementById('covModelDesc');
+      if (sel && desc) desc.innerHTML = _COV_DESCS[sel.value] || '';
+    }
+    document.getElementById('covModel').addEventListener('change', _updateCovModelDesc);
+    _updateCovModelDesc();
 
     function drawCoverageHeatmap(ctx) {
       if (!S.coverage || !S.showCov) return;
