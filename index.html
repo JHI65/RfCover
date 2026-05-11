@@ -1913,10 +1913,6 @@
               <div class="pl">Manufacturer</div>
               <select class="pi" id="rgManufacturer" style="font-size:10px;" onchange="filterModelsByManufacturer()">
                 <option value="">Select manufacturer</option>
-                <option value="Wisycom">Wisycom</option>
-                <option value="Shure">Shure</option>
-                <option value="Sennheiser">Sennheiser</option>
-                <option value="Sound Devices">Sound Devices</option>
               </select>
             </div>
             <div class="pg">
@@ -4005,8 +4001,21 @@
     };
 
     function filterModelsByType() {
-      // Reset cascading selects when type changes
-      document.getElementById('rgManufacturer').value = '';
+      const type = document.getElementById('rgType').value;
+      // Rebuild manufacturer list — only show brands that have models for this type
+      const brandsWithModels = new Set(
+        MODEL_GROUPS
+          .filter(grp => grp.keys.some(k => RECV_MODELS[k]?.type === type))
+          .map(grp => grp.brand)
+      );
+      const mfSel = document.getElementById('rgManufacturer');
+      let mfHtml = '<option value="">Select manufacturer</option>';
+      for (const brand of brandsWithModels) {
+        mfHtml += `<option value="${brand}">${brand}</option>`;
+      }
+      mfSel.innerHTML = mfHtml;
+      mfSel.value = '';
+      // Reset downstream selects
       document.getElementById('rgModel').innerHTML = '<option value="">Select model</option>';
       document.getElementById('rgBand').innerHTML = '<option value="">Select band</option>';
     }
