@@ -2404,9 +2404,17 @@
 
       // Edit panel for selected antenna
       const sel = S.antennas.find(a => a.id === S.selAntId);
+      const linked = sel && sel.sourceAntennaNodeId != null;
+      const srcGroup = linked ? S.rackGroups.find(g => g.id === sel.sourceGroupId) : null;
+      const srcTxLine = linked
+        ? `<div style="font-size:9px;color:var(--text-dim);margin-bottom:5px;line-height:1.5;">
+            ${srcGroup ? `Origen: <span style="color:#bbb">${srcGroup.name}</span> · Unidad ${(sel.sourceUnitIdx || 0) + 1}` : 'Origen: <span style="color:#c06060">desconectado</span>'}
+            ${sel.sourceTxDbm != null ? `<br>TX origen: <span style="color:#e8c040">${sel.sourceTxDbm.toFixed(1)} dBm</span> · Pérdida cadena: <span style="color:#e8a040">−${(sel.chainLoss||0).toFixed(1)} dB</span>` : ''}
+          </div>` : '';
       const editHtml = sel ? `
     <div style="border-top:1px solid var(--border);padding:7px 8px;background:rgba(74,127,192,0.07);">
       <div class="pl" style="font-size:9px;color:var(--accent);margin-bottom:5px;">✏ Editando: ${sel.name}</div>
+      ${srcTxLine}
       <div class="pr" style="gap:4px;margin-bottom:4px;">
         <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">X (m)</div>
           <input class="vi" type="number" value="${sel.x.toFixed(2)}" step="0.1" style="width:100%"
@@ -2419,17 +2427,15 @@
         <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Ángulo (°)</div>
           <input class="vi" type="number" value="${sel.angle}" step="5" style="width:100%"
             onchange="updAnt(${sel.id},'angle',+this.value)"></div>
-        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">TX (dBm)</div>
-          <input class="vi" type="number" value="${sel.tx}" step="1" style="width:100%"
-            onchange="updAnt(${sel.id},'tx',+this.value)"></div>
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">TX efectiva (dBm)</div>
+          <input class="vi" type="number" value="${sel.tx}" style="width:100%;background:#161616;color:#e8c040" readonly title="Calculado desde la potencia del rack menos las pérdidas"></div>
       </div>
       <div class="pr" style="gap:4px;margin-bottom:4px;">
         <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Altura (m)</div>
           <input class="vi" type="number" value="${sel.height}" step="0.1" style="width:100%"
             onchange="updAnt(${sel.id},'height',+this.value)"></div>
-        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Frec (MHz)</div>
-          <input class="vi" type="number" value="${sel.freq}" step="1" style="width:100%"
-            onchange="updAnt(${sel.id},'freq',+this.value)"></div>
+        <div class="pg"><div class="pl" style="font-size:9px;color:var(--text-dim)">Frec media (MHz)</div>
+          <input class="vi" type="number" value="${sel.freq}" style="width:100%;background:#161616;color:#bbb" readonly title="Media de las frecuencias del sistema conectado"></div>
       </div>
       <div style="font-size:9px;color:var(--text-dim);margin-top:3px;">
         ↑↓←→ Mover · [ ] Rotar · Shift = fino
@@ -2441,6 +2447,7 @@
 
     function updAnt(id, key, val) {
       const ant = S.antennas.find(a => a.id === id); if (!ant) return;
+      if (key === 'tx' || key === 'freq') return; // these come from rack
       if (key === 'angle') val = ((val % 360) + 360) % 360;
       ant[key] = val; render();
     }
@@ -4140,6 +4147,7 @@
       g.unitPowers[unitIdx] = power;
       _hidePowerPicker();
       drawRackCanvases();
+      _refreshAllAntennasFromRack();
     }
 
     const connCanvas = document.getElementById('connCanvas');
@@ -4448,10 +4456,10 @@
       return totalLoss;
     }
 
-    function calcDiagramSourceTxDbm(antennaNodeId) {
-      // Trace RF connections from antenna back to source group; return TX power in dBm
+    function calcDiagramSource(antennaNodeId) {
+      // Trace RF connections from antenna back to source group; return source metadata
       const visited = new Set(['antenna_' + antennaNodeId]);
-      const queue = [['antenna', antennaNodeId, null, null]]; // [type, id, fromType, fromPort]
+      const queue = [['antenna', antennaNodeId, null, null]];
       while (queue.length) {
         const [eType, eId] = queue.shift();
         for (const c of (S.rackConnections || []).filter(c => c.type === 'rf')) {
@@ -4468,42 +4476,75 @@
             const g = S.rackGroups.find(g => g.id === nextId);
             if (!g) continue;
             const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-            // srcPort is like rf_out_{ch}_{r} — extract channel index
             const match = (srcPort || '').match(/rf_out_(\d+)/);
             const ch = match ? parseInt(match[1]) : 0;
             const unitIdx = Math.floor(ch / m.chPerUnit);
+            const chStart = unitIdx * m.chPerUnit;
+            const chEnd = Math.min(chStart + m.chPerUnit, g.channels.length);
+            const unitChannels = g.channels.slice(chStart, chEnd);
+            const avgFreq = unitChannels.length
+              ? unitChannels.reduce((s, c) => s + (c.freq || 0), 0) / unitChannels.length
+              : 711;
             const powerMw = (g.unitPowers || [])[unitIdx];
-            if (powerMw != null) return 10 * Math.log10(powerMw); // mW → dBm
-            return 20; // default 20 dBm if not set
+            const txDbm = powerMw != null ? 10 * Math.log10(powerMw) : 20;
+            return { txDbm, freq: avgFreq, groupId: g.id, unitIdx, hasPower: powerMw != null };
           }
           queue.push([nextType, nextId]);
         }
       }
-      return 20; // no group found, default
+      return null;
+    }
+
+    function _refreshAntennaFromSource(ant) {
+      if (ant.sourceAntennaNodeId == null) return;
+      const node = (S.rfAntennaNodes || []).find(n => n.id === ant.sourceAntennaNodeId);
+      if (!node) return; // diagram node deleted — leave values frozen
+      const src = calcDiagramSource(ant.sourceAntennaNodeId);
+      const loss = calcDiagramChainLoss(ant.sourceAntennaNodeId);
+      if (src) {
+        ant.tx = parseFloat((src.txDbm - loss).toFixed(2));
+        ant.freq = parseFloat(src.freq.toFixed(3));
+        ant.sourceGroupId = src.groupId;
+        ant.sourceUnitIdx = src.unitIdx;
+        ant.sourceTxDbm = parseFloat(src.txDbm.toFixed(2));
+      }
+      ant.chainLoss = parseFloat(loss.toFixed(2));
+    }
+
+    function _refreshAllAntennasFromRack() {
+      let any = false;
+      for (const a of S.antennas) {
+        if (a.sourceAntennaNodeId != null) { _refreshAntennaFromSource(a); any = true; }
+      }
+      if (any) { updateAntList(); render(); }
     }
 
     function exportAntennaToMap(antennaNodeId) {
       const node = (S.rfAntennaNodes || []).find(n => n.id === antennaNodeId); if (!node) return;
       const m = ANT_MODELS[node.modelKey]; if (!m) return;
-      const loss = calcDiagramChainLoss(antennaNodeId);
-      const defaultTx = calcDiagramSourceTxDbm(antennaNodeId);
-      const n = S.antennas.length + 1;
-      S.antennas.push({
-        id: S.nextAntId++,
-        name: `ANT-${n}`,
-        modelKey: node.modelKey,
-        x: 0, y: 0,
-        tx: defaultTx - loss,
-        height: 3, freq: 711, angle: 0,
-        gain: m.gain,
-        beamwidth: m.beamwidth,
-        antType: m.type,
-        chainLoss: parseFloat(loss.toFixed(2))
-      });
-      S.selAntId = S.antennas[S.antennas.length - 1].id;
+      // Reuse existing antenna if already exported from this diagram node
+      let ant = S.antennas.find(a => a.sourceAntennaNodeId === antennaNodeId);
+      if (!ant) {
+        const n = S.antennas.length + 1;
+        ant = {
+          id: S.nextAntId++,
+          name: `ANT-${n}`,
+          modelKey: node.modelKey,
+          x: 0, y: 0,
+          tx: 20, freq: 711, height: 3, angle: 0,
+          gain: m.gain,
+          beamwidth: m.beamwidth,
+          antType: m.type,
+          chainLoss: 0,
+          sourceAntennaNodeId: antennaNodeId
+        };
+        S.antennas.push(ant);
+      }
+      _refreshAntennaFromSource(ant);
+      S.selAntId = ant.id;
       updateAntList();
       render();
-      setStatus(`📡 ${antModelName(node.modelKey)} añadida al mapa — pérdida cadena: ${loss.toFixed(1)} dB | TX efectivo: ${(defaultTx - loss).toFixed(1)} dBm`);
+      setStatus(`📡 ${antModelName(node.modelKey)} → ${ant.name} | TX efectivo: ${ant.tx.toFixed(1)} dBm @ ${ant.freq.toFixed(1)} MHz | pérdida cadena: ${ant.chainLoss.toFixed(1)} dB`);
     }
 
     // ── SVG DRAG (grupos y splitters) ────────────────────────────────────────
@@ -5010,6 +5051,7 @@
       onmouseup="rdSvgMouseup(event)" onmouseleave="rdSvgMouseup(event)">
       ${groupSvg}${conns}${splitterSvg}
     </svg>`;
+      _refreshAllAntennasFromRack();
       updateAntList(); // keep left-panel antenna list in sync with diagram nodes
     }
 
