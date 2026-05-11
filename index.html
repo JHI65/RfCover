@@ -1721,6 +1721,16 @@
               <div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Altura receptor (m)</div>
               <input class="pi" type="number" id="covRxH" value="1.2" step="0.1" style="font-size:10px;">
             </div>
+            <div>
+              <div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Tipo de transmisor</div>
+              <select class="pi" id="covTxType" style="font-size:10px;" onchange="_updateTxTypeDesc()">
+                <option value="0">Sin pérdida corporal (antena fija/IEM TX rack)</option>
+                <option value="5">Handheld — micrófono de mano (−5 dB)</option>
+                <option value="10" selected>Bodypack — con diversity (−10 dB)</option>
+                <option value="15">Bodypack — sin diversity / peor caso (−15 dB)</option>
+              </select>
+              <div id="covTxTypeDesc" style="font-size:9px;color:var(--text-dim);margin-top:3px;line-height:1.4;padding:4px 6px;background:rgba(255,255,255,0.03);border-radius:3px;border-left:2px solid var(--border-lt);"></div>
+            </div>
             <button class="origin-btn"
               style="background:rgba(74,160,100,0.3);border-color:#4aa060;color:#6aba80;margin-top:2px;"
               onclick="calculateCoverage()">
@@ -2541,6 +2551,7 @@
       if (!S.antennas.length) { setStatus('⚠ Añade al menos una antena primero'); return; }
       const model = document.getElementById('covModel').value;
       const resM = parseFloat(document.getElementById('covRes').value) || 1;
+      const bodyMargin = parseFloat(document.getElementById('covTxType')?.value || 0);
 
       // Bounds from venue elements (or default)
       let mnX = -35, mxX = 35, mnY = -25, mxY = 25;
@@ -2571,7 +2582,7 @@
             let best = -120;
             for (const ant of S.antennas) {
               if (ant.muted) continue;
-              const r = calcRSSI(px, py, ant, model);
+              const r = calcRSSI(px, py, ant, model) - bodyMargin;
               if (r > best) best = r;
             }
             data[iy * cols + ix] = best;
@@ -2675,6 +2686,20 @@
     }
     document.getElementById('covModel').addEventListener('change', _updateCovModelDesc);
     _updateCovModelDesc();
+
+    const _TX_TYPE_DESCS = {
+      '0':  'Antena fija o TX en rack. Sin pérdida corporal. Válido para antenas de sala o IEM TX con antena externa.',
+      '5':  'Handheld: antena expuesta en la base del micrófono. −5 dB por orientación variable y bloqueo parcial de la mano.',
+      '10': 'Bodypack con diversity: el cuerpo absorbe 20–30 dB en peor caso; con 2 antenas diversity se mitiga a ~10 dB neto. Caso típico de planificación.',
+      '15': 'Bodypack sin diversity o peor caso: artista de espaldas, antena pegada al cuerpo, sin sistema de diversity. Máxima pérdida corporal realista.'
+    };
+    function _updateTxTypeDesc() {
+      const sel = document.getElementById('covTxType');
+      const desc = document.getElementById('covTxTypeDesc');
+      if (sel && desc) desc.textContent = _TX_TYPE_DESCS[sel.value] || '';
+    }
+    document.getElementById('covTxType').addEventListener('change', _updateTxTypeDesc);
+    _updateTxTypeDesc();
 
     function drawCoverageHeatmap(ctx) {
       if (!S.coverage || !S.showCov) return;
