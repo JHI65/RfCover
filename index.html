@@ -1930,7 +1930,7 @@
             <div class="pr">
               <div class="pg">
                 <div class="pl"># Channels</div>
-                <input class="pi" type="number" id="rgChannels" value="4" min="1" max="32" style="font-size:10px;">
+                <select class="pi" id="rgChannels" style="font-size:10px;"></select>
               </div>
               <div class="pg">
                 <div class="pl">Color</div>
@@ -3467,10 +3467,10 @@
       'senn_spectera': { name: 'Spectera', ru: 1, chPerUnit: 2, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sound Devices — Astral MIC Receivers
       // Whip antennas (A-SMA, Astral VHF Whip) — not added to ANT_MODELS yet, pending review
-      'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
-      'sd_arx16': { name: 'Astral ARX16', ru: 1, chPerUnit: 16, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
-      'sd_arx8':  { name: 'Astral ARX8',  ru: 1, chPerUnit: 8,  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
-      'sd_arx2':  { name: 'Astral ARX2',  ru: 1, chPerUnit: 2,  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, channelOptions: [16, 24, 32], color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx16': { name: 'Astral ARX16', ru: 1, chPerUnit: 16, channelOptions: [8, 12, 16],  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx8':  { name: 'Astral ARX8',  ru: 1, chPerUnit: 8,  channelOptions: [4, 6, 8],    color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx2':  { name: 'Astral ARX2',  ru: 1, chPerUnit: 2,  channelOptions: [2],           color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
     };
 
     const SPLITTERS = {
@@ -4045,10 +4045,31 @@
       sel.innerHTML = html;
     }
 
+    function updateChannelOptions() {
+      const modelKey = document.getElementById('rgModel').value;
+      const sel = document.getElementById('rgChannels');
+      const m = RECV_MODELS[modelKey];
+      let opts;
+      if (m && m.channelOptions) {
+        opts = m.channelOptions;
+      } else if (m && m.chPerUnit) {
+        opts = [];
+        for (let n = m.chPerUnit; n <= 32; n += m.chPerUnit) opts.push(n);
+      } else {
+        opts = [4, 8, 12, 16, 20, 24, 28, 32];
+      }
+      const prev = parseInt(sel.value);
+      sel.innerHTML = opts.map(v => `<option value="${v}">${v}</option>`).join('');
+      // restore previous selection if still valid
+      if (opts.includes(prev)) sel.value = prev;
+    }
+
     function filterBandsByModel() {
       const modelKey = document.getElementById('rgModel').value;
       const sel = document.getElementById('rgBand');
       const bands = modelKey && MODEL_BANDS[modelKey];
+
+      updateChannelOptions();
 
       if (!bands || !bands.length) {
         sel.innerHTML = '<option value="">Select band</option>';
@@ -4060,6 +4081,7 @@
 
     function filterSplittersByType() {
       filterModelsByType();
+      updateChannelOptions();
       const type = document.getElementById('rgType').value;
       const isIEM = type === 'IEM';
       const allowedCats = isIEM ? ['c', 'b'] : ['s', 'b'];
@@ -4095,7 +4117,7 @@
       const type = document.getElementById('rgType').value;
       const modelKey = document.getElementById('rgModel').value;
       const band = document.getElementById('rgBand').value;
-      const numCh = Math.max(1, Math.min(32, parseInt(document.getElementById('rgChannels').value) || 4));
+      const numCh = Math.max(1, parseInt(document.getElementById('rgChannels').value) || 4);
       const color = document.getElementById('rgColor').value;
       const freqStart = 606.0;
       const freqStep = 0.25;
