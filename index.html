@@ -4437,11 +4437,45 @@
       return totalLoss;
     }
 
+    function calcDiagramSourceTxDbm(antennaNodeId) {
+      // Trace RF connections from antenna back to source group; return TX power in dBm
+      const visited = new Set(['antenna_' + antennaNodeId]);
+      const queue = [['antenna', antennaNodeId, null, null]]; // [type, id, fromType, fromPort]
+      while (queue.length) {
+        const [eType, eId] = queue.shift();
+        for (const c of (S.rackConnections || []).filter(c => c.type === 'rf')) {
+          const ft = c.fromEntityType || 'group', fi = c.fromEntityId ?? c.fromGroupId;
+          const tt = c.toEntityType || 'group', ti = c.toEntityId ?? c.toGroupId;
+          let nextType, nextId, srcPort;
+          if (ft === eType && fi === eId) { nextType = tt; nextId = ti; srcPort = c.fromPort; }
+          else if (tt === eType && ti === eId) { nextType = ft; nextId = fi; srcPort = c.toPort; }
+          else continue;
+          const nk = nextType + '_' + nextId;
+          if (visited.has(nk)) continue;
+          visited.add(nk);
+          if (nextType === 'group') {
+            const g = S.rackGroups.find(g => g.id === nextId);
+            if (!g) continue;
+            const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+            // srcPort is like rf_out_{ch}_{r} — extract channel index
+            const match = (srcPort || '').match(/rf_out_(\d+)/);
+            const ch = match ? parseInt(match[1]) : 0;
+            const unitIdx = Math.floor(ch / m.chPerUnit);
+            const powerMw = (g.unitPowers || [])[unitIdx];
+            if (powerMw != null) return 10 * Math.log10(powerMw); // mW → dBm
+            return 20; // default 20 dBm if not set
+          }
+          queue.push([nextType, nextId]);
+        }
+      }
+      return 20; // no group found, default
+    }
+
     function exportAntennaToMap(antennaNodeId) {
       const node = (S.rfAntennaNodes || []).find(n => n.id === antennaNodeId); if (!node) return;
       const m = ANT_MODELS[node.modelKey]; if (!m) return;
       const loss = calcDiagramChainLoss(antennaNodeId);
-      const defaultTx = 20;
+      const defaultTx = calcDiagramSourceTxDbm(antennaNodeId);
       const n = S.antennas.length + 1;
       S.antennas.push({
         id: S.nextAntId++,
