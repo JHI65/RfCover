@@ -1659,12 +1659,17 @@
                   <option value="shure_ha8091">HA-8091 — Helix 13 dBi 57° · Banda específica</option>
                   <option value="shure_ha8241">HA-8241 — Helix 14 dBi 57° · 944-952 MHz</option>
                 </optgroup>
-                <optgroup label="─ Sennheiser ─">
-                  <option value="omni_5_360">A 50 CP (Omni 5 dBi)</option>
-                  <option value="omni_2_360">ABG 4 (Dipolo 2 dBi)</option>
-                  <option value="dir_10_60">L 6000 (Log 10 dBi 60°)</option>
-                  <option value="panel_10_120">AC 4220 (Panel 10 dBi)</option>
-                  <option value="dir_12_45">AC 4230 (Yagi 12 dBi 45°)</option>
+                <optgroup label="─ Sennheiser · Omni ─">
+                  <option value="senn_a1031u">A 1031-U — Omni 2 dBi · 430-960 MHz</option>
+                </optgroup>
+                <optgroup label="─ Sennheiser · Direccional pasiva ─">
+                  <option value="senn_adp_uhf">ADP UHF — Panel 5 dBi 100° · 470-1075 MHz</option>
+                  <option value="senn_a5000cp">A 5000 CP — Helix 8 dBi 40° · 450-960 MHz</option>
+                </optgroup>
+                <optgroup label="─ Sennheiser · Direccional activa ─">
+                  <option value="senn_awm_i">AWM UHF (470-694) — Panel activa · 470-694 MHz</option>
+                  <option value="senn_awm_ii">AWM UHF (823-1075) — Panel activa · 823-1075 MHz</option>
+                  <option value="senn_ad3700">AD 3700 — LPDA activa 0-15 dB · 470-866 MHz</option>
                 </optgroup>
               </select>
             </div>
@@ -2329,6 +2334,17 @@
       'dir_10_60': { gain: 10, beamwidth: 60, type: 'dir' },
       'dir_12_45': { gain: 12, beamwidth: 45, type: 'dir' },
       'dir_21_30': { gain: 21, beamwidth: 30, type: 'dir' },
+      // Sennheiser — Omnidireccional
+      'senn_a1031u':   { name: 'A 1031-U',         gain: 2,  beamwidth: 360, type: 'omni',  active: false, freq: '430-960 MHz' },
+      // Sennheiser — Direccional pasiva
+      'senn_adp_uhf':  { name: 'ADP UHF',           gain: 5,  beamwidth: 100, type: 'panel', active: false, freq: '470-1075 MHz' },
+      // Sennheiser — Direccional activa (pared/techo)
+      'senn_awm_i':    { name: 'AWM UHF (470-694)', gain: 5,  beamwidth: 90,  type: 'panel', active: true,  freq: '470-694 MHz' },
+      'senn_awm_ii':   { name: 'AWM UHF (823-1075)',gain: 5,  beamwidth: 90,  type: 'panel', active: true,  freq: '823-1075 MHz' },
+      // Sennheiser — Log-periódica activa con booster
+      'senn_ad3700':   { name: 'AD 3700',            gain: 15, beamwidth: 70,  type: 'lpda',  active: true,  freq: '470-866 MHz' },
+      // Sennheiser — Helicoidal polarización circular
+      'senn_a5000cp':  { name: 'A 5000 CP',          gain: 8,  beamwidth: 40,  type: 'helix', active: false, freq: '450-960 MHz' },
       // Shure — Omnidireccional
       'shure_ua860swb': { name: 'UA860SWB', gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '470-1100 MHz' },
       'shure_ua860v':   { name: 'UA860V',   gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '174-216 MHz' },
@@ -3457,18 +3473,22 @@
           ]
         }
       },
-      // Sennheiser — active = splitter for receivers; passive = both
+      // Sennheiser — Splitters activos para receptores MIC
+      'senn_ewd_asa': { name: 'Sennheiser EW-D ASA', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Splitter activo dual 2×1:4 (2 entradas de antena → 4 salidas c/u). 470–1075 MHz. DC distribution para antenas activas. Para sistemas EW-D.' },
       'senn_asa1': { name: 'Sennheiser ASA1 NT', loss: 0, gain: 10, active: true, ways: 2, cat: 's', notes: 'Active 2-way antenna splitter for receivers. +10 dB. 470–866 MHz.' },
       'senn_asa3000': { name: 'Sennheiser ASA3000', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Active 4-way splitter for receivers. +10 dB. Evolution G3/G4/G10. 470–866 MHz.' },
       'senn_ac3200': { name: 'Sennheiser AC3200-II', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Active 4-way for Digital 6000/9000. Cascade up to 3 units.' },
+      // Sennheiser — Combiner activo para IEM TX
       'senn_ac41': {
-        name: 'Sennheiser AC 41', loss: 3.5, gain: 0, active: false, ways: 4, cat: 'b',
-        notes: '4-input passive combiner. 3.5 dB loss. 470–1800 MHz. 4 RF IN, 1 RF OUT.',
+        name: 'Sennheiser AC 41', loss: 0, gain: 6, active: true, ways: 4, cat: 'c',
+        notes: 'Combiner activo para IEM TX. Hasta 4 transmisores (SR IEM G4/G3, SR 2000/2050 IEM). 470–608 MHz. 19"/1U. Incluye fuente NT 3-1 y 4 cables BNC.',
         ports: {
-          inputs: [{ id: 'in_1', label: 'RF IN 1' }, { id: 'in_2', label: 'RF IN 2' }, { id: 'in_3', label: 'RF IN 3' }, { id: 'in_4', label: 'RF IN 4' }],
-          outputs: [{ id: 'out', label: 'RF OUT' }]
+          inputs: [{ id: 'in_1', label: 'TX IN 1' }, { id: 'in_2', label: 'TX IN 2' }, { id: 'in_3', label: 'TX IN 3' }, { id: 'in_4', label: 'TX IN 4' }],
+          outputs: [{ id: 'out', label: 'ANT OUT' }]
         }
       },
+      // Sennheiser — Splitter/combiner pasivo DECT (SpeechLine)
+      'senn_sl_pasc4': { name: 'Sennheiser SL PASC 4', loss: 14, gain: 0, active: false, ways: 4, cat: 'b', notes: 'Splitter/combiner pasivo 4-way true diversity. Banda DECT 1880–1930 MHz. 14 dB atenuación. Para SpeechLine Digital Wireless.' },
       // Audio-Technica — active splitters for receivers
       'at_aewda': { name: 'AT AEW-DA Active Distro', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way splitter. +12 dB. 500–900 MHz. For AEW Series.' },
       'at_aewt3000': { name: 'AT AEW-T3000', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way for System 10 Pro / 3000 series.' },
@@ -3518,7 +3538,8 @@
       { label: 'Passive', keys: ['passive_t', 'passive_2w', 'passive_4w', 'passive_8w'] },
       { label: 'Shure · Distro activa', keys: ['shure_ua844swb', 'shure_ua844v', 'shure_ua844lc', 'shure_ua844', 'shure_ua845uwb', 'shure_axt600'] },
       { label: 'Shure · Pasivo / Combinador', keys: ['shure_ua221', 'shure_ua221cj', 'shure_ua400b', 'shure_pa821b'] },
-      { label: 'Sennheiser', keys: ['senn_asa1', 'senn_asa3000', 'senn_ac3200', 'senn_ac41'] },
+      { label: 'Sennheiser · Distro activa', keys: ['senn_ewd_asa', 'senn_asa1', 'senn_asa3000', 'senn_ac3200'] },
+      { label: 'Sennheiser · Combiner / Pasivo', keys: ['senn_ac41', 'senn_sl_pasc4'] },
       { label: 'Audio-Technica', keys: ['at_aewda', 'at_aewt3000'] },
       { label: 'Wisycom', keys: ['wisycom_rab1', 'wisycom_ldq04', 'wisycom_rab5'] },
       { label: 'Lectrosonics', keys: ['lectro_a1626', 'lectro_da6', 'lectro_pa'] },
