@@ -1093,7 +1093,7 @@
       margin-top: 1px;
     }
 
-    .ant-rm {
+    .ant-rm, .ant-mute {
       width: 16px;
       height: 16px;
       flex-shrink: 0;
@@ -1104,9 +1104,12 @@
       cursor: pointer;
     }
 
-    .ant-rm:hover {
-      color: var(--danger);
-    }
+    .ant-rm:hover { color: var(--danger); }
+    .ant-mute:hover { color: #e8c040; }
+    .ant-mute.muted { color: #e8c040; }
+
+    .ant-item.muted { opacity: 0.45; }
+    .ant-item.muted .ant-item-name { text-decoration: line-through; }
 
     .place-banner {
       padding: 5px 8px;
@@ -2387,12 +2390,14 @@
     <div style="padding:4px 8px 2px;font-size:9px;font-weight:bold;color:var(--accent);letter-spacing:0.05em;text-transform:uppercase;opacity:0.8;${diagNodes.length ? 'margin-top:4px;' : ''}">
       Colocadas
     </div>` + S.antennas.map(a => `
-    <div class="ant-item${a.id === S.selAntId ? ' sel' : ''}" onclick="selAnt(${a.id})">
+    <div class="ant-item${a.id === S.selAntId ? ' sel' : ''}${a.muted ? ' muted' : ''}" onclick="selAnt(${a.id})">
       <div class="ant-item-info">
         <div class="ant-item-name">${a.name}</div>
         <div class="ant-item-specs">${a.gain} dBi · ${a.tx} dBm · ${a.beamwidth}° · ${a.freq} MHz</div>
         <div class="ant-item-specs">X:${a.x.toFixed(1)} Y:${a.y.toFixed(1)} · ∠${a.angle}°</div>
       </div>
+      <button class="ant-mute${a.muted ? ' muted' : ''}" title="${a.muted ? 'Activar' : 'Mutear'}"
+        onclick="event.stopPropagation();muteAnt(${a.id})">⊘</button>
       <button class="ant-rm" onclick="event.stopPropagation();rmAnt(${a.id})">✕</button>
     </div>
   `).join('') : '';
@@ -2447,12 +2452,15 @@
 
     function selAnt(id) { S.selAntId = id; updateAntList(); render(); topCanvas.focus(); }
     function rmAnt(id) { S.antennas = S.antennas.filter(a => a.id !== id); if (S.selAntId === id) S.selAntId = null; updateAntList(); render(); }
+    function muteAnt(id) { const a = S.antennas.find(a => a.id === id); if (a) a.muted = !a.muted; updateAntList(); render(); }
 
     function drawAntennas(ctx) {
       for (const a of S.antennas) {
         const s = w2t(a.x, a.y);
         const z = S.tv.zoom;
         const isSel = a.id === S.selAntId;
+        const isMuted = !!a.muted;
+        ctx.globalAlpha = isMuted ? 0.3 : 1;
 
         // Beam pattern
         // ant.angle: 0=North(+Y world), 90=East(+X world)
@@ -2497,18 +2505,20 @@
         const bodyR = Math.max(5, z * 0.35);
         ctx.beginPath();
         ctx.arc(s.x, s.y, bodyR, 0, Math.PI * 2);
-        ctx.fillStyle = isSel ? '#4a7fc0' : '#e8c040';
+        ctx.fillStyle = isMuted ? '#666' : (isSel ? '#4a7fc0' : '#e8c040');
         ctx.fill();
         ctx.strokeStyle = isSel ? '#fff' : 'rgba(0,0,0,0.5)';
         ctx.lineWidth = 1;
         ctx.stroke();
 
         // Label
-        ctx.fillStyle = isSel ? '#fff' : '#e8c040';
+        ctx.fillStyle = isMuted ? '#888' : (isSel ? '#fff' : '#e8c040');
         ctx.font = `${Math.max(8, Math.min(11, z * 0.4))}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(a.name, s.x, s.y + bodyR + 2);
+
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -2548,6 +2558,7 @@
 
             let best = -120;
             for (const ant of S.antennas) {
+              if (ant.muted) continue;
               const r = calcRSSI(px, py, ant, model);
               if (r > best) best = r;
             }
