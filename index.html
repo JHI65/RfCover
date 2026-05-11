@@ -3431,11 +3431,16 @@
       'passive_2w': { name: 'Passive 2-way', loss: 3.5, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Resistive/hybrid 2-way. 3.5 dB insertion loss.' },
       'passive_4w': { name: 'Passive 4-way', loss: 7, gain: 0, active: false, ways: 4, cat: 'b', notes: 'Passive cascade. 7 dB total loss (2× 3.5 dB stages).' },
       'passive_8w': { name: 'Passive 8-way', loss: 10.5, gain: 0, active: false, ways: 8, cat: 'b', notes: 'Passive cascade. 10.5 dB total loss.' },
-      // Shure — active distros are splitters (MIC); passive ones work for both
+      // Shure — Distribuidores activos (splitters para receptores MIC)
+      'shure_ua844swb': { name: 'Shure UA844+SWB', loss: 0, gain: 12, active: true, ways: 5, cat: 's', notes: 'Distribuidor activo 5 salidas. 470–960 MHz Wideband. Bias DC 15 V @ 150 mA máx/puerto. BNC hembra. Incluye cables BNC.' },
+      'shure_ua844v':   { name: 'Shure UA844+V',   loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Distribuidor activo 4 salidas. 470–952 MHz. Bias DC para antenas activas. BNC. Sin cables incluidos.' },
+      'shure_ua844lc':  { name: 'Shure UA844+LC',  loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Distribuidor activo 4 salidas. 470–952 MHz. Igual que +V pero con cables de conexión incluidos. BNC.' },
       'shure_ua844': { name: 'Shure UA844+US', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way distro. +12 dB. 470–900 MHz. Standard touring splitter for receivers.' },
-      'shure_ua845': { name: 'Shure UA845', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Rack-mount active 4-way. Same spec as UA844+US. 470–900 MHz.' },
+      'shure_ua845uwb': { name: 'Shure UA845UWB', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Distribuidor ultra-wideband. 10–1805 MHz. Para sistemas multi-banda y espectro fragmentado. BNC.' },
       'shure_axt600': { name: 'Shure AXT600 Axient', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'High-isolation active distro for Axient Digital. Includes redundant RF + audio feed.' },
-      'shure_ua221': { name: 'Shure UA221 Passive', loss: 3, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Passive 2-way splitter/combiner. 3 dB loss. 400–900 MHz.' },
+      // Shure — Splitters/combiners pasivos bidireccionales
+      'shure_ua221': { name: 'Shure UA221', loss: 3, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Splitter/combiner pasivo bidireccional. 3 dB pérdida. 10 MHz–1000 MHz. VSWR 2:1 máx. Sin alimentación. BNC.' },
+      'shure_ua221cj': { name: 'Shure UA221-C-J / Z-C-J', loss: 3, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Splitter pasivo con DC-pass. 3 dB pérdida. 10–1000 MHz. Permite paso de bias DC para antenas activas (UA874, ADFA…). BNC.' },
       'shure_ua400b': { name: 'Shure UA400B', loss: 6, gain: 0, active: false, ways: 4, cat: 'b', notes: 'Passive 4-way. 6 dB loss. 400–900 MHz.' },
       'shure_pa821b': {
         name: 'Shure PA821B', loss: 3.5, gain: 0, active: false, ways: 8, cat: 'c',
