@@ -1671,6 +1671,18 @@
                   <option value="senn_awm_ii">AWM UHF (823-1075) — Panel activa · 823-1075 MHz</option>
                   <option value="senn_ad3700">AD 3700 — LPDA activa 0-15 dB · 470-866 MHz</option>
                 </optgroup>
+                <optgroup label="─ Wisycom · Omni ─">
+                  <option value="wisycom_adb3">ADB3/ADN3 — Omni 3.2 dBi · 430-1260 MHz · IP67</option>
+                  <option value="wisycom_adb2">ADB2/ADN2 — Omni 3.2 dBi · 430-1160 MHz · IP67</option>
+                  <option value="wisycom_agn00">AGN00 — Ground plane 2.5 dBi · VHF/UHF</option>
+                  <option value="wisycom_adfa">ADFA — Omni activa con filtros · 430-1160 MHz</option>
+                </optgroup>
+                <optgroup label="─ Wisycom · LPDA ─">
+                  <option value="wisycom_lfa">LFA — LPDA activa+filtros 7 dBi 90° · 410-1300 MHz</option>
+                  <option value="wisycom_lbna2">LBNA2 — LPDA activa esquelética 8 dBi · 420-1300 MHz</option>
+                  <option value="wisycom_lbp">LBP/LNP — LPDA 6 dBi 90° · 435-1300 MHz</option>
+                  <option value="wisycom_lbn2">LBN2/LNN2 — LPDA pasiva 6.5 dBi 140° · 420-1300 MHz</option>
+                </optgroup>
               </select>
             </div>
             <div class="pr">
@@ -2364,7 +2376,19 @@
       // Shure — Helicoidal
       'shure_ha8089': { name: 'HA-8089',  gain: 14, beamwidth: 57, type: 'helix', active: false, freq: '460-900 MHz' },
       'shure_ha8091': { name: 'HA-8091',  gain: 13, beamwidth: 57, type: 'helix', active: false, freq: 'Banda específica' },
-      'shure_ha8241': { name: 'HA-8241',  gain: 14, beamwidth: 57, type: 'helix', active: false, freq: '944-952 MHz' }
+      'shure_ha8241': { name: 'HA-8241',  gain: 14, beamwidth: 57, type: 'helix', active: false, freq: '944-952 MHz' },
+      // Wisycom — Omnidireccional pasiva
+      'wisycom_adb3':  { name: 'ADB3/ADN3', gain: 3.2, beamwidth: 360, type: 'omni',  active: false, freq: '430-1260 MHz' },
+      'wisycom_adb2':  { name: 'ADB2/ADN2', gain: 3.2, beamwidth: 360, type: 'omni',  active: false, freq: '430-1160 MHz' },
+      'wisycom_agn00': { name: 'AGN00',     gain: 2.5, beamwidth: 360, type: 'omni',  active: false, freq: '130-880 MHz' },
+      // Wisycom — Omnidireccional activa con filtros
+      'wisycom_adfa':  { name: 'ADFA',      gain: 15,  beamwidth: 360, type: 'omni',  active: true,  freq: '430-1160 MHz' },
+      // Wisycom — LPDA activa con filtros
+      'wisycom_lfa':   { name: 'LFA',       gain: 7,   beamwidth: 90,  type: 'lpda',  active: true,  freq: '410-1300 MHz' },
+      'wisycom_lbna2': { name: 'LBNA2',     gain: 8,   beamwidth: 90,  type: 'lpda',  active: true,  freq: '420-1300 MHz' },
+      // Wisycom — LPDA pasiva / activa opcional
+      'wisycom_lbp':   { name: 'LBP/LNP',  gain: 6,   beamwidth: 90,  type: 'lpda',  active: false, freq: '435-1300 MHz' },
+      'wisycom_lbn2':  { name: 'LBN2/LNN2',gain: 6.5, beamwidth: 140, type: 'lpda',  active: false, freq: '420-1300 MHz' }
     };
 
     function onAntModelChange() { /* could auto-fill freq etc */ }
@@ -3492,10 +3516,45 @@
       // Audio-Technica — active splitters for receivers
       'at_aewda': { name: 'AT AEW-DA Active Distro', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way splitter. +12 dB. 500–900 MHz. For AEW Series.' },
       'at_aewt3000': { name: 'AT AEW-T3000', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way for System 10 Pro / 3000 series.' },
-      // Wisycom — active splitters for receivers
+      // Wisycom — Splitters activos (MIC / receptores)
+      'wisycom_spl2208': { name: 'Wisycom SPL2208', loss: 0, gain: 5, active: true, ways: 8,  cat: 's', notes: 'Splitter activo true-diversity 2×2 → 8×2. 170-1260 MHz. Bias +12V/500mA por puerto. RAP remoto. 1U 19".' },
+      'wisycom_spl2216': { name: 'Wisycom SPL2216', loss: 0, gain: 5, active: true, ways: 16, cat: 's', notes: 'Splitter activo true-diversity 2×2 → 16×2. 170-1260 MHz. NF 7.5 dB. Bias +12V/500mA por puerto. RAP remoto. 1U 19". 40W.' },
+      'wisycom_matf':    { name: 'Wisycom MATF',    loss: 0, gain: 3, active: true, ways: 4,  cat: 's', notes: 'Matrix combiner RF over fiber. 170-1260 MHz. Hasta 8 zonas diversity → 4 salidas. Pantalla táctil + Ethernet. Módulos fibra óptica opcionales.' },
+      'wisycom_mat244':  { name: 'Wisycom MAT244',  loss: 0, gain: 3, active: true, ways: 2,  cat: 's', notes: 'Matrix combiner programable 4 zonas → 2 salidas diversity. Para producciones multi-ubicación.' },
+      'wisycom_mat288':  { name: 'Wisycom MAT288',  loss: 0, gain: 3, active: true, ways: 2,  cat: 's', notes: 'Matrix combiner programable 8 zonas → 2 salidas diversity. 150-1160 MHz.' },
       'wisycom_rab1': { name: 'Wisycom RAB1', loss: 0, gain: 13, active: true, ways: 4, cat: 's', notes: 'Active 4-way wideband splitter. +13 dB. 470–870 MHz. Cascade-able.' },
       'wisycom_ldq04': { name: 'Wisycom LDQ04', loss: 0, gain: 13, active: true, ways: 4, cat: 's', notes: 'Active 4-way. +13 dB. For MCR42/MFL receivers. 470–870 MHz.' },
       'wisycom_rab5': { name: 'Wisycom RAB5', loss: 0, gain: 13, active: true, ways: 8, cat: 's', notes: 'Active 8-way wideband splitter. +13 dB. For large festival setups.' },
+      // Wisycom — Combiners pasivos inteligentes (IEM TX → antena)
+      'wisycom_csi16t2': {
+        name: 'Wisycom CSI16T2', loss: 10, gain: 0, active: false, ways: 2, cat: 'c',
+        notes: 'Smart passive combiner. 400-1300 MHz. 16:1 (−13 dB) / 2×8:1 (−10 dB). Auto power comp. con TX Wisycom. 2.5W/entrada. 1U 19".',
+        ports: {
+          inputs: [
+            { id: 'in_1', label: 'TX 1' }, { id: 'in_2', label: 'TX 2' }, { id: 'in_3', label: 'TX 3' }, { id: 'in_4', label: 'TX 4' },
+            { id: 'in_5', label: 'TX 5' }, { id: 'in_6', label: 'TX 6' }, { id: 'in_7', label: 'TX 7' }, { id: 'in_8', label: 'TX 8' },
+            { id: 'in_9', label: 'TX 9' }, { id: 'in_10', label: 'TX 10' }, { id: 'in_11', label: 'TX 11' }, { id: 'in_12', label: 'TX 12' },
+            { id: 'in_13', label: 'TX 13' }, { id: 'in_14', label: 'TX 14' }, { id: 'in_15', label: 'TX 15' }, { id: 'in_16', label: 'TX 16' }
+          ],
+          outputs: [{ id: 'out_a', label: 'ANT A' }, { id: 'out_b', label: 'ANT B' }]
+        }
+      },
+      'wisycom_csi16t': {
+        name: 'Wisycom CSI16T', loss: 9, gain: 0, active: false, ways: 2, cat: 'c',
+        notes: 'Smart passive combiner. 470-800 MHz. 16:1 (−12 dB) / 2×8:1 (−9 dB) / 4×4:1 (−6 dB). 3W/entrada. 6× N-F salidas.',
+        ports: {
+          inputs: [
+            { id: 'in_1', label: 'TX 1' }, { id: 'in_2', label: 'TX 2' }, { id: 'in_3', label: 'TX 3' }, { id: 'in_4', label: 'TX 4' },
+            { id: 'in_5', label: 'TX 5' }, { id: 'in_6', label: 'TX 6' }, { id: 'in_7', label: 'TX 7' }, { id: 'in_8', label: 'TX 8' },
+            { id: 'in_9', label: 'TX 9' }, { id: 'in_10', label: 'TX 10' }, { id: 'in_11', label: 'TX 11' }, { id: 'in_12', label: 'TX 12' },
+            { id: 'in_13', label: 'TX 13' }, { id: 'in_14', label: 'TX 14' }, { id: 'in_15', label: 'TX 15' }, { id: 'in_16', label: 'TX 16' }
+          ],
+          outputs: [{ id: 'out_a', label: 'OUT A' }, { id: 'out_b', label: 'OUT B' }]
+        }
+      },
+      // Wisycom — Splitters/combiners pasivos bidireccionales
+      'wisycom_csa221':  { name: 'Wisycom CSA221',  loss: 4, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Splitter/combiner pasivo diversity 2×2:1 / 2×1:2. 470-960 MHz. 4 dB. DC-coupled 1.5A (para BAW). 6× BNC-F.' },
+      'wisycom_csa121':  { name: 'Wisycom CSA121x', loss: 4, gain: 0, active: false, ways: 2, cat: 'b', notes: 'Splitter/combiner pasivo 2 canales (2×1:2). ~4 dB. 470-960 MHz.' },
       // Lectrosonics — active splitters; passive = both
       'lectro_a1626': { name: 'Lectrosonics A1626', loss: 0, gain: 12, active: true, ways: 4, cat: 's', notes: 'Active 4-way splitter. +12 dB. Wideband 470–692 MHz.' },
       'lectro_da6': { name: 'Lectrosonics DA6', loss: 0, gain: 12, active: true, ways: 6, cat: 's', notes: 'Active 6-way splitter. +12 dB. For large receiver racks.' },
@@ -3541,7 +3600,8 @@
       { label: 'Sennheiser · Distro activa', keys: ['senn_ewd_asa', 'senn_asa1', 'senn_asa3000', 'senn_ac3200'] },
       { label: 'Sennheiser · Combiner / Pasivo', keys: ['senn_ac41', 'senn_sl_pasc4'] },
       { label: 'Audio-Technica', keys: ['at_aewda', 'at_aewt3000'] },
-      { label: 'Wisycom', keys: ['wisycom_rab1', 'wisycom_ldq04', 'wisycom_rab5'] },
+      { label: 'Wisycom · Splitter activo', keys: ['wisycom_spl2216', 'wisycom_spl2208', 'wisycom_matf', 'wisycom_mat288', 'wisycom_mat244', 'wisycom_rab5', 'wisycom_rab1', 'wisycom_ldq04'] },
+      { label: 'Wisycom · Combiner / Pasivo', keys: ['wisycom_csi16t2', 'wisycom_csi16t', 'wisycom_csa221', 'wisycom_csa121'] },
       { label: 'Lectrosonics', keys: ['lectro_a1626', 'lectro_da6', 'lectro_pa'] },
       { label: 'RF Venue', keys: ['rfv_distro4', 'rfv_distro9', 'rfv_combine4'] },
       { label: 'Glensound', keys: ['glen_ad4'] },
