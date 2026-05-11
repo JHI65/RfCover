@@ -1702,6 +1702,7 @@
             <div>
               <div class="pl" style="font-size:9px;color:var(--text-dim);margin-bottom:2px;">Modelo de propagación</div>
               <select class="pi" id="covModel" style="font-size:10px;">
+                <option value="layher">Layher + Personas — Escenario con estructura metálica</option>
                 <option value="logdist">Log-Distance — Teatro, arena, estadio</option>
                 <option value="multiwall">Multi-Wall — Oficinas, muros, salas cerradas</option>
                 <option value="fspl">FSPL — Exterior, campo abierto (caso ideal)</option>
@@ -2592,6 +2593,20 @@
         pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) - 27.56;
       } else if (model === 'logdist') {
         pl = 20 * Math.log10(freq) - 27.56 + 10 * 2.5 * Math.log10(Math.max(1, dist));
+      } else if (model === 'layher') {
+        // Layher scaffold stage + people on stage
+        // n=3.0: metal structure multipath/scattering raises path loss exponent
+        pl = 20 * Math.log10(freq) - 27.56 + 10 * 3.0 * Math.log10(Math.max(1, dist));
+        // Metal scaffolding base scattering loss
+        pl += 3;
+        // Human body absorption: +5 dB if ray crosses a Stage element
+        const stageEls = S.els.filter(e => e.show && e.type === 'Stage');
+        for (const el of stageEls) {
+          const pts = getPoints(el);
+          if (rayHitsPoly(ant.x, ant.y, px, py, pts)) { pl += 5; break; }
+        }
+        // Also apply obstacle/wall attenuation for hard structures
+        pl += obstacleAttenuation(ant.x, ant.y, px, py);
       } else { // multiwall
         pl = 20 * Math.log10(dist) + 20 * Math.log10(freq) - 27.56;
         pl += obstacleAttenuation(ant.x, ant.y, px, py);
@@ -2645,6 +2660,7 @@
     function clearCoverage() { S.coverage = null; S.showCov = false; render(); setStatus('Mapa de cobertura limpiado'); }
 
     const _COV_DESCS = {
+      layher: 'Layher + Personas — Modelo para <b style="color:#bbb">escenarios con estructura metálica tipo Layher</b>. Aplica n=3.0 por multipath metálico, +3 dB de dispersión base y +5 dB de absorción corporal cuando el rayo atraviesa un elemento Stage. Úsalo junto a tus elementos Stage dibujados en el venue.',
       logdist: 'Log-Distance n=2.5 — Recomendado para <b style="color:#bbb">venues interiores semiabiertos</b>: teatros, arenas, estadios cubiertos. Modela dispersión por público, estructuras y equipos sin paredes densas.',
       multiwall: 'Multi-Wall — Para <b style="color:#bbb">espacios cerrados con paredes reales</b>: salas de reuniones, hospitales, oficinas. Descuenta 10 dB por cada elemento Obstacle/Wall que cruce el rayo.',
       fspl: 'FSPL — Espacio libre sin obstáculos. Útil para <b style="color:#bbb">exteriores, festivales al aire libre</b> o como referencia de cobertura máxima teórica. Sobreestima en interiores.'
