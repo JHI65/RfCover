@@ -1667,9 +1667,12 @@
                   <option value="senn_a5000cp">A 5000 CP — Helix 8 dBi 40° · 450-960 MHz</option>
                 </optgroup>
                 <optgroup label="─ Sennheiser · Direccional activa ─">
-                  <option value="senn_awm_i">AWM UHF (470-694) — Panel activa · 470-694 MHz</option>
-                  <option value="senn_awm_ii">AWM UHF (823-1075) — Panel activa · 823-1075 MHz</option>
-                  <option value="senn_ad3700">AD 3700 — LPDA activa 0-15 dB · 470-866 MHz</option>
+                  <option value="senn_awm_i">AWM UHF (470-694) — Panel activa -6..+12 dB · 470-694 MHz</option>
+                  <option value="senn_awm_ii">AWM UHF (823-1075) — Panel activa -6..+12 dB · 823-1075 MHz</option>
+                  <option value="senn_ad3700">AD 3700 — LPDA activa+booster 0-15 dB · 470-866 MHz</option>
+                </optgroup>
+                <optgroup label="─ Sennheiser · DECT / SpeechLine ─">
+                  <option value="senn_awm4">AWM 4 — Omni · 1880-1930 MHz · DECT · SMA-RP</option>
                 </optgroup>
                 <optgroup label="─ Wisycom · Omni ─">
                   <option value="wisycom_adb3">ADB3/ADN3 — Omni 3.2 dBi · 430-1260 MHz · IP67</option>
@@ -2357,6 +2360,8 @@
       'senn_ad3700':   { name: 'AD 3700',            gain: 15, beamwidth: 70,  type: 'lpda',  active: true,  freq: '470-866 MHz' },
       // Sennheiser — Helicoidal polarización circular
       'senn_a5000cp':  { name: 'A 5000 CP',          gain: 8,  beamwidth: 40,  type: 'helix', active: false, freq: '450-960 MHz' },
+      // Sennheiser — DECT / SpeechLine
+      'senn_awm4':     { name: 'AWM 4',               gain: 2,  beamwidth: 360, type: 'omni',  active: false, freq: '1880-1930 MHz' },
       // Shure — Omnidireccional
       'shure_ua860swb': { name: 'UA860SWB', gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '470-1100 MHz' },
       'shure_ua860v':   { name: 'UA860V',   gain: 2.15, beamwidth: 360, type: 'omni', active: false, freq: '174-216 MHz' },
@@ -3465,6 +3470,8 @@
       'senn_xsw1': { name: 'XSW 1', ru: 1, chPerUnit: 1, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — Spectera
       'senn_spectera': { name: 'Spectera', ru: 1, chPerUnit: 2, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
+      // Sennheiser — MIC — AVX (DECT 1.9 GHz, plug-and-play)
+      'senn_avx': { name: 'AVX MRX (AVX-835 SET)', ru: 1, chPerUnit: 1, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sound Devices — Astral MIC Receivers
       // Whip antennas (A-SMA, Astral VHF Whip) — not added to ANT_MODELS yet, pending review
       'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, channelOptions: [16, 24, 32], color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
@@ -3507,14 +3514,15 @@
         }
       },
       // Sennheiser — Splitters activos para receptores MIC
-      'senn_ewd_asa': { name: 'Sennheiser EW-D ASA', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Splitter activo dual 2×1:4 (2 entradas de antena → 4 salidas c/u). 470–1075 MHz. DC distribution para antenas activas. Para sistemas EW-D.' },
+      'senn_ewd_asa': { name: 'Sennheiser EW-D ASA (470-694)', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Splitter activo dual 2×1:4 (2 entradas → 4 salidas c/u; configurable 1×1:8). 470–694 MHz (bandas Q-R-S). IIP3 > 25 dBm. DC distribution para antenas activas. Art. 508879. Para sistemas EW-D.' },
+      'senn_ewd_asa_ii': { name: 'Sennheiser EW-D ASA (1350-1805)', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Splitter activo dual 2×1:4 (2 entradas → 4 salidas c/u; configurable 1×1:8). 1350–1805 MHz (bandas T-U-V-W). IIP3 > 25 dBm. DC distribution para antenas activas. Art. 508881. Para sistemas EW-D.' },
       'senn_asa1': { name: 'Sennheiser ASA1 NT', loss: 0, gain: 10, active: true, ways: 2, cat: 's', notes: 'Active 2-way antenna splitter for receivers. +10 dB. 470–866 MHz.' },
       'senn_asa3000': { name: 'Sennheiser ASA3000', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Active 4-way splitter for receivers. +10 dB. Evolution G3/G4/G10. 470–866 MHz.' },
       'senn_ac3200': { name: 'Sennheiser AC3200-II', loss: 0, gain: 10, active: true, ways: 4, cat: 's', notes: 'Active 4-way for Digital 6000/9000. Cascade up to 3 units.' },
       // Sennheiser — Combiner activo para IEM TX
       'senn_ac41': {
         name: 'Sennheiser AC 41', loss: 0, gain: 6, active: true, ways: 4, cat: 'c',
-        notes: 'Combiner activo para IEM TX. Hasta 4 transmisores (SR IEM G4/G3, SR 2000/2050 IEM). 470–608 MHz. 19"/1U. Incluye fuente NT 3-1 y 4 cables BNC.',
+        notes: 'Combiner activo para IEM TX. Hasta 4 transmisores (SR IEM G4/G3, SR 2000/2050 IEM). AC 41-US: 470–608 MHz (Art. 508244). AC 41-EU: 470–870 MHz (Art. 508243). 13.8 V DC / 3.4 A máx. 19"/1U. Incluye fuente NT 3-1 y 4 cables BNC.',
         ports: {
           inputs: [{ id: 'in_1', label: 'TX IN 1' }, { id: 'in_2', label: 'TX IN 2' }, { id: 'in_3', label: 'TX IN 3' }, { id: 'in_4', label: 'TX IN 4' }],
           outputs: [{ id: 'out', label: 'ANT OUT' }]
@@ -3606,7 +3614,7 @@
       { label: 'Passive', keys: ['passive_t', 'passive_2w', 'passive_4w', 'passive_8w'] },
       { label: 'Shure · Distro activa', keys: ['shure_ua844swb', 'shure_ua844v', 'shure_ua844lc', 'shure_ua844', 'shure_ua845uwb', 'shure_axt600'] },
       { label: 'Shure · Pasivo / Combinador', keys: ['shure_ua221', 'shure_ua221cj', 'shure_ua400b', 'shure_pa821b'] },
-      { label: 'Sennheiser · Distro activa', keys: ['senn_ewd_asa', 'senn_asa1', 'senn_asa3000', 'senn_ac3200'] },
+      { label: 'Sennheiser · Distro activa', keys: ['senn_ewd_asa', 'senn_ewd_asa_ii', 'senn_asa1', 'senn_asa3000', 'senn_ac3200'] },
       { label: 'Sennheiser · Combiner / Pasivo', keys: ['senn_ac41', 'senn_sl_pasc4'] },
       { label: 'Audio-Technica', keys: ['at_aewda', 'at_aewt3000'] },
       { label: 'Wisycom · Splitter activo', keys: ['wisycom_spl2216', 'wisycom_spl2208', 'wisycom_matf', 'wisycom_mat288', 'wisycom_mat244', 'wisycom_rab5', 'wisycom_rab1', 'wisycom_ldq04'] },
@@ -3636,6 +3644,7 @@
       { brand: 'Sennheiser', label: 'EW G4/G3/G2', keys: ['senn_ew550g2', 'senn_ew500g4', 'senn_ew500g3', 'senn_ew500g2', 'senn_ew300g4', 'senn_ew300g3', 'senn_ew300g2', 'senn_ew100g4', 'senn_ew100g3', 'senn_ew100g2'] },
       { brand: 'Sennheiser', label: 'XSW', keys: ['senn_xsw2', 'senn_xsw1dual', 'senn_xsw1'] },
       { brand: 'Sennheiser', label: 'Spectera', keys: ['senn_spectera'] },
+      { brand: 'Sennheiser', label: 'AVX (DECT 1.9G)', keys: ['senn_avx'] },
       { brand: 'Sound Devices', label: 'Astral MIC RX', keys: ['sd_arx32', 'sd_arx16', 'sd_arx8', 'sd_arx2'] },
     ];
 
@@ -3655,10 +3664,20 @@
       { id: 'S1-8', label: 'S1-8 · 606–678 MHz' },
     ];
     const _SENN_EWDX = [ // EW-DX / EW-D bands
-      { id: 'Q1-9', label: 'Q1-9 · 470–558 MHz' },
-      { id: 'R1-9', label: 'R1-9 · 520–558 MHz' },
-      { id: 'S1-7', label: 'S1-7 · 558–608 MHz' },
-      { id: 'U1-8', label: 'U1-8 · 714–798 MHz' },
+      { id: 'Q1-9',  label: 'Q1-9  · 470.2–550.0 MHz' },
+      { id: 'R1-9',  label: 'R1-9  · 520.0–607.8 MHz' },
+      { id: 'S1-10', label: 'S1-10 · 606.2–693.8 MHz' },
+      { id: 'U1-8',  label: 'U1-8  · 714.0–798.0 MHz' },
+    ];
+    const _SENN_2000 = [ // Series 2000 analog bands
+      { id: 'A',  label: 'A   · 516–558 MHz' },
+      { id: 'Gw', label: 'Gw  · 558–626 MHz' },
+      { id: 'B',  label: 'B   · 626–698 MHz' },
+      { id: 'G4', label: 'G4  · 718–790 MHz' },
+      { id: 'G5', label: 'G5  · 790–865 MHz' },
+    ];
+    const _SENN_DECT = [ // DECT band — AVX, SpeechLine, AWM 4
+      { id: 'DECT', label: 'DECT · 1880–1930 MHz' },
     ];
     const _SENN_DIG6 = [ // Digital 6000 / EM 3000 / 2000 bands
       { id: 'A1-8', label: 'A1-8 · 470–558 MHz' },
@@ -3978,8 +3997,8 @@
       'senn_em3731ii': _SENN_DIG6,
       'senn_em3732': _SENN_DIG6,
       'senn_em3732ii': _SENN_DIG6,
-      'senn_em2050': _SENN_DIG6,
-      'senn_em2000': _SENN_DIG6,
+      'senn_em2050': _SENN_2000,
+      'senn_em2000': _SENN_2000,
       // Sennheiser EW-DX / EW-D
       'senn_ewdx_em4d': _SENN_EWDX,
       'senn_ewdx_em2d': _SENN_EWDX,
@@ -3996,6 +4015,8 @@
       'senn_xsw2': _SENN_XSW, 'senn_xsw1dual': _SENN_XSW, 'senn_xsw1': _SENN_XSW,
       // Sennheiser Spectera
       'senn_spectera': _SENN_DIG9,
+      // Sennheiser AVX (DECT)
+      'senn_avx': _SENN_DECT,
       // Sound Devices — Astral SpectraBand (470-1525 MHz true wideband, no fixed sub-bands)
       'sd_arx32': _SD_SB, 'sd_arx16': _SD_SB, 'sd_arx8': _SD_SB, 'sd_arx2': _SD_SB,
     };
