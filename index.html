@@ -4358,9 +4358,9 @@
       const rect = rackCanvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) * (rackCanvas.width / rect.width);
       const my = (e.clientY - rect.top) * (rackCanvas.height / rect.height);
-      // Check if click is inside a receiver unit row (skip row 0 = ANT DIST, last = PSU)
+      // Check if click is inside a receiver unit row
       for (let u = 0; u < g.numUnits; u++) {
-        const rowY = g.rackY + (u + 1) * g.RU_H;
+        const rowY = g.rackY + (g.recvRU0 + u) * g.RU_H;
         if (mx >= g.moduleX && mx <= g.moduleX + g.moduleW &&
             my >= rowY && my < rowY + g.RU_H * g.ru) {
           _showPowerPicker(g.group, u, e.clientX, e.clientY);
@@ -5508,7 +5508,10 @@
       const chPerUnit = m.chPerUnit;
       const numUnits = group.quantity || Math.ceil(group.channels.length / chPerUnit);
       const unitCounts = group.unitChannelCounts || Array(numUnits).fill(chPerUnit);
-      const totalRU = numUnits + 2; // +1 antenna distro, +1 PSU
+      const showAntDist = !!(group.splitter && group.splitter !== 'none');
+      const showPSU = !!group.hasPSU;
+      const recvRU0 = showAntDist ? 1 : 0;
+      const totalRU = numUnits + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0);
 
       const RU_H = 28;           // pixels per rack unit
       const rackW = Math.min(480, W - 90);
@@ -5560,31 +5563,31 @@
       const moduleW = rackW - railW * 2 - 4;
 
       // Store geometry for click handler
-      _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru };
+      _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru, recvRU0 };
 
-      // --- 1U: Antenna Distribution unit ---
-      const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
-      const aduY = rackY;
-      const aduH = RU_H;
-      ctx.fillStyle = '#0a2a14';
-      ctx.fillRect(moduleX, aduY, moduleW, aduH);
-      ctx.strokeStyle = '#1a5a2a'; ctx.lineWidth = 1;
-      ctx.strokeRect(moduleX, aduY, moduleW, aduH);
-      // LED
-      ctx.fillStyle = '#20c060';
-      ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH / 2, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH / 2);
-      // Cable loss label right
-      const cableLoss = (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
-      ctx.fillStyle = '#4a8a60'; ctx.font = '9px monospace';
-      ctx.textAlign = 'right';
-      const netLoss = sp.active ? -(sp.gain) : sp.loss;
-      ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
+      // --- 1U: Antenna Distribution unit (only when splitter is set) ---
+      if (showAntDist) {
+        const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
+        const aduY = rackY;
+        const aduH = RU_H;
+        ctx.fillStyle = '#0a2a14';
+        ctx.fillRect(moduleX, aduY, moduleW, aduH);
+        ctx.strokeStyle = '#1a5a2a'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, aduY, moduleW, aduH);
+        ctx.fillStyle = '#20c060';
+        ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH / 2, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH / 2);
+        const cableLoss = (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
+        ctx.fillStyle = '#4a8a60'; ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        const netLoss = sp.active ? -(sp.gain) : sp.loss;
+        ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
+      }
 
       // --- Receiver modules ---
-      let ruOffset = 1;
+      let ruOffset = recvRU0;
       let unitIdx = 0;
       let chCursor = 0;
       while (unitIdx < numUnits) {
@@ -5634,17 +5637,19 @@
         unitIdx++;
       }
 
-      // --- 1U: PSU ---
-      const psuY = rackY + (totalRU - 1) * RU_H;
-      ctx.fillStyle = '#0a0a2a';
-      ctx.fillRect(moduleX, psuY, moduleW, RU_H);
-      ctx.strokeStyle = '#1a1a4a'; ctx.lineWidth = 1;
-      ctx.strokeRect(moduleX, psuY, moduleW, RU_H);
-      ctx.fillStyle = '#4040a0';
-      ctx.beginPath(); ctx.arc(moduleX + 10, psuY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#8888cc'; ctx.font = '9px monospace';
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText('PSU / Power Distribution', moduleX + 22, psuY + RU_H / 2);
+      // --- 1U: PSU (only when added) ---
+      if (showPSU) {
+        const psuY = rackY + (totalRU - 1) * RU_H;
+        ctx.fillStyle = '#0a0a2a';
+        ctx.fillRect(moduleX, psuY, moduleW, RU_H);
+        ctx.strokeStyle = '#1a1a4a'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, psuY, moduleW, RU_H);
+        ctx.fillStyle = '#4040a0';
+        ctx.beginPath(); ctx.arc(moduleX + 10, psuY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#8888cc'; ctx.font = '9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText('PSU / Power Distribution', moduleX + 22, psuY + RU_H / 2);
+      }
     }
 
     function drawConnDiagram(group) {
