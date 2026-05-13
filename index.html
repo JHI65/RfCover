@@ -3381,22 +3381,22 @@
 
     const RECV_MODELS = {
       // Wisycom — IEM TX
-      'wisycom_mtk952_0w2_25k': { name: 'MTK952-0W2 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_0w2_5k': { name: 'MTK952-0W2 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_2w0_25k': { name: 'MTK952-2W0 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_2w0_5k': { name: 'MTK952-2W0 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk982_25k': { name: 'MTK982 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk982_5k': { name: 'MTK982 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_0w2_25k': { name: 'MTK952-0W2 [25k]', ru: 1, chPerUnit: 2, rfOut: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_0w2_5k': { name: 'MTK952-0W2 [5k]', ru: 1, chPerUnit: 2, rfOut: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_2w0_25k': { name: 'MTK952-2W0 [25k]', ru: 1, chPerUnit: 2, rfOut: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_2w0_5k': { name: 'MTK952-2W0 [5k]', ru: 1, chPerUnit: 2, rfOut: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk982_25k': { name: 'MTK982 [25k]', ru: 1, chPerUnit: 2, rfOut: 4, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk982_5k': { name: 'MTK982 [5k]', ru: 1, chPerUnit: 2, rfOut: 4, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
       // Wisycom — MIC RX Rack
-      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
-      'wisycom_mrk16': { name: 'MRK16', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16': { name: 'MRK16', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
       // Wisycom — MIC RX Portable
       'wisycom_mcr54': { name: 'MCR54', ru: 1, chPerUnit: 4, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
-      'wisycom_mcr54dual': { name: 'MCR54-DUAL', ru: 1, chPerUnit: 8, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mcr54dual': { name: 'MCR54-DUAL', ru: 1, chPerUnit: 8, rfIn: 4, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       'wisycom_mpr52eng': { name: 'MPR52-ENG', ru: 1, chPerUnit: 2, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       // Shure — Axient Digital IEM
-      'shure_adtd': { name: 'ADTD (2ch)', ru: 1, chPerUnit: 2, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
-      'shure_adtq': { name: 'ADTQ (4ch)', ru: 1, chPerUnit: 4, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
+      'shure_adtd': { name: 'ADTD (2ch)', ru: 1, chPerUnit: 2, rfOut: 2, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
+      'shure_adtq': { name: 'ADTQ (4ch)', ru: 1, chPerUnit: 4, rfOut: 2, txPowers: [1, 10, 50], color: '#1a1a5a', brand: 'Shure', type: 'IEM' },
       // Shure — IEM
       'shure_psm200': { name: 'PSM200', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       'shure_psm300': { name: 'PSM300', ru: 1, chPerUnit: 1, txPowers: [1, 10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
@@ -3406,49 +3406,49 @@
       'shure_psm900': { name: 'PSM900', ru: 1, chPerUnit: 1, txPowers: [1, 10, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       'shure_psm1000': { name: 'PSM1000', ru: 1, chPerUnit: 2, rfOutPerCh: 1, xlrInPerCh: 2, txPowers: [10, 20, 50], color: '#1a3a6a', brand: 'Shure', type: 'IEM' },
       // Shure — Axient Digital (MIC)
-      'shure_ad4d': { name: 'AD4D', ru: 1, chPerUnit: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
-      'shure_ad4q': { name: 'AD4Q', ru: 1, chPerUnit: 4, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
-      'shure_adx5d': { name: 'ADX5D', ru: 1, chPerUnit: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
+      'shure_ad4d': { name: 'AD4D', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
+      'shure_ad4q': { name: 'AD4Q', ru: 1, chPerUnit: 4, cascadeOut: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
+      'shure_adx5d': { name: 'ADX5D', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#2a1a5a', brand: 'Shure', type: 'MIC' },
       // Shure — ULX-D (MIC)
-      'shure_ulxd4': { name: 'ULXD4', ru: 1, chPerUnit: 1, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
-      'shure_ulxd4d': { name: 'ULXD4D', ru: 1, chPerUnit: 2, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
-      'shure_ulxd4q': { name: 'ULXD4Q', ru: 1, chPerUnit: 4, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
+      'shure_ulxd4': { name: 'ULXD4', ru: 1, chPerUnit: 1, cascadeOut: 2, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
+      'shure_ulxd4d': { name: 'ULXD4D', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
+      'shure_ulxd4q': { name: 'ULXD4Q', ru: 1, chPerUnit: 4, cascadeOut: 2, color: '#3a1a6a', brand: 'Shure', type: 'MIC' },
       // Shure — QLX-D (MIC)
       'shure_qlxd4': { name: 'QLXD4', ru: 1, chPerUnit: 1, color: '#3a2a5a', brand: 'Shure', type: 'MIC' },
       // Shure — SLX-D (MIC)
       'shure_slxd4': { name: 'SLXD4', ru: 1, chPerUnit: 1, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
       'shure_slxd4d': { name: 'SLXD4D', ru: 1, chPerUnit: 2, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
-      'shure_slxd4qp': { name: 'SLXD4Q+', ru: 1, chPerUnit: 4, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
-      'shure_slxd4qdan': { name: 'SLXD4QDAN+', ru: 1, chPerUnit: 4, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
+      'shure_slxd4qp': { name: 'SLXD4Q+', ru: 1, chPerUnit: 4, cascadeOut: 2, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
+      'shure_slxd4qdan': { name: 'SLXD4QDAN+', ru: 1, chPerUnit: 4, cascadeOut: 2, color: '#3a1a5a', brand: 'Shure', type: 'MIC' },
       // Shure — BLX (MIC)
       'shure_blx4': { name: 'BLX4', ru: 1, chPerUnit: 1, color: '#2a2a5a', brand: 'Shure', type: 'MIC' },
       'shure_blx4r': { name: 'BLX4R', ru: 1, chPerUnit: 1, color: '#2a2a5a', brand: 'Shure', type: 'MIC' },
-      'shure_blx88': { name: 'BLX88', ru: 1, chPerUnit: 2, color: '#2a2a5a', brand: 'Shure', type: 'MIC' },
+      'shure_blx88': { name: 'BLX88', ru: 1, chPerUnit: 2, rfIn: 0, color: '#2a2a5a', brand: 'Shure', type: 'MIC' },
       // Shure — Descontinuados (MIC)
       'shure_ur4d': { name: 'UR4D †', ru: 1, chPerUnit: 2, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       'shure_ur4s': { name: 'UR4S †', ru: 1, chPerUnit: 1, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       'shure_pgxd4': { name: 'PGXD4 †', ru: 1, chPerUnit: 1, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       // Sennheiser — IEM (actuales)
       'senn_ew_iem_g4': { name: 'EW IEM G4', ru: 1, chPerUnit: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 2, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 2, rfOut: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
       'senn_ewdx_iem': { name: 'EW-DX IEM TX', ru: 1, chPerUnit: 2, txPowers: [2, 10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
       'senn_xsw_iem': { name: 'XSW IEM', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#2a3a1a', brand: 'Sennheiser', type: 'IEM' },
       // Sennheiser — IEM (descontinuados)
       'senn_ew_iem_g3': { name: 'EW IEM G3 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
       'senn_ew_iem_g2': { name: 'EW IEM G2 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_sr2000_iem': { name: 'SR 2000 IEM †', ru: 1, chPerUnit: 2, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_sr2000_iem': { name: 'SR 2000 IEM †', ru: 1, chPerUnit: 2, rfOut: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
       // Sennheiser — MIC — Gama Alta (Digital 9000 / 6000 / 3000 / 2000)
-      'senn_em9000': { name: 'EM 9000', ru: 1, chPerUnit: 2, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em9046': { name: 'EM 9046', ru: 4, chPerUnit: 8, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em6000': { name: 'EM 6000', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em3731': { name: 'EM 3731', ru: 1, chPerUnit: 1, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em3731ii': { name: 'EM 3731-II', ru: 1, chPerUnit: 1, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em3732': { name: 'EM 3732', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em3732ii': { name: 'EM 3732-II', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em2050': { name: 'EM 2050', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em2000': { name: 'EM 2000', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em9000': { name: 'EM 9000', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em9046': { name: 'EM 9046', ru: 4, chPerUnit: 8, cascadeOut: 2, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em6000': { name: 'EM 6000', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em3731': { name: 'EM 3731', ru: 1, chPerUnit: 1, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em3731ii': { name: 'EM 3731-II', ru: 1, chPerUnit: 1, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em3732': { name: 'EM 3732', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em3732ii': { name: 'EM 3732-II', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em2050': { name: 'EM 2050', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em2000': { name: 'EM 2000', ru: 1, chPerUnit: 2, cascadeOut: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — Evolution Wireless Digital
-      'senn_ewdx_em4d': { name: 'EW-DX EM 4 Dante', ru: 1, chPerUnit: 4, color: '#1a3a2a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_ewdx_em4d': { name: 'EW-DX EM 4 Dante', ru: 1, chPerUnit: 4, cascadeOut: 2, color: '#1a3a2a', brand: 'Sennheiser', type: 'MIC' },
       'senn_ewdx_em2d': { name: 'EW-DX EM 2 Dante', ru: 1, chPerUnit: 2, color: '#1a3a2a', brand: 'Sennheiser', type: 'MIC' },
       'senn_ewdx_em2': { name: 'EW-DX EM 2', ru: 1, chPerUnit: 2, color: '#1a3a2a', brand: 'Sennheiser', type: 'MIC' },
       'senn_ewdx_hh': { name: 'EW-DX EM HH', ru: 1, chPerUnit: 2, color: '#1a3a2a', brand: 'Sennheiser', type: 'MIC' },
@@ -3469,14 +3469,14 @@
       'senn_xsw1dual': { name: 'XSW 1 DUAL', ru: 1, chPerUnit: 2, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       'senn_xsw1': { name: 'XSW 1', ru: 1, chPerUnit: 1, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — Spectera
-      'senn_spectera': { name: 'Spectera Base Station', ru: 1, chPerUnit: 32, channelOptions: [8, 16, 32], color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_spectera': { name: 'Spectera Base Station', ru: 1, chPerUnit: 32, channelOptions: [8, 16, 32], rfIn: 4, rfOut: 4, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — AVX (DECT 1.9 GHz, plug-and-play)
       'senn_avx': { name: 'AVX MRX (AVX-835 SET)', ru: 1, chPerUnit: 1, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sound Devices — Astral MIC Receivers
       // Whip antennas (A-SMA, Astral VHF Whip) — not added to ANT_MODELS yet, pending review
-      'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, channelOptions: [16, 24, 32], color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
-      'sd_arx16': { name: 'Astral ARX16', ru: 1, chPerUnit: 16, channelOptions: [8, 12, 16],  color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
-      'sd_arx8':  { name: 'Astral ARX8',  ru: 1, chPerUnit: 8,  channelOptions: [4, 6, 8],    color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx32': { name: 'Astral ARX32', ru: 1, chPerUnit: 32, channelOptions: [16, 24, 32], rfIn: 6, cascadeOut: 6, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx16': { name: 'Astral ARX16', ru: 1, chPerUnit: 16, channelOptions: [8, 12, 16],  rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
+      'sd_arx8':  { name: 'Astral ARX8',  ru: 1, chPerUnit: 8,  channelOptions: [4, 6, 8],    rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
       'sd_arx2':  { name: 'Astral ARX2',  ru: 1, chPerUnit: 2,  channelOptions: [2],           color: '#2a1a0a', brand: 'Sound Devices', type: 'MIC' },
     };
 
@@ -4379,16 +4379,27 @@
     function _showPowerPicker(group, unitIdx, cx, cy) {
       const m = RECV_MODELS[group.modelKey] || RECV_MODELS['shure_psm300'];
       const powers = m.txPowers;
-      if (!powers || !powers.length) return;
-      const current = (group.unitPowers || [])[unitIdx];
+      const hasCascade = !!m.cascadeOut;
+      if ((!powers || !powers.length) && !hasCascade) return;
       const picker = document.getElementById('powerPicker');
-      picker.innerHTML = `<div class="pp-title">TX Power · Unit ${unitIdx + 1}</div>` +
-        powers.map(p => `<button class="${p === current ? 'active' : ''}"
-          onclick="setUnitPower(${group.id},${unitIdx},${p})">${p} mW</button>`).join('');
+      let html = '';
+      if (powers && powers.length) {
+        const current = (group.unitPowers || [])[unitIdx];
+        html += `<div class="pp-title">TX Power · Unit ${unitIdx + 1}</div>` +
+          powers.map(p => `<button class="${p === current ? 'active' : ''}"
+            onclick="setUnitPower(${group.id},${unitIdx},${p})">${p} mW</button>`).join('');
+      }
+      if (hasCascade) {
+        const casOn = !!((group.unitCascades || [])[unitIdx]);
+        html += `<div class="pp-title" style="margin-top:6px;">Cascade · Unit ${unitIdx + 1}</div>` +
+          `<button class="${!casOn ? 'active' : ''}" onclick="setUnitCascade(${group.id},${unitIdx},false)">OFF</button>` +
+          `<button class="${casOn ? 'active' : ''}" onclick="setUnitCascade(${group.id},${unitIdx},true)">ON (+${m.cascadeOut} RF OUT)</button>`;
+      }
+      picker.innerHTML = html;
       const vw = window.innerWidth, vh = window.innerHeight;
       let left = cx + 8, top = cy - 10;
       picker.style.display = 'flex';
-      if (left + 130 > vw) left = cx - 138;
+      if (left + 160 > vw) left = cx - 168;
       if (top + picker.offsetHeight > vh) top = cy - picker.offsetHeight;
       picker.style.left = left + 'px';
       picker.style.top = top + 'px';
@@ -4406,6 +4417,16 @@
       _hidePowerPicker();
       drawRackCanvases();
       _refreshAllAntennasFromRack();
+    }
+
+    function setUnitCascade(groupId, unitIdx, on) {
+      const g = S.rackGroups.find(g => g.id === groupId);
+      if (!g) return;
+      if (!g.unitCascades) g.unitCascades = [];
+      g.unitCascades[unitIdx] = !!on;
+      _hidePowerPicker();
+      drawRackCanvases();
+      renderConnDiagram();
     }
 
     const connCanvas = document.getElementById('connCanvas');
@@ -4736,7 +4757,9 @@
             if (!g) continue;
             const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
             const match = (srcPort || '').match(/rf_out_(\d+)/);
-            const ch = match ? parseInt(match[1]) : 0;
+            const portIdx = match ? parseInt(match[1]) : 0;
+            const rfPerCh = m.rfOutPerCh || 1;
+            const ch = (typeof m.rfOut === 'number') ? 0 : Math.floor(portIdx / rfPerCh);
             const unitIdx = Math.floor(ch / m.chPerUnit);
             const chStart = unitIdx * m.chPerUnit;
             const chEnd = Math.min(chStart + m.chPerUnit, g.channels.length);
@@ -4895,25 +4918,31 @@
       S.rackGroups.forEach(g => {
         if (g.x == null) return;
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-        const rfPerCh = m.rfOutPerCh || 1;
         const xlrPerCh = m.xlrInPerCh || 0;
         const key = 'g_' + g.id;
         if (!pp[key]) pp[key] = {};
-        // RF ports
+        // RF ports (flat list — must match render order in renderConnDiagram)
         let portIdx = 0;
         if (m.type === 'MIC') {
-          const nu = Math.ceil(g.channels.length / m.chPerUnit);
-          for (let u = 0; u < nu; u++) {
-            for (let r = 0; r < 2; r++, portIdx++) {
-              pp[key][`rf_in_${u}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+          const rfInN = rfInCountOf(g);
+          for (let i = 0; i < rfInN; i++, portIdx++) {
+            pp[key][`rf_in_${i}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+          }
+          if (m.cascadeOut) {
+            const nu = Math.ceil(g.channels.length / m.chPerUnit);
+            const cas = g.unitCascades || [];
+            for (let u = 0; u < nu; u++) {
+              if (!cas[u]) continue;
+              for (let r = 0; r < m.cascadeOut; r++, portIdx++) {
+                pp[key][`cas_out_${u}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+              }
             }
           }
         } else {
-          g.channels.forEach((ch, c) => {
-            for (let r = 0; r < rfPerCh; r++, portIdx++) {
-              pp[key][`rf_out_${c}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
-            }
-          });
+          const rfOutN = rfOutCountOf(g);
+          for (let i = 0; i < rfOutN; i++, portIdx++) {
+            pp[key][`rf_out_${i}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+          }
         }
         // Signal OUT + XLR IN ports
         g.channels.forEach((ch, c) => {
@@ -4959,10 +4988,31 @@
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
         return Math.ceil(g.channels.length / m.chPerUnit);
       }
+      function rfInCountOf(g) {
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        if (m.type !== 'MIC') return 0;
+        if (typeof m.rfIn === 'number') return m.rfIn;
+        return numUnitsOf(g) * 2;
+      }
+      function rfOutCountOf(g) {
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        if (m.type === 'MIC') return 0;
+        if (typeof m.rfOut === 'number') return m.rfOut;
+        return g.channels.length * (m.rfOutPerCh || 1);
+      }
+      function cascadeOutCountOf(g) {
+        const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        if (m.type !== 'MIC' || !m.cascadeOut) return 0;
+        const nu = numUnitsOf(g);
+        const cas = g.unitCascades || [];
+        let count = 0;
+        for (let u = 0; u < nu; u++) if (cas[u]) count += m.cascadeOut;
+        return count;
+      }
       function rfPortsOf(g) {
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-        if (m.type === 'MIC') return numUnitsOf(g) * 2;
-        return g.channels.length * (m.rfOutPerCh || 1);
+        if (m.type === 'MIC') return rfInCountOf(g) + cascadeOutCountOf(g);
+        return rfOutCountOf(g);
       }
       function xlrInPortsOf(g) {
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
@@ -5010,37 +5060,63 @@
           const mRf = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
           let portIdx = 0;
           if (mRf.type === 'MIC') {
-            const nu = numUnitsOf(g);
-            for (let u = 0; u < nu; u++) {
-              for (let r = 0; r < 2; r++, portIdx++) {
-                const py = HDR + PORT_SP + portIdx * PORT_SP;
-                const pid = `rf_in_${u}_${r}`;
-                S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
-                const pp = isPend && S.pendingPort.portId === pid;
-                const label = `RF${portIdx + 1}`;
-                ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+            // RF IN ports
+            const rfInN = rfInCountOf(g);
+            for (let i = 0; i < rfInN; i++, portIdx++) {
+              const py = HDR + PORT_SP + portIdx * PORT_SP;
+              const pid = `rf_in_${i}`;
+              S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+              const pp = isPend && S.pendingPort.portId === pid;
+              const label = `RF${i + 1}`;
+              ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
                 fill="#999" font-size="8" font-family="monospace">${label}</text>
               <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
                 stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
                 onclick="clickPort(${g.id},'${pid}','group')"/>`;
+            }
+            // Cascade OUT ports (only for units with cascade enabled)
+            if (mRf.cascadeOut) {
+              const nu = numUnitsOf(g);
+              const cas = g.unitCascades || [];
+              for (let u = 0; u < nu; u++) {
+                if (!cas[u]) continue;
+                for (let r = 0; r < mRf.cascadeOut; r++, portIdx++) {
+                  const py = HDR + PORT_SP + portIdx * PORT_SP;
+                  const pid = `cas_out_${u}_${r}`;
+                  S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+                  const pp = isPend && S.pendingPort.portId === pid;
+                  const label = nu > 1 ? `CAS${u + 1}.${r + 1}` : `CAS${r + 1}`;
+                  ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+                  fill="#e8c040" font-size="8" font-family="monospace">${label}</text>
+                <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="#e8c040"
+                  stroke="${pp ? '#fff' : '#e8c040'}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
+                  onclick="clickPort(${g.id},'${pid}','group')"/>`;
+                }
               }
             }
           } else {
+            // IEM TX — RF OUT ports
+            const rfOutN = rfOutCountOf(g);
             const rfPerCh = mRf.rfOutPerCh || 1;
-            g.channels.forEach((ch, c) => {
-              for (let r = 0; r < rfPerCh; r++, portIdx++) {
-                const py = HDR + PORT_SP + portIdx * PORT_SP;
-                const pid = `rf_out_${c}_${r}`;
-                S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
-                const pp = isPend && S.pendingPort.portId === pid;
-                const label = rfPerCh > 1 ? `RF${c + 1}${String.fromCharCode(97 + r).toUpperCase()}` : `RF${c + 1}`;
-                ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
+            const useChLabel = typeof mRf.rfOut !== 'number' && rfPerCh >= 1;
+            for (let i = 0; i < rfOutN; i++, portIdx++) {
+              const py = HDR + PORT_SP + portIdx * PORT_SP;
+              const pid = `rf_out_${i}`;
+              S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
+              const pp = isPend && S.pendingPort.portId === pid;
+              let label;
+              if (useChLabel) {
+                const c = Math.floor(i / rfPerCh), r = i % rfPerCh;
+                label = rfPerCh > 1 ? `RF${c + 1}${String.fromCharCode(97 + r).toUpperCase()}` : `RF${c + 1}`;
+              } else {
+                label = `RF${i + 1}`;
+              }
+              ports += `<text x="${BLOCK_W - 8}" y="${py}" text-anchor="end" dominant-baseline="middle"
                 fill="#999" font-size="8" font-family="monospace">${label}</text>
               <circle cx="${BLOCK_W}" cy="${py}" r="${PORT_R}" fill="${RF_COLOR}"
                 stroke="${pp ? '#fff' : RF_COLOR}" stroke-width="${pp ? 2.5 : 0}" class="rdc-port"
                 onclick="clickPort(${g.id},'${pid}','group')"/>`;
-              }
-            });
+            }
           }
         } else {
           const mSig = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
@@ -5476,16 +5552,19 @@
         const chNums = chPerUnit === 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
         ctx.fillText(`${m.name}  ${chNums}`, moduleX + 22, modY + slotH / 2);
 
-        // Frequency + TX power on right
+        // Frequency + TX power + Cascade on right
         const power = (group.unitPowers || [])[unitIdx];
         const hasPowers = m.txPowers && m.txPowers.length;
         const powerLabel = hasPowers ? (power != null ? `${power}mW` : '— mW') : '';
+        const casOn = !!((group.unitCascades || [])[unitIdx]);
+        const cascadeLabel = m.cascadeOut ? (casOn ? `CAS▲` : `cas○`) : '';
         const chSlice = group.channels.slice(chStart, chEnd);
         const freqLabels = chSlice.length > 4
           ? chSlice.slice(0, 4).map(c => c.freq.toFixed(3)).join(' / ') + ' / … (' + chSlice.length + ' ch)'
           : chSlice.map(c => c.freq.toFixed(3) + ' MHz').join(' / ');
-        const rightLabel = powerLabel ? `${powerLabel}  |  ${freqLabels}` : freqLabels;
-        ctx.fillStyle = power != null ? '#e8c040' : 'rgba(200,220,255,0.4)';
+        const parts = [powerLabel, cascadeLabel, freqLabels].filter(Boolean);
+        const rightLabel = parts.join('  |  ');
+        ctx.fillStyle = (power != null || casOn) ? '#e8c040' : 'rgba(200,220,255,0.4)';
         ctx.font = '9px monospace'; ctx.textAlign = 'right';
         ctx.fillText(rightLabel, moduleX + moduleW - 6, modY + slotH / 2);
 
