@@ -1932,8 +1932,8 @@
             </div>
             <div class="pr">
               <div class="pg">
-                <div class="pl"># Channels</div>
-                <select class="pi" id="rgChannels" style="font-size:10px;"></select>
+                <div class="pl">Quantity</div>
+                <select class="pi" id="rgQuantity" style="font-size:10px;"></select>
               </div>
               <div class="pg">
                 <div class="pl">Color</div>
@@ -3388,8 +3388,8 @@
       'wisycom_mtk982_25k': { name: 'MTK982 [25k]', ru: 1, chPerUnit: 2, rfOut: 4, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
       'wisycom_mtk982_5k': { name: 'MTK982 [5k]', ru: 1, chPerUnit: 2, rfOut: 4, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
       // Wisycom — MIC RX Rack
-      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
-      'wisycom_mrk16': { name: 'MRK16', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, quadversity: true, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16': { name: 'MRK16', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], rfIn: 4, cascadeOut: 2, quadversity: true, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
       // Wisycom — MIC RX Portable
       'wisycom_mcr54': { name: 'MCR54', ru: 1, chPerUnit: 4, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       'wisycom_mcr54dual': { name: 'MCR54-DUAL', ru: 1, chPerUnit: 8, rfIn: 4, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
@@ -4066,24 +4066,16 @@
       sel.innerHTML = html;
     }
 
-    function updateChannelOptions() {
-      const modelKey = document.getElementById('rgModel').value;
-      const sel = document.getElementById('rgChannels');
-      const m = RECV_MODELS[modelKey];
-      let opts;
-      if (m && m.channelOptions) {
-        opts = m.channelOptions;
-      } else if (m && m.chPerUnit) {
-        opts = [];
-        for (let n = m.chPerUnit; n <= 32; n += m.chPerUnit) opts.push(n);
-      } else {
-        opts = [4, 8, 12, 16, 20, 24, 28, 32];
-      }
+    function updateQuantityOptions() {
+      const sel = document.getElementById('rgQuantity');
+      const opts = [];
+      for (let n = 1; n <= 16; n++) opts.push(n);
       const prev = parseInt(sel.value);
       sel.innerHTML = opts.map(v => `<option value="${v}">${v}</option>`).join('');
-      // restore previous selection if still valid
-      if (opts.includes(prev)) sel.value = prev;
+      sel.value = opts.includes(prev) ? prev : 1;
     }
+    // back-compat alias used by other callers
+    function updateChannelOptions() { updateQuantityOptions(); }
 
     function filterBandsByModel() {
       const modelKey = document.getElementById('rgModel').value;
@@ -4138,7 +4130,10 @@
       const type = document.getElementById('rgType').value;
       const modelKey = document.getElementById('rgModel').value;
       const band = document.getElementById('rgBand').value;
-      const numCh = Math.max(1, parseInt(document.getElementById('rgChannels').value) || 4);
+      const quantity = Math.max(1, parseInt(document.getElementById('rgQuantity').value) || 1);
+      const mSel = RECV_MODELS[modelKey];
+      const chPerUnit = (mSel && mSel.chPerUnit) || 1;
+      const numCh = quantity * chPerUnit;
       const color = document.getElementById('rgColor').value;
       const freqStart = 606.0;
       const freqStep = 0.25;
@@ -4160,6 +4155,9 @@
         id: S.nextRackId++,
         name, type, modelKey, band, color,
         channels, antRuns, splitter, cableType, cableLen,
+        quantity,
+        unitChannelCounts: Array(quantity).fill(chPerUnit),
+        unitAntDist: Array(quantity).fill(null),
         muted: false
       };
       S.rackGroups.push(group);
@@ -4380,7 +4378,10 @@
       const m = RECV_MODELS[group.modelKey] || RECV_MODELS['shure_psm300'];
       const powers = m.txPowers;
       const hasCascade = !!m.cascadeOut;
-      if ((!powers || !powers.length) && !hasCascade) return;
+      const chOpts = (m.channelOptions && m.channelOptions.length) ? m.channelOptions : [m.chPerUnit || 1];
+      const hasChChoice = chOpts.length > 1;
+      const hasQuad = !!m.quadversity;
+      if ((!powers || !powers.length) && !hasCascade && !hasChChoice && !hasQuad) return;
       const picker = document.getElementById('powerPicker');
       let html = '';
       if (powers && powers.length) {
@@ -4388,6 +4389,19 @@
         html += `<div class="pp-title">TX Power · Unit ${unitIdx + 1}</div>` +
           powers.map(p => `<button class="${p === current ? 'active' : ''}"
             onclick="setUnitPower(${group.id},${unitIdx},${p})">${p} mW</button>`).join('');
+      }
+      if (hasChChoice) {
+        const curCh = (group.unitChannelCounts || [])[unitIdx] != null
+          ? group.unitChannelCounts[unitIdx] : m.chPerUnit;
+        html += `<div class="pp-title" style="margin-top:6px;">Channels · Unit ${unitIdx + 1}</div>` +
+          chOpts.map(n => `<button class="${n === curCh ? 'active' : ''}"
+            onclick="setUnitChannelCount(${group.id},${unitIdx},${n})">${n}</button>`).join('');
+      }
+      if (hasQuad) {
+        const cur = (group.unitAntDist || [])[unitIdx] || 'cascade';
+        html += `<div class="pp-title" style="margin-top:6px;">Antenna Distribution · Unit ${unitIdx + 1}</div>` +
+          `<button class="${cur === 'quadversity' ? 'active' : ''}" onclick="setUnitAntDist(${group.id},${unitIdx},'quadversity')">Quadversity</button>` +
+          `<button class="${cur === 'cascade' ? 'active' : ''}" onclick="setUnitAntDist(${group.id},${unitIdx},'cascade')">Cascade</button>`;
       }
       if (hasCascade) {
         const casOn = !!((group.unitCascades || [])[unitIdx]);
@@ -4417,6 +4431,50 @@
       _hidePowerPicker();
       drawRackCanvases();
       _refreshAllAntennasFromRack();
+    }
+
+    function setUnitChannelCount(groupId, unitIdx, n) {
+      const g = S.rackGroups.find(g => g.id === groupId);
+      if (!g) return;
+      const m = RECV_MODELS[g.modelKey];
+      if (!m) return;
+      const chPerUnit = m.chPerUnit || 1;
+      if (!g.unitChannelCounts) g.unitChannelCounts = Array(g.quantity || 1).fill(chPerUnit);
+      const prev = g.unitChannelCounts[unitIdx] != null ? g.unitChannelCounts[unitIdx] : chPerUnit;
+      if (prev === n) { _hidePowerPicker(); return; }
+      // Locate cumulative chStart for this unit
+      let chStart = 0;
+      for (let i = 0; i < unitIdx; i++) chStart += g.unitChannelCounts[i] != null ? g.unitChannelCounts[i] : chPerUnit;
+      // Build replacement channel entries (freq continues from where current run started)
+      const baseFreq = (g.channels[chStart] && g.channels[chStart].freq) || 606.0;
+      const freqStep = 0.25;
+      const newCh = [];
+      for (let i = 0; i < n; i++) {
+        newCh.push({
+          num: 0,
+          name: `Ch ${i + 1}`,
+          freq: parseFloat((baseFreq + i * freqStep).toFixed(3))
+        });
+      }
+      g.channels.splice(chStart, prev, ...newCh);
+      // Renumber all channels
+      g.channels.forEach((c, i) => { c.num = i + 1; if (!c.name) c.name = `Ch ${i + 1}`; });
+      g.unitChannelCounts[unitIdx] = n;
+      _hidePowerPicker();
+      updateRackDetailArea();
+      drawRackCanvases();
+      updateRackWiringCalc();
+      _refreshAllAntennasFromRack && _refreshAllAntennasFromRack();
+    }
+
+    function setUnitAntDist(groupId, unitIdx, mode) {
+      const g = S.rackGroups.find(g => g.id === groupId);
+      if (!g) return;
+      if (!g.unitAntDist) g.unitAntDist = [];
+      g.unitAntDist[unitIdx] = mode;
+      _hidePowerPicker();
+      drawRackCanvases();
+      renderConnDiagram && renderConnDiagram();
     }
 
     function setUnitCascade(groupId, unitIdx, on) {
@@ -5448,7 +5506,8 @@
 
       const m = RECV_MODELS[group.modelKey] || RECV_MODELS['shure_psm300'];
       const chPerUnit = m.chPerUnit;
-      const numUnits = Math.ceil(group.channels.length / chPerUnit);
+      const numUnits = group.quantity || Math.ceil(group.channels.length / chPerUnit);
+      const unitCounts = group.unitChannelCounts || Array(numUnits).fill(chPerUnit);
       const totalRU = numUnits + 2; // +1 antenna distro, +1 PSU
 
       const RU_H = 28;           // pixels per rack unit
@@ -5527,9 +5586,12 @@
       // --- Receiver modules ---
       let ruOffset = 1;
       let unitIdx = 0;
+      let chCursor = 0;
       while (unitIdx < numUnits) {
-        const chStart = unitIdx * chPerUnit;
-        const chEnd = Math.min(chStart + chPerUnit, group.channels.length);
+        const uCount = unitCounts[unitIdx] != null ? unitCounts[unitIdx] : chPerUnit;
+        const chStart = chCursor;
+        const chEnd = Math.min(chStart + uCount, group.channels.length);
+        chCursor = chEnd;
         const slotH = RU_H * m.ru;
         const modY = rackY + ruOffset * RU_H;
 
@@ -5549,7 +5611,7 @@
         // Model name
         ctx.fillStyle = '#ddd'; ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        const chNums = chPerUnit === 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
+        const chNums = (chEnd - chStart) <= 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
         ctx.fillText(`${m.name}  ${chNums}`, moduleX + 22, modY + slotH / 2);
 
         // Frequency + TX power + Cascade on right
