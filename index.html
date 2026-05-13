@@ -5602,49 +5602,31 @@
       // Store geometry for click handler
       _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru, recvRU0 };
 
-      // --- 1U: Antenna Distribution unit (only when splitter is set) ---
-      if (showAntDist) {
-        const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
-        const aduY = rackY;
-        const aduH = RU_H;
-        ctx.fillStyle = '#0a2a14';
-        ctx.fillRect(moduleX, aduY, moduleW, aduH);
-        ctx.strokeStyle = '#1a5a2a'; ctx.lineWidth = 1;
-        ctx.strokeRect(moduleX, aduY, moduleW, aduH);
-        ctx.fillStyle = '#20c060';
-        ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH / 2, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH / 2);
-        const cableLoss = (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
-        ctx.fillStyle = '#4a8a60'; ctx.font = '9px monospace';
-        ctx.textAlign = 'right';
-        const netLoss = sp.active ? -(sp.gain) : sp.loss;
-        ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
-      }
+      // --- Diagram-connected rows: order top→bottom = Antenna, Cable, Splitter ---
+      // (reading bottom→top: Sistemas, Splitter, Cable, Antenna)
+      let diagRU = 0;
 
-      // --- Diagram-connected rows (splitters, cables, antennas) ---
-      let diagRU = showAntDist ? 1 : 0;
-
-      for (const sNode of diagConn.splitters) {
-        const sp = SPLITTERS[sNode.splitterKey];
-        if (!sp) { diagRU++; continue; }
+      for (const aNode of diagConn.antennas) {
+        const am = ANT_MODELS[aNode.modelKey];
+        if (!am) { diagRU++; continue; }
         const rowY = rackY + diagRU * RU_H;
-        ctx.fillStyle = sp.active ? '#0a2218' : '#0f1a0f';
+        ctx.fillStyle = '#081a1a';
         ctx.fillRect(moduleX, rowY, moduleW, RU_H);
-        ctx.strokeStyle = sp.active ? '#1a6a35' : '#2a4a2a'; ctx.lineWidth = 1;
+        ctx.strokeStyle = '#1a5050'; ctx.lineWidth = 1;
         ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
-        // LED
-        ctx.fillStyle = sp.active ? '#20c060' : '#70a070';
-        ctx.beginPath(); ctx.arc(moduleX + 10, rowY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
-        // Label
-        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
+        // Antenna icon: V-shape with mast
+        const ax2 = moduleX + 15, ay2 = rowY + RU_H / 2;
+        ctx.strokeStyle = '#20c8c8'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2, ay2 - 4); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ax2, ay2 - 4); ctx.lineTo(ax2, ay2 - 11); ctx.stroke();
+        ctx.strokeStyle = '#306060'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
+        ctx.fillStyle = '#5de8e8'; ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(`SPLITTER  ${sp.name}`, moduleX + 22, rowY + RU_H / 2);
-        const lbl = sp.active ? `+${sp.gain} dB (active)` : `-${sp.loss} dB`;
-        ctx.fillStyle = sp.active ? '#40c880' : '#e8a040'; ctx.font = '9px monospace';
+        ctx.fillText(`ANTENNA  ${antModelName(aNode.modelKey)}`, moduleX + 30, rowY + RU_H / 2);
+        ctx.fillStyle = '#20c8c8'; ctx.font = '9px monospace';
         ctx.textAlign = 'right';
-        ctx.fillText(lbl, moduleX + moduleW - 6, rowY + RU_H / 2);
+        ctx.fillText(`${am.gain} dBi`, moduleX + moduleW - 6, rowY + RU_H / 2);
         diagRU++;
       }
 
@@ -5666,7 +5648,6 @@
         }
         ctx.lineTo(cx2 + 10, cy2);
         ctx.stroke();
-        // Label
         ctx.fillStyle = '#c8a840'; ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         ctx.fillText(`CABLE  ${cNode.cableType}`, moduleX + 32, rowY + RU_H / 2);
@@ -5676,29 +5657,45 @@
         diagRU++;
       }
 
-      for (const aNode of diagConn.antennas) {
-        const am = ANT_MODELS[aNode.modelKey];
-        if (!am) { diagRU++; continue; }
+      for (const sNode of diagConn.splitters) {
+        const sp = SPLITTERS[sNode.splitterKey];
+        if (!sp) { diagRU++; continue; }
         const rowY = rackY + diagRU * RU_H;
-        ctx.fillStyle = '#081a1a';
+        ctx.fillStyle = sp.active ? '#0a2218' : '#0f1a0f';
         ctx.fillRect(moduleX, rowY, moduleW, RU_H);
-        ctx.strokeStyle = '#1a5050'; ctx.lineWidth = 1;
+        ctx.strokeStyle = sp.active ? '#1a6a35' : '#2a4a2a'; ctx.lineWidth = 1;
         ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
-        // Antenna icon: V-shape with mast
-        const ax2 = moduleX + 15, ay2 = rowY + RU_H / 2;
-        ctx.strokeStyle = '#20c8c8'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2, ay2 - 4); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(ax2, ay2 - 4); ctx.lineTo(ax2, ay2 - 11); ctx.stroke();
-        ctx.strokeStyle = '#306060'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
-        // Label
-        ctx.fillStyle = '#5de8e8'; ctx.font = 'bold 9px monospace';
+        ctx.fillStyle = sp.active ? '#20c060' : '#70a070';
+        ctx.beginPath(); ctx.arc(moduleX + 10, rowY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(`ANTENNA  ${antModelName(aNode.modelKey)}`, moduleX + 30, rowY + RU_H / 2);
-        ctx.fillStyle = '#20c8c8'; ctx.font = '9px monospace';
+        ctx.fillText(`SPLITTER  ${sp.name}`, moduleX + 22, rowY + RU_H / 2);
+        const lbl = sp.active ? `+${sp.gain} dB (active)` : `-${sp.loss} dB`;
+        ctx.fillStyle = sp.active ? '#40c880' : '#e8a040'; ctx.font = '9px monospace';
         ctx.textAlign = 'right';
-        ctx.fillText(`${am.gain} dBi`, moduleX + moduleW - 6, rowY + RU_H / 2);
+        ctx.fillText(lbl, moduleX + moduleW - 6, rowY + RU_H / 2);
         diagRU++;
+      }
+
+      // --- ANT DIST row (Wiring form splitter, placed just above receivers) ---
+      if (showAntDist) {
+        const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
+        const aduY = rackY + diagRU * RU_H;
+        const aduH = RU_H;
+        ctx.fillStyle = '#0a2a14';
+        ctx.fillRect(moduleX, aduY, moduleW, aduH);
+        ctx.strokeStyle = '#1a5a2a'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, aduY, moduleW, aduH);
+        ctx.fillStyle = '#20c060';
+        ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH / 2, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH / 2);
+        const cableLoss = (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
+        ctx.fillStyle = '#4a8a60'; ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        const netLoss = sp.active ? -(sp.gain) : sp.loss;
+        ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
       }
 
       // --- Receiver modules ---
