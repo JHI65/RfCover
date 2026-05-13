@@ -5474,6 +5474,7 @@
     </svg>`;
       _refreshAllAntennasFromRack();
       updateAntList(); // keep left-panel antenna list in sync with diagram nodes
+      drawRackCanvases(); // refresh rack canvas with updated diagram connections
     }
 
     function removeConn(id) {
@@ -5498,6 +5499,38 @@
       drawConnDiagram(g);
     }
 
+    function getGroupDiagramConnected(groupId) {
+      const visited = new Set([`group_${groupId}`]);
+      const queue = [['group', groupId]];
+      const splitters = [], cables = [], antennas = [];
+      while (queue.length) {
+        const [eType, eId] = queue.shift();
+        for (const c of (S.rackConnections || []).filter(c => c.type === 'rf')) {
+          const ft = c.fromEntityType || 'group', fi = c.fromEntityId ?? c.fromGroupId;
+          const tt = c.toEntityType || 'group', ti = c.toEntityId ?? c.toGroupId;
+          let nextType, nextId;
+          if (ft === eType && fi === eId) { nextType = tt; nextId = ti; }
+          else if (tt === eType && ti === eId) { nextType = ft; nextId = fi; }
+          else continue;
+          const nk = `${nextType}_${nextId}`;
+          if (visited.has(nk)) continue;
+          visited.add(nk);
+          if (nextType === 'splitter') {
+            const n = (S.rfSplitterNodes || []).find(n => n.id === nextId);
+            if (n) splitters.push(n);
+          } else if (nextType === 'cable') {
+            const n = (S.rfCableNodes || []).find(n => n.id === nextId);
+            if (n) cables.push(n);
+          } else if (nextType === 'antenna') {
+            const n = (S.rfAntennaNodes || []).find(n => n.id === nextId);
+            if (n) antennas.push(n);
+          }
+          queue.push([nextType, nextId]);
+        }
+      }
+      return { splitters, cables, antennas };
+    }
+
     function drawRack(group) {
       const ctx = rackCtx;
       const W = rackCanvas.width, H = rackCanvas.height;
@@ -5510,8 +5543,12 @@
       const unitCounts = group.unitChannelCounts || Array(numUnits).fill(chPerUnit);
       const showAntDist = !!(group.splitter && group.splitter !== 'none');
       const showPSU = !!group.hasPSU;
-      const recvRU0 = showAntDist ? 1 : 0;
-      const totalRU = numUnits + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0);
+
+      const diagConn = getGroupDiagramConnected(group.id);
+      const diagRows = diagConn.splitters.length + diagConn.cables.length + diagConn.antennas.length;
+
+      const recvRU0 = (showAntDist ? 1 : 0) + diagRows;
+      const totalRU = numUnits + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0) + diagRows;
 
       const RU_H = 28;           // pixels per rack unit
       const rackW = Math.min(480, W - 90);
@@ -5584,6 +5621,84 @@
         ctx.textAlign = 'right';
         const netLoss = sp.active ? -(sp.gain) : sp.loss;
         ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
+      }
+
+      // --- Diagram-connected rows (splitters, cables, antennas) ---
+      let diagRU = showAntDist ? 1 : 0;
+
+      for (const sNode of diagConn.splitters) {
+        const sp = SPLITTERS[sNode.splitterKey];
+        if (!sp) { diagRU++; continue; }
+        const rowY = rackY + diagRU * RU_H;
+        ctx.fillStyle = sp.active ? '#0a2218' : '#0f1a0f';
+        ctx.fillRect(moduleX, rowY, moduleW, RU_H);
+        ctx.strokeStyle = sp.active ? '#1a6a35' : '#2a4a2a'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
+        // LED
+        ctx.fillStyle = sp.active ? '#20c060' : '#70a070';
+        ctx.beginPath(); ctx.arc(moduleX + 10, rowY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
+        // Label
+        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(`SPLITTER  ${sp.name}`, moduleX + 22, rowY + RU_H / 2);
+        const lbl = sp.active ? `+${sp.gain} dB (active)` : `-${sp.loss} dB`;
+        ctx.fillStyle = sp.active ? '#40c880' : '#e8a040'; ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(lbl, moduleX + moduleW - 6, rowY + RU_H / 2);
+        diagRU++;
+      }
+
+      for (const cNode of diagConn.cables) {
+        const rowY = rackY + diagRU * RU_H;
+        const loss = ((CABLE_LOSS_PER_M[cNode.cableType] || 0) * cNode.len).toFixed(1);
+        ctx.fillStyle = '#141410';
+        ctx.fillRect(moduleX, rowY, moduleW, RU_H);
+        ctx.strokeStyle = '#3a3820'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
+        // Cable coil icon
+        const cx2 = moduleX + 15, cy2 = rowY + RU_H / 2;
+        ctx.strokeStyle = '#a08040'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx2 - 10, cy2);
+        for (let i = 0; i < 4; i++) {
+          ctx.quadraticCurveTo(cx2 - 8 + i * 5, cy2 - 6, cx2 - 6 + i * 5, cy2);
+          ctx.quadraticCurveTo(cx2 - 4 + i * 5, cy2 + 6, cx2 - 2 + i * 5, cy2);
+        }
+        ctx.lineTo(cx2 + 10, cy2);
+        ctx.stroke();
+        // Label
+        ctx.fillStyle = '#c8a840'; ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(`CABLE  ${cNode.cableType}`, moduleX + 32, rowY + RU_H / 2);
+        ctx.fillStyle = '#c06060'; ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${cNode.len}m  |  −${loss} dB`, moduleX + moduleW - 6, rowY + RU_H / 2);
+        diagRU++;
+      }
+
+      for (const aNode of diagConn.antennas) {
+        const am = ANT_MODELS[aNode.modelKey];
+        if (!am) { diagRU++; continue; }
+        const rowY = rackY + diagRU * RU_H;
+        ctx.fillStyle = '#081a1a';
+        ctx.fillRect(moduleX, rowY, moduleW, RU_H);
+        ctx.strokeStyle = '#1a5050'; ctx.lineWidth = 1;
+        ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
+        // Antenna icon: V-shape with mast
+        const ax2 = moduleX + 15, ay2 = rowY + RU_H / 2;
+        ctx.strokeStyle = '#20c8c8'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2, ay2 - 4); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ax2, ay2 - 4); ctx.lineTo(ax2, ay2 - 11); ctx.stroke();
+        ctx.strokeStyle = '#306060'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ax2 - 8, ay2 + 6); ctx.lineTo(ax2 + 8, ay2 + 6); ctx.stroke();
+        // Label
+        ctx.fillStyle = '#5de8e8'; ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(`ANTENNA  ${antModelName(aNode.modelKey)}`, moduleX + 30, rowY + RU_H / 2);
+        ctx.fillStyle = '#20c8c8'; ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${am.gain} dBi`, moduleX + moduleW - 6, rowY + RU_H / 2);
+        diagRU++;
       }
 
       // --- Receiver modules ---
