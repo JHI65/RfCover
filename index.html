@@ -3381,15 +3381,15 @@
 
     const RECV_MODELS = {
       // Wisycom — IEM TX
-      'wisycom_mtk952_0w2_25k': { name: 'MTK952-0W2 [25k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_0w2_5k': { name: 'MTK952-0W2 [5k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_2w0_25k': { name: 'MTK952-2W0 [25k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk952_2w0_5k': { name: 'MTK952-2W0 [5k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk982_25k': { name: 'MTK982 [25k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
-      'wisycom_mtk982_5k': { name: 'MTK982 [5k]', ru: 1, chPerUnit: 1, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_0w2_25k': { name: 'MTK952-0W2 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_0w2_5k': { name: 'MTK952-0W2 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_2w0_25k': { name: 'MTK952-2W0 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk952_2w0_5k': { name: 'MTK952-2W0 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk982_25k': { name: 'MTK982 [25k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
+      'wisycom_mtk982_5k': { name: 'MTK982 [5k]', ru: 1, chPerUnit: 2, color: '#3a2a10', brand: 'Wisycom', type: 'IEM' },
       // Wisycom — MIC RX Rack
-      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 2, chPerUnit: 16, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
-      'wisycom_mrk16': { name: 'MRK16', ru: 2, chPerUnit: 16, color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16sca': { name: 'MRK16-SCA', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
+      'wisycom_mrk16': { name: 'MRK16', ru: 1, chPerUnit: 16, channelOptions: [4, 8, 12, 16], color: '#2a1a0a', brand: 'Wisycom', type: 'MIC' },
       // Wisycom — MIC RX Portable
       'wisycom_mcr54': { name: 'MCR54', ru: 1, chPerUnit: 4, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
       'wisycom_mcr54dual': { name: 'MCR54-DUAL', ru: 1, chPerUnit: 8, color: '#3a2a1a', brand: 'Wisycom', type: 'MIC' },
@@ -3430,16 +3430,16 @@
       'shure_pgxd4': { name: 'PGXD4 †', ru: 1, chPerUnit: 1, color: '#2a2a3a', brand: 'Shure', type: 'MIC' },
       // Sennheiser — IEM (actuales)
       'senn_ew_iem_g4': { name: 'EW IEM G4', ru: 1, chPerUnit: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 1, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_sr2050': { name: 'SR 2050 IEM', ru: 1, chPerUnit: 2, txPowers: [10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
       'senn_ewdx_iem': { name: 'EW-DX IEM TX', ru: 1, chPerUnit: 2, txPowers: [2, 10, 30, 50], color: '#1a3a2a', brand: 'Sennheiser', type: 'IEM' },
       'senn_xsw_iem': { name: 'XSW IEM', ru: 1, chPerUnit: 1, txPowers: [10, 50], color: '#2a3a1a', brand: 'Sennheiser', type: 'IEM' },
       // Sennheiser — IEM (descontinuados)
       'senn_ew_iem_g3': { name: 'EW IEM G3 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
       'senn_ew_iem_g2': { name: 'EW IEM G2 †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
-      'senn_sr2000_iem': { name: 'SR 2000 IEM †', ru: 1, chPerUnit: 1, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
+      'senn_sr2000_iem': { name: 'SR 2000 IEM †', ru: 1, chPerUnit: 2, color: '#1a2a1a', brand: 'Sennheiser', type: 'IEM' },
       // Sennheiser — MIC — Gama Alta (Digital 9000 / 6000 / 3000 / 2000)
       'senn_em9000': { name: 'EM 9000', ru: 1, chPerUnit: 2, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
-      'senn_em9046': { name: 'EM 9046', ru: 1, chPerUnit: 2, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_em9046': { name: 'EM 9046', ru: 4, chPerUnit: 8, color: '#0a1a2a', brand: 'Sennheiser', type: 'MIC' },
       'senn_em6000': { name: 'EM 6000', ru: 1, chPerUnit: 2, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
       'senn_em3731': { name: 'EM 3731', ru: 1, chPerUnit: 1, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
       'senn_em3731ii': { name: 'EM 3731-II', ru: 1, chPerUnit: 1, color: '#0a2a1a', brand: 'Sennheiser', type: 'MIC' },
@@ -3469,7 +3469,7 @@
       'senn_xsw1dual': { name: 'XSW 1 DUAL', ru: 1, chPerUnit: 2, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       'senn_xsw1': { name: 'XSW 1', ru: 1, chPerUnit: 1, color: '#2a3a1a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — Spectera
-      'senn_spectera': { name: 'Spectera', ru: 1, chPerUnit: 2, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
+      'senn_spectera': { name: 'Spectera Base Station', ru: 1, chPerUnit: 32, channelOptions: [8, 16, 32], color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sennheiser — MIC — AVX (DECT 1.9 GHz, plug-and-play)
       'senn_avx': { name: 'AVX MRX (AVX-835 SET)', ru: 1, chPerUnit: 1, color: '#1a2a3a', brand: 'Sennheiser', type: 'MIC' },
       // Sound Devices — Astral MIC Receivers
