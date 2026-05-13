@@ -5762,6 +5762,31 @@
         ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         ctx.fillText('PSU / Power Distribution', moduleX + 22, psuY + RU_H / 2);
       }
+
+      // --- Total chain loss summary (below rack frame) ---
+      if (diagRows > 0 || showAntDist) {
+        let chainLoss = 0;
+        for (const cNode of diagConn.cables)
+          chainLoss += (CABLE_LOSS_PER_M[cNode.cableType] || 0) * cNode.len;
+        for (const sNode of diagConn.splitters) {
+          const sp2 = SPLITTERS[sNode.splitterKey];
+          if (sp2) chainLoss += sp2.active ? -sp2.gain : sp2.loss;
+        }
+        if (showAntDist) {
+          const sp2 = SPLITTERS[group.splitter] || SPLITTERS['none'];
+          chainLoss += (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
+          chainLoss += sp2.active ? -sp2.gain : sp2.loss;
+        }
+        const summaryY = rackY + totalRU * RU_H + 10;
+        const lossColor = chainLoss > 10 ? '#c06060' : chainLoss > 5 ? '#e8a040' : '#6bc490';
+        const sign = chainLoss >= 0 ? '−' : '+';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(W / 2 - 100, summaryY - 1, 200, 16);
+        ctx.fillStyle = lossColor;
+        ctx.fillText(`CHAIN LOSS  ${sign}${Math.abs(chainLoss).toFixed(1)} dB`, W / 2, summaryY);
+      }
     }
 
     function drawConnDiagram(group) {
