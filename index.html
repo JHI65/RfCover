@@ -1944,65 +1944,7 @@
             <button class="rack-action-btn primary" onclick="addRackGroup()">+ Add Group</button>
           </div>
         </div>
-        <div class="r-sec">
-          <div class="r-hdr">Antenna Distribution</div>
-          <div class="rack-right-form">
-            <div class="pg">
-              <div class="pl"># Antenna Runs</div>
-              <select class="pi" id="rgAntRuns" style="font-size:10px;" onchange="updateRackWiringCalc()">
-                <option value="1">1 Run</option>
-                <option value="2">2 Runs</option>
-                <option value="4">4 Runs</option>
-              </select>
-            </div>
-            <div class="pg">
-              <div class="pl" id="splitterLabel">Splitter / Combiner</div>
-              <select class="pi" id="rgSplitter" style="font-size:10px;" onchange="updateRackWiringCalc()">
-                <option value="none">— None —</option>
-              </select>
-            </div>
-            <div class="pg">
-              <div class="pl">Cable Type</div>
-              <select class="pi" id="rgCableType" style="font-size:10px;" onchange="updateRackWiringCalc()">
-                <optgroup label="── RG Series ──">
-                  <option value="RG58">RG58 (0.20 dB/m)</option>
-                  <option value="RG8X">RG8X mini (0.10 dB/m)</option>
-                  <option value="RG8">RG8 / RG213 (0.08 dB/m)</option>
-                </optgroup>
-                <optgroup label="── LMR Series ──">
-                  <option value="LMR195">LMR-195 (0.064 dB/m)</option>
-                  <option value="LMR240">LMR-240 (0.040 dB/m)</option>
-                  <option value="LMR400" selected>LMR-400 (0.034 dB/m)</option>
-                  <option value="LMR600">LMR-600 (0.022 dB/m)</option>
-                  <option value="LMR900">LMR-900 (0.015 dB/m)</option>
-                </optgroup>
-                <optgroup label="── Ecoflex ──">
-                  <option value="ECO10">Ecoflex 10 (0.10 dB/m)</option>
-                  <option value="ECO15">Ecoflex 15 (0.065 dB/m)</option>
-                  <option value="ECO15P">Ecoflex 15 Plus (0.050 dB/m)</option>
-                </optgroup>
-                <optgroup label="── Belden ──">
-                  <option value="B9913">Belden 9913 (0.08 dB/m)</option>
-                </optgroup>
-                <optgroup label="── Messi &amp; Paoloni ──">
-                  <option value="MP_HF10">Hyperflex 10 .400&quot; (0.119 dB/m)</option>
-                  <option value="MP_HF13">Hyperflex 13 .500&quot; (0.090 dB/m)</option>
-                  <option value="MP_UF10">Ultraflex 10 .400&quot; (0.114 dB/m)</option>
-                  <option value="MP_EF10">Extraflex Bury 10 .400&quot; (0.114 dB/m)</option>
-                  <option value="MP_AB10">Airborne 10 .400&quot; (0.104 dB/m)</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="pg">
-              <div class="pl">Cable Length (m)</div>
-              <input class="pi" type="number" id="rgCableLen" value="10" min="0" max="500" step="0.5"
-                style="font-size:10px;" oninput="updateRackWiringCalc()">
-            </div>
-            <div class="loss-display" id="rackLossDisplay">
-              <span class="loss-val">Cable: - dB | Splitter: - dB | Total: - dB</span>
-            </div>
-          </div>
-        </div>
+
         <div class="r-sec">
           <div class="r-hdr">Tools</div>
           <div class="rack-right-form">
