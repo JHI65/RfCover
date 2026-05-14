@@ -4041,10 +4041,10 @@
       const isIEM = type === 'IEM';
       const allowedCats = isIEM ? ['c', 'b'] : ['s', 'b'];
 
-      // Update label
-      document.getElementById('splitterLabel').textContent = isIEM ? 'Combiner' : 'Splitter / Distro';
-
       const sel = document.getElementById('rgSplitter');
+      if (!sel) return;
+      const lbl = document.getElementById('splitterLabel');
+      if (lbl) lbl.textContent = isIEM ? 'Combiner' : 'Splitter / Distro';
       const curVal = sel.value;
 
       let html = '<option value="none">— None —</option>';
@@ -4259,9 +4259,24 @@
     }
 
     function updateRackWiringCalc() {
-      const cableType = document.getElementById('rgCableType').value;
-      const cableLen = parseFloat(document.getElementById('rgCableLen').value) || 0;
-      const splKey = document.getElementById('rgSplitter').value;
+      const cableTypeEl = document.getElementById('rgCableType');
+      const cableLenEl = document.getElementById('rgCableLen');
+      const splitterEl = document.getElementById('rgSplitter');
+      const lossDisplayEl = document.getElementById('rackLossDisplay');
+      if (!cableTypeEl || !cableLenEl || !splitterEl || !lossDisplayEl) {
+        if (S.selRackId) {
+          const g = S.rackGroups.find(g => g.id === S.selRackId);
+          if (g && document.getElementById('rgAntRuns')) {
+            g.antRuns = parseInt(document.getElementById('rgAntRuns').value) || 1;
+          }
+          if (S.rackDetailTab === 'wiring') updateRackDetailArea();
+          drawRackCanvases();
+        }
+        return;
+      }
+      const cableType = cableTypeEl.value;
+      const cableLen = parseFloat(cableLenEl.value) || 0;
+      const splKey = splitterEl.value;
       const sp = SPLITTERS[splKey] || SPLITTERS['none'];
       const cableLoss = (CABLE_LOSS_PER_M[cableType] || 0.05) * cableLen;
       const netSplitter = sp.active ? -sp.gain : sp.loss;
@@ -4276,7 +4291,8 @@
       if (S.selRackId) {
         const g = S.rackGroups.find(g => g.id === S.selRackId);
         if (g) {
-          g.antRuns = parseInt(document.getElementById('rgAntRuns').value) || 1;
+          const antRunsEl2 = document.getElementById('rgAntRuns');
+          if (antRunsEl2) g.antRuns = parseInt(antRunsEl2.value) || 1;
           g.splitter = splKey;
           g.cableType = cableType;
           g.cableLen = cableLen;
