@@ -5959,11 +5959,27 @@
       // Splitter/combiner drawn as its real hardware front panel
       function drawSplitterHW(spKey, rowY, rightLabel) {
         const sp = SPLITTERS[spKey] || SPLITTERS['none'];
-        const h = RU_H, x = moduleX, w = moduleW;
         const isSenn = spKey.startsWith('senn_');
         const isShure = spKey.startsWith('shure_');
         const isWisy = spKey.startsWith('wisycom_');
         const silver = isSenn && /asa/.test(spKey);
+
+        // Real chassis width: many combiners/distros are half-rack (9.5")
+        const halfRack = /^senn_|^shure_ua844|^shure_ua845|^shure_ua221|^shure_ua400|^shure_pa821|^rfv_distro4|^rfv_combine4|^passive_/.test(spKey);
+        const h = RU_H, x = moduleX;
+        const w = halfRack ? Math.floor(moduleW / 2) : moduleW;
+
+        // Blank filler panel covering the empty half
+        if (w < moduleW) {
+          ctx.fillStyle = '#101013';
+          ctx.fillRect(x + w, rowY, moduleW - w, h);
+          ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+          ctx.strokeRect(x + w, rowY, moduleW - w, h);
+          ctx.fillStyle = '#1e1e22';
+          for (const fx of [x + w + 12, moduleX + moduleW - 12]) {
+            ctx.beginPath(); ctx.arc(fx, rowY + h / 2, 2, 0, Math.PI * 2); ctx.fill();
+          }
+        }
 
         // Faceplate
         const pg = ctx.createLinearGradient(0, rowY, 0, rowY + h);
@@ -6001,8 +6017,8 @@
           ctx.fillStyle = '#20242e'; ctx.font = 'bold 6px Arial, sans-serif';
           ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText('S', x + 11, rowY + 7.8);
-          // vent louvres
-          const ventX0 = x + 55, ventN = Math.min(14, Math.floor((w * 0.4) / 9));
+          // vent louvres (fit between logo and DC LEDs)
+          const ventX0 = x + 55, ventN = Math.max(3, Math.min(14, Math.floor((w - 165) / 9)));
           for (let v = 0; v < ventN; v++) {
             ctx.fillStyle = '#07080c';
             const vx = ventX0 + v * 9;
