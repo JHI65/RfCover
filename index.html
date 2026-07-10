@@ -4839,6 +4839,24 @@
       const t = { omni: 'Omni', panel: 'Panel', lpda: 'LPDA', helix: 'Helix', dir: 'Yagi' }[m.type] || 'Dir';
       return `${t} ${m.gain}dBi${m.beamwidth < 360 ? ' ' + m.beamwidth + '°' : ''}`;
     }
+    function antModelBrand(key) {
+      if (key.startsWith('senn_')) return 'Sennheiser';
+      if (key.startsWith('shure_')) return 'Shure';
+      if (key.startsWith('wisycom_')) return 'Wisycom';
+      if (key.startsWith('sd_')) return 'Sound Devices';
+      return 'Genéricas';
+    }
+    function groupedAntOptionsHtml() {
+      const order = ['Genéricas', 'Shure', 'Sennheiser', 'Wisycom', 'Sound Devices'];
+      const byBrand = {};
+      Object.keys(ANT_MODELS).forEach(k => {
+        const b = antModelBrand(k);
+        (byBrand[b] = byBrand[b] || []).push(k);
+      });
+      return order.filter(b => byBrand[b]).map(b =>
+        `<optgroup label="${b}">${byBrand[b].map(k => `<option value="${k}">${antModelName(k)}</option>`).join('')}</optgroup>`
+      ).join('');
+    }
     function addRfAntennaNode(modelKey) {
       if (!ANT_MODELS[modelKey]) return;
       const ANT_BH = 22 + 64 + 20; // HDR + ANT_DRAW_H + ANT_FOOTER_H
@@ -5620,10 +5638,15 @@
       const totalH = maxY;
 
       // ── TOOLBAR ──────────────────────────────────────────────────────
-      const spOptions = Object.entries(SPLITTERS)
-        .filter(([, v]) => v.ways > 1)
-        .map(([k, v]) => `<option value="${k}">${v.name} (${v.ways}-way${v.active ? ' active' : ''})</option>`)
-        .join('');
+      const spOptions = SPLITTER_GROUPS.map(grp => {
+        const opts = grp.keys
+          .filter(k => SPLITTERS[k] && SPLITTERS[k].ways > 1)
+          .map(k => {
+            const v = SPLITTERS[k];
+            return `<option value="${k}">${v.name} (${v.ways}-way${v.active ? ' active' : ''})</option>`;
+          }).join('');
+        return opts ? `<optgroup label="${grp.label}">${opts}</optgroup>` : '';
+      }).join('');
 
       const SEP = `<span style="width:1px;height:14px;background:#444;display:inline-block;flex-shrink:0"></span>`;
 
@@ -5631,7 +5654,7 @@
     ${SEP}
     <span style="font-size:9px;color:#30b0a0;flex-shrink:0">Ant:</span>
     <select id="rfAntSelect" style="font-size:10px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:1px 3px;max-width:120px">
-      ${Object.entries(ANT_MODELS).map(([k]) => `<option value="${k}">${antModelName(k)}</option>`).join('')}
+      ${groupedAntOptionsHtml()}
     </select>
     <button class="rdc-mode-btn" style="flex-shrink:0;color:#30b0a0;border-color:#30b0a060"
       onclick="addRfAntennaNode(document.getElementById('rfAntSelect').value)">+ Add</button>
