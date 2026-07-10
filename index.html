@@ -5149,7 +5149,7 @@
       if (S.rdDrag) { S.rdDrag = null; renderConnDiagram(); }
     }
 
-    const RD_GRP_HDR = 34; // group node header height (name + type badge + brand/model subtitle)
+    const RD_GRP_HDR = 40; // group node header height (name + type badge + brand/model subtitle)
 
     function rdUpdateConns() {
       const BLOCK_W = 130, HDR = 22, PORT_SP = 16;
@@ -5435,13 +5435,13 @@
       <rect x="0" y="0" width="${BLOCK_W}" height="${RD_GRP_HDR}" rx="3"
         fill="${bc}" fill-opacity="0.5"
         data-drag="g_${g.id}" style="cursor:grab"/>
-      <text x="6" y="12" text-anchor="start" dominant-baseline="middle"
-        fill="#ddd" font-size="10" font-weight="bold" font-family="monospace"
+      <text x="7" y="15" text-anchor="start" dominant-baseline="middle"
+        fill="#ddd" font-size="12" font-weight="bold" font-family="monospace"
         data-drag="g_${g.id}" style="cursor:grab;user-select:none">${g.name}</text>
-      <text x="${BLOCK_W - 4}" y="12" text-anchor="end" dominant-baseline="middle"
-        fill="${S.connMode === 'rf' ? RF_COLOR : SIG_COLOR}" font-size="8" font-family="monospace">${g.type}</text>
-      <text x="${BLOCK_W / 2}" y="25" text-anchor="middle" dominant-baseline="middle"
-        fill="#aaa" font-size="7.5" font-family="monospace" style="user-select:none">${gSubtitle}</text>
+      <text x="${BLOCK_W - 5}" y="15" text-anchor="end" dominant-baseline="middle"
+        fill="${S.connMode === 'rf' ? RF_COLOR : SIG_COLOR}" font-size="9" font-family="monospace">${g.type}</text>
+      <text x="${BLOCK_W / 2}" y="30" text-anchor="middle" dominant-baseline="middle"
+        fill="#aaa" font-size="9" font-family="monospace" style="user-select:none">${gSubtitle}</text>
       ${ports}
     </g>`;
       });
