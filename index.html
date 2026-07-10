@@ -5149,6 +5149,8 @@
       if (S.rdDrag) { S.rdDrag = null; renderConnDiagram(); }
     }
 
+    const RD_GRP_HDR = 34; // group node header height (name + type badge + brand/model subtitle)
+
     function rdUpdateConns() {
       const BLOCK_W = 130, HDR = 22, PORT_SP = 16;
       const pp = S._portPos;
@@ -5197,7 +5199,7 @@
         if (m.type === 'MIC') {
           const rfInN = rfInCountOf(g);
           for (let i = 0; i < rfInN; i++, portIdx++) {
-            pp[key][`rf_in_${i}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+            pp[key][`rf_in_${i}`] = { x: g.x + BLOCK_W, y: g.y + RD_GRP_HDR + PORT_SP + portIdx * PORT_SP };
           }
           if (m.cascadeOut) {
             const nu = Math.ceil(g.channels.length / m.chPerUnit);
@@ -5205,22 +5207,22 @@
             for (let u = 0; u < nu; u++) {
               if (!cas[u]) continue;
               for (let r = 0; r < m.cascadeOut; r++, portIdx++) {
-                pp[key][`cas_out_${u}_${r}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+                pp[key][`cas_out_${u}_${r}`] = { x: g.x + BLOCK_W, y: g.y + RD_GRP_HDR + PORT_SP + portIdx * PORT_SP };
               }
             }
           }
         } else {
           const rfOutN = rfOutCountOf(g);
           for (let i = 0; i < rfOutN; i++, portIdx++) {
-            pp[key][`rf_out_${i}`] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + portIdx * PORT_SP };
+            pp[key][`rf_out_${i}`] = { x: g.x + BLOCK_W, y: g.y + RD_GRP_HDR + PORT_SP + portIdx * PORT_SP };
           }
         }
         // Signal OUT + XLR IN ports
         g.channels.forEach((ch, c) => {
           const rowIdx = xlrPerCh > 0 ? c * Math.max(xlrPerCh, 1) : c;
-          pp[key]['sig_out_' + c] = { x: g.x + BLOCK_W, y: g.y + HDR + PORT_SP + rowIdx * PORT_SP };
+          pp[key]['sig_out_' + c] = { x: g.x + BLOCK_W, y: g.y + RD_GRP_HDR + PORT_SP + rowIdx * PORT_SP };
           for (let x = 0; x < xlrPerCh; x++) {
-            pp[key][`xlr_in_${c}_${x}`] = { x: g.x, y: g.y + HDR + PORT_SP + (c * xlrPerCh + x) * PORT_SP };
+            pp[key][`xlr_in_${c}_${x}`] = { x: g.x, y: g.y + RD_GRP_HDR + PORT_SP + (c * xlrPerCh + x) * PORT_SP };
           }
         });
       });
@@ -5291,9 +5293,9 @@
       }
       function groupBlockH(g) {
         const m = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
-        if (S.connMode === 'rf') return HDR + Math.max(rfPortsOf(g), 1) * PORT_SP + 16;
+        if (S.connMode === 'rf') return RD_GRP_HDR + Math.max(rfPortsOf(g), 1) * PORT_SP + 16;
         const sigRows = Math.max(g.channels.length, xlrInPortsOf(g), 1);
-        return HDR + sigRows * PORT_SP + 16;
+        return RD_GRP_HDR + sigRows * PORT_SP + 16;
       }
       function splitterBlockH(node) {
         const sp = SPLITTERS[node.splitterKey] || SPLITTERS['none'];
@@ -5325,6 +5327,8 @@
         const bc = g.color || '#1a3a6a';
         const nu = numUnitsOf(g);
         const isPend = S.pendingPort?.entityType !== 'splitter' && S.pendingPort?.entityId === g.id;
+        const gModel = RECV_MODELS[g.modelKey] || RECV_MODELS['shure_psm300'];
+        const gSubtitle = [gModel.brand, gModel.name].filter(Boolean).join(' · ') || g.modelKey || '';
         let ports = '';
 
         if (S.connMode === 'rf') {
@@ -5334,7 +5338,7 @@
             // RF IN ports
             const rfInN = rfInCountOf(g);
             for (let i = 0; i < rfInN; i++, portIdx++) {
-              const py = HDR + PORT_SP + portIdx * PORT_SP;
+              const py = RD_GRP_HDR + PORT_SP + portIdx * PORT_SP;
               const pid = `rf_in_${i}`;
               S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
               const pp = isPend && S.pendingPort.portId === pid;
@@ -5352,7 +5356,7 @@
               for (let u = 0; u < nu; u++) {
                 if (!cas[u]) continue;
                 for (let r = 0; r < mRf.cascadeOut; r++, portIdx++) {
-                  const py = HDR + PORT_SP + portIdx * PORT_SP;
+                  const py = RD_GRP_HDR + PORT_SP + portIdx * PORT_SP;
                   const pid = `cas_out_${u}_${r}`;
                   S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
                   const pp = isPend && S.pendingPort.portId === pid;
@@ -5371,7 +5375,7 @@
             const rfPerCh = mRf.rfOutPerCh || 1;
             const useChLabel = typeof mRf.rfOut !== 'number' && rfPerCh >= 1;
             for (let i = 0; i < rfOutN; i++, portIdx++) {
-              const py = HDR + PORT_SP + portIdx * PORT_SP;
+              const py = RD_GRP_HDR + PORT_SP + portIdx * PORT_SP;
               const pid = `rf_out_${i}`;
               S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
               const pp = isPend && S.pendingPort.portId === pid;
@@ -5397,7 +5401,7 @@
             g.channels.forEach((ch, c) => {
               for (let x = 0; x < xlrPerCh; x++) {
                 const rowIdx = c * xlrPerCh + x;
-                const py = HDR + PORT_SP + rowIdx * PORT_SP;
+                const py = RD_GRP_HDR + PORT_SP + rowIdx * PORT_SP;
                 const pid = `xlr_in_${c}_${x}`;
                 S._portPos['g_' + g.id][pid] = { x: g.x, y: g.y + py };
                 const label = xlrPerCh > 1 ? `XLR${c + 1}${String.fromCharCode(76 + x)}` : `XLR${c + 1}`;
@@ -5411,7 +5415,7 @@
           // Signal OUT ports (right side)
           g.channels.forEach((ch, c) => {
             const rowIdx = xlrPerCh > 0 ? c * Math.max(xlrPerCh, 1) : c;
-            const py = HDR + PORT_SP + rowIdx * PORT_SP;
+            const py = RD_GRP_HDR + PORT_SP + rowIdx * PORT_SP;
             const pid = `sig_out_${c}`;
             S._portPos['g_' + g.id][pid] = { x: g.x + BLOCK_W, y: g.y + py };
             const pp = isPend && S.pendingPort.portId === pid;
@@ -5428,14 +5432,16 @@
     <g id="grpnode_${g.id}" transform="translate(${g.x},${g.y})" style="cursor:default">
       <rect x="0" y="0" width="${BLOCK_W}" height="${bh}" rx="3"
         fill="${bc}" fill-opacity="0.25" stroke="${bc}" stroke-opacity="0.6" stroke-width="1.5"/>
-      <rect x="0" y="0" width="${BLOCK_W}" height="${HDR}" rx="3"
+      <rect x="0" y="0" width="${BLOCK_W}" height="${RD_GRP_HDR}" rx="3"
         fill="${bc}" fill-opacity="0.5"
         data-drag="g_${g.id}" style="cursor:grab"/>
-      <text x="${BLOCK_W / 2}" y="${HDR / 2 + 1}" text-anchor="middle" dominant-baseline="middle"
+      <text x="6" y="12" text-anchor="start" dominant-baseline="middle"
         fill="#ddd" font-size="10" font-weight="bold" font-family="monospace"
         data-drag="g_${g.id}" style="cursor:grab;user-select:none">${g.name}</text>
-      <text x="${BLOCK_W - 4}" y="${HDR / 2 + 1}" text-anchor="end" dominant-baseline="middle"
+      <text x="${BLOCK_W - 4}" y="12" text-anchor="end" dominant-baseline="middle"
         fill="${S.connMode === 'rf' ? RF_COLOR : SIG_COLOR}" font-size="8" font-family="monospace">${g.type}</text>
+      <text x="${BLOCK_W / 2}" y="25" text-anchor="middle" dominant-baseline="middle"
+        fill="#aaa" font-size="7.5" font-family="monospace" style="user-select:none">${gSubtitle}</text>
       ${ports}
     </g>`;
       });
