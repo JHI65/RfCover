@@ -5755,6 +5755,56 @@
       return { splitters, cables, antennas };
     }
 
+    // Faceplate spec per model family — approximates each unit's real front panel
+    // disp.type: 'lcd' (backlit LCD) | 'oled' (white OLED) | 'tft' (color TFT w/ accent bar) | 'seg' (red 7-segment)
+    // btns: 'col' (4-button nav stack) | 'row' (3 round buttons) | 'none'
+    // knob: 'big' | 'small' | 'jog' | 'none'
+    function _fpSpec(k, m) {
+      if (k.startsWith('shure_')) {
+        const logo = { text: 'SHURE', color: '#f0f0f0', font: 'italic bold 9px Arial, sans-serif' };
+        if (/^shure_ad|^shure_adx/.test(k))
+          return { logo, panel: ['#2b2b2f', '#101012'], disp: { type: 'tft', bg: '#0a1018', ink: '#e8f2ff', accent: '#28a0e8' }, btns: 'row', knob: 'big' };
+        if (/^shure_psm(9|10)/.test(k))
+          return { logo, panel: ['#313135', '#0c0c0e'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
+        if (/^shure_psm[67]/.test(k))
+          return { logo, panel: ['#303034', '#0b0b0d'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'none', knob: 'small' };
+        if (/^shure_psm/.test(k))
+          return { logo, panel: ['#303034', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'small' };
+        if (/^shure_ulxd/.test(k))
+          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'row', knob: 'small' };
+        if (/^shure_qlxd/.test(k))
+          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'row', knob: 'small' };
+        if (/^shure_slxd/.test(k))
+          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'oled', bg: '#050507', ink: '#e8eaf0' }, btns: 'row', knob: 'small' };
+        if (/^shure_blx|^shure_pgxd/.test(k))
+          return { logo, panel: ['#2a2a2e', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'none' };
+        return { logo, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' }; // UR4…
+      }
+      if (k.startsWith('senn_')) {
+        const logo = { text: 'SENNHEISER', color: '#e8e8ec', font: 'bold 7.5px Arial, sans-serif' };
+        if (/spectera/.test(k))
+          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'tft', bg: '#081420', ink: '#d8ecff', accent: '#20b0f0' }, btns: 'row', knob: 'jog' };
+        if (/ewdx|ewd_/.test(k))
+          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'oled', bg: '#050507', ink: '#f0f2f6' }, btns: 'row', knob: 'jog' };
+        if (/9000|6000|3731|3732|2050|2000|avx/.test(k))
+          return { logo, panel: ['#26272b', '#0e0e10'], disp: { type: 'oled', bg: '#06070a', ink: '#dce4f0' }, btns: 'row', knob: 'jog' };
+        if (/g4/.test(k))
+          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'lcd', bg: '#0a0e14', ink: '#cfe0f8' }, btns: 'row', knob: 'jog' };
+        return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'lcd', bg: '#181004', ink: '#f0b028' }, btns: 'row', knob: 'jog' }; // G2/G3/XSW
+      }
+      if (k.startsWith('wisycom_')) {
+        const logo = { text: 'WISYCOM', color: '#f08020', font: 'bold 8.5px Arial, sans-serif' };
+        if (/mtk/.test(k))
+          return { logo, panel: ['#28282c', '#0b0b0d'], disp: { type: 'tft', bg: '#0c0e16', ink: '#f0f4fa', accent: '#f08020' }, btns: 'row', knob: 'small' };
+        return { logo, panel: ['#28282c', '#0b0b0d'], disp: { type: 'oled', bg: '#050608', ink: '#e8ecf4' }, btns: 'row', knob: 'small' };
+      }
+      if (k.startsWith('sd_')) {
+        const logo = { text: 'SOUND DEVICES', color: '#e8e8e8', font: 'bold 6.5px Arial, sans-serif' };
+        return { logo, panel: ['#242427', '#08080a'], disp: { type: 'tft', bg: '#0a1410', ink: '#e0f4e8', accent: '#28c860' }, btns: 'row', knob: 'big' };
+      }
+      return { logo: { text: (m.brand || 'RF').toUpperCase(), color: '#ececec', font: 'italic bold 9px Arial, sans-serif' }, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
+    }
+
     function drawRack(group) {
       const ctx = rackCtx;
       const W = rackCanvas.width, H = rackCanvas.height;
@@ -5934,17 +5984,18 @@
         const slotH = RU_H * m.ru;
         const modY = rackY + ruOffset * RU_H;
 
-        // ── Realistic hardware front panel ──
+        // ── Realistic hardware front panel (per-model look) ──
+        const fp = _fpSpec(group.modelKey || '', m);
         ctx.save();
         ctx.globalAlpha = group.muted ? 0.45 : 1;
 
-        // Brushed black metal faceplate
+        // Brushed metal faceplate in the model's tone
         const fpGrad = ctx.createLinearGradient(0, modY, 0, modY + slotH);
-        fpGrad.addColorStop(0, '#313135');
-        fpGrad.addColorStop(0.1, '#1d1d20');
-        fpGrad.addColorStop(0.5, '#151517');
-        fpGrad.addColorStop(0.9, '#1c1c1f');
-        fpGrad.addColorStop(1, '#050506');
+        fpGrad.addColorStop(0, fp.panel[0]);
+        fpGrad.addColorStop(0.12, fp.panel[1]);
+        fpGrad.addColorStop(0.5, fp.panel[1]);
+        fpGrad.addColorStop(0.9, fp.panel[1]);
+        fpGrad.addColorStop(1, '#040405');
         ctx.fillStyle = fpGrad;
         ctx.fillRect(moduleX, modY, moduleW, slotH);
         // brushed texture lines
@@ -5963,9 +6014,9 @@
 
         // Brand + model + channel range (silkscreen)
         const brandX = moduleX + 12;
-        ctx.fillStyle = '#ececec'; ctx.font = 'italic bold 9px Arial, sans-serif';
+        ctx.fillStyle = fp.logo.color; ctx.font = fp.logo.font;
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillText((m.brand || 'RF').toUpperCase(), brandX, modY + 13);
+        ctx.fillText(fp.logo.text, brandX, modY + 13);
         ctx.fillStyle = '#9a9aa0'; ctx.font = 'bold 7.5px monospace';
         ctx.fillText(m.name, brandX, modY + 22);
         const chNums = (chEnd - chStart) <= 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
@@ -5979,13 +6030,14 @@
         const casOn = !!((group.unitCascades || [])[unitIdx]);
         const cascadeLabel = m.cascadeOut ? (casOn ? 'CAS ▲' : 'cas ○') : '';
         const hasInfo = !!(powerLabel || cascadeLabel);
-        const ctlW = 52;
+        const ctlW = fp.knob === 'none' ? 30 : 52;
         const infoW = hasInfo ? 44 : 0;
         const dispX0 = moduleX + 78;
         const dispX1 = moduleX + moduleW - ctlW - infoW;
 
-        // Per-channel display clusters: blue RF LED + L/R meters + LCD
+        // Per-channel display clusters: blue RF LED + L/R meters + display + buttons
         const chSlice = group.channels.slice(chStart, chEnd);
+        const btnW = fp.btns === 'none' ? 0 : 10;
         const CLW = 98;
         const maxClusters = Math.max(1, Math.floor((dispX1 - dispX0) / CLW));
         const shownN = chSlice.length <= maxClusters ? chSlice.length
@@ -5997,7 +6049,7 @@
           // Blue RF LED
           ctx.fillStyle = group.muted ? '#26262c' : '#3a7cf0';
           ctx.beginPath(); ctx.arc(cx0 + 2.5, mtY + 2, 1.7, 0, Math.PI * 2); ctx.fill();
-          // LED meters: 2 columns (L/R) × 6 segments, top segment amber
+          // LED meters: 2 columns (L/R) × 6 segments, peak segment amber
           for (let col = 0; col < 2; col++) {
             for (let row = 0; row < 6; row++) {
               const lit = !group.muted && row >= 2;
@@ -6006,24 +6058,65 @@
               ctx.fillRect(cx0 + 7 + col * 5.5, mtY + row * 3.7, 3.4, 2.6);
             }
           }
-          // LCD window (backlit yellow-green)
-          const lcdX = cx0 + 22, lcdW = CLW - 27;
+          // Display window (style per model)
+          const lcdX = cx0 + 22, lcdW = CLW - 27 - btnW;
           const lcdY = modY + 4, lcdH = slotH - 9;
-          ctx.fillStyle = '#0a1100';
+          const d = fp.disp;
+          ctx.fillStyle = d.bg;
           ctx.fillRect(lcdX, lcdY, lcdW, lcdH);
           ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
           ctx.strokeRect(lcdX, lcdY, lcdW, lcdH);
-          ctx.strokeStyle = 'rgba(200,230,60,0.18)';
-          ctx.strokeRect(lcdX + 1, lcdY + 1, lcdW - 2, lcdH - 2);
-          // LCD text
-          const lcdInk = group.muted ? '#57621f' : '#cde23a';
-          ctx.fillStyle = lcdInk;
-          ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-          ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 12);
-          ctx.font = '5.5px monospace';
-          ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 12);
-          ctx.font = '6.5px monospace';
-          ctx.fillText(`G:01 Ch:${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 5);
+          const ink = group.muted ? 'rgba(150,160,150,0.35)' : d.ink;
+          if (d.type === 'tft') {
+            // colour TFT: accent header bar + white text
+            ctx.fillStyle = group.muted ? 'rgba(120,120,130,0.3)' : d.accent;
+            ctx.fillRect(lcdX + 1, lcdY + 1, lcdW - 2, 3);
+            ctx.fillStyle = ink;
+            ctx.font = 'bold 9.5px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 15);
+            ctx.font = '5.5px monospace';
+            ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 15);
+            ctx.fillStyle = group.muted ? ink : d.accent;
+            ctx.font = '6px monospace';
+            ctx.fillText(`CH ${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 4);
+          } else if (d.type === 'seg') {
+            // red 7-segment readout, digits only
+            ctx.fillStyle = ink;
+            ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + lcdW / 2, lcdY + lcdH / 2);
+          } else {
+            // lcd / oled: freq + G/Ch line
+            if (d.type === 'lcd') {
+              ctx.strokeStyle = 'rgba(200,230,120,0.15)';
+              ctx.strokeRect(lcdX + 1, lcdY + 1, lcdW - 2, lcdH - 2);
+            }
+            ctx.fillStyle = ink;
+            ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 12);
+            ctx.font = '5.5px monospace';
+            ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 12);
+            ctx.font = '6.5px monospace';
+            ctx.fillText(`G:01 Ch:${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 5);
+          }
+          // Buttons next to display
+          if (fp.btns === 'col') {
+            // 4-button nav stack (PSM1000 style)
+            for (let b = 0; b < 4; b++) {
+              const by = lcdY + 1 + b * (lcdH - 2) / 4;
+              ctx.fillStyle = '#222226';
+              ctx.fillRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
+              ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5;
+              ctx.strokeRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
+            }
+          } else if (fp.btns === 'row') {
+            // 3 round buttons
+            for (let b = 0; b < 3; b++) {
+              const by = lcdY + lcdH / 2 + (b - 1) * 8;
+              ctx.fillStyle = '#222226';
+              ctx.beginPath(); ctx.arc(lcdX + lcdW + 6, by, 2.6, 0, Math.PI * 2); ctx.fill();
+              ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5; ctx.stroke();
+            }
+          }
         }
         if (chSlice.length > shownN) {
           ctx.fillStyle = '#8a8a90'; ctx.font = 'bold 7px monospace';
@@ -6047,17 +6140,28 @@
           }
         }
 
-        // Control knob (metallic)
-        const knobCX = moduleX + moduleW - 36, knobCY = modY + slotH / 2;
-        const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, 9);
-        kg.addColorStop(0, '#6a6a70');
-        kg.addColorStop(0.5, '#2e2e32');
-        kg.addColorStop(1, '#0c0c0e');
-        ctx.fillStyle = kg;
-        ctx.beginPath(); ctx.arc(knobCX, knobCY, 8.5, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1; ctx.stroke();
-        ctx.strokeStyle = '#c8c8cc'; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(knobCX, knobCY - 3.5); ctx.lineTo(knobCX, knobCY - 7); ctx.stroke();
+        // Control knob (style per model)
+        if (fp.knob !== 'none') {
+          const knobCX = moduleX + moduleW - 36, knobCY = modY + slotH / 2;
+          const kr = fp.knob === 'big' ? 8.5 : fp.knob === 'jog' ? 7.5 : 6;
+          const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, kr + 0.5);
+          kg.addColorStop(0, '#6a6a70');
+          kg.addColorStop(0.5, '#2e2e32');
+          kg.addColorStop(1, '#0c0c0e');
+          ctx.fillStyle = kg;
+          ctx.beginPath(); ctx.arc(knobCX, knobCY, kr, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1; ctx.stroke();
+          if (fp.knob === 'jog') {
+            // Sennheiser-style jog wheel: outer ring + centre dot
+            ctx.strokeStyle = '#75757c'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(knobCX, knobCY, kr - 2.5, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = '#9a9aa2';
+            ctx.beginPath(); ctx.arc(knobCX, knobCY, 1.3, 0, Math.PI * 2); ctx.fill();
+          } else {
+            ctx.strokeStyle = '#c8c8cc'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(knobCX, knobCY - kr * 0.4); ctx.lineTo(knobCX, knobCY - kr * 0.85); ctx.stroke();
+          }
+        }
 
         // Power rocker switch
         const swX = moduleX + moduleW - 20, swY = modY + slotH / 2 - 9.5;
