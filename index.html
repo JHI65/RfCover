@@ -4553,10 +4553,13 @@
       const rect = rackCanvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) * (rackCanvas.width / rect.width);
       const my = (e.clientY - rect.top) * (rackCanvas.height / rect.height);
-      // Check if click is inside a receiver unit row
+      // Check if click is inside a receiver unit (half-rack units sit two per row)
+      const perRow = g.perRow || 1;
+      const colW = Math.floor(g.moduleW / perRow);
       for (let u = 0; u < g.numUnits; u++) {
-        const rowY = g.rackY + (g.recvRU0 + u) * g.RU_H;
-        if (mx >= g.moduleX && mx <= g.moduleX + g.moduleW &&
+        const rowY = g.rackY + (g.recvRU0 + Math.floor(u / perRow)) * g.RU_H;
+        const colX = g.moduleX + (u % perRow) * colW;
+        if (mx >= colX && mx <= colX + colW &&
             my >= rowY && my < rowY + g.RU_H * g.ru) {
           _showPowerPicker(g.group, u, e.clientX, e.clientY);
           return;
@@ -5838,8 +5841,13 @@
       const diagConn = getGroupDiagramConnected(group.id);
       const diagRows = diagConn.splitters.length + diagConn.cables.length + diagConn.antennas.length;
 
+      // Half-rack units mount two per row (side by side)
+      const fpG = _fpSpec(group.modelKey || '', m);
+      const perRow = (fpG.hw || 1) <= 0.5 ? 2 : 1;
+      const recvRows = Math.ceil(numUnits / perRow);
+
       const recvRU0 = (showAntDist ? 1 : 0) + diagRows;
-      const totalRU = numUnits + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0) + diagRows;
+      const totalRU = recvRows + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0) + diagRows;
 
       const RU_H = 36;           // pixels per rack unit
       const rackW = Math.min(560, W - 90);
@@ -5891,7 +5899,7 @@
       const moduleW = rackW - railW * 2 - 4;
 
       // Store geometry for click handler
-      _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru, recvRU0 };
+      _rackGeom = { group, rackX, rackY, moduleX, moduleW, RU_H, numUnits, ru: m.ru, recvRU0, perRow };
 
       // --- Diagram-connected rows: order top→bottom = Antenna, Cable, Splitter ---
       // (reading bottom→top: Sistemas, Splitter, Cable, Antenna)
@@ -5948,23 +5956,128 @@
         diagRU++;
       }
 
+      // Splitter/combiner drawn as its real hardware front panel
+      function drawSplitterHW(spKey, rowY, rightLabel) {
+        const sp = SPLITTERS[spKey] || SPLITTERS['none'];
+        const h = RU_H, x = moduleX, w = moduleW;
+        const isSenn = spKey.startsWith('senn_');
+        const isShure = spKey.startsWith('shure_');
+        const isWisy = spKey.startsWith('wisycom_');
+        const silver = isSenn && /asa/.test(spKey);
+
+        // Faceplate
+        const pg = ctx.createLinearGradient(0, rowY, 0, rowY + h);
+        if (silver) { pg.addColorStop(0, '#e2dfd6'); pg.addColorStop(1, '#c0bdb2'); }
+        else if (isSenn) { pg.addColorStop(0, '#2e3340'); pg.addColorStop(0.5, '#20242e'); pg.addColorStop(1, '#0c0e14'); }
+        else if (isWisy) { pg.addColorStop(0, '#2c2c30'); pg.addColorStop(0.5, '#1c1c20'); pg.addColorStop(1, '#0a0a0c'); }
+        else { pg.addColorStop(0, '#2e2e32'); pg.addColorStop(0.5, '#1a1a1d'); pg.addColorStop(1, '#08080a'); }
+        ctx.fillStyle = pg;
+        ctx.fillRect(x, rowY, w, h);
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+        ctx.strokeRect(x, rowY, w, h);
+        ctx.strokeStyle = silver ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.09)';
+        ctx.beginPath(); ctx.moveTo(x + 1, rowY + 1.5); ctx.lineTo(x + w - 1, rowY + 1.5); ctx.stroke();
+
+        if (silver) {
+          // ASA-style: silver + teal stripe + big power button
+          ctx.fillStyle = '#2f9a94';
+          ctx.fillRect(x + 1, rowY + h * 0.5, w - 2, h * 0.32);
+          ctx.fillStyle = '#141416'; ctx.fillRect(x + 7, rowY + 4, 9, 7.5);
+          ctx.fillStyle = '#f0f0ea'; ctx.font = 'bold 6px Arial, sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('S', x + 11.5, rowY + 8);
+          ctx.fillStyle = '#17171a'; ctx.font = 'bold 7px Arial, sans-serif';
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText('SENNHEISER', x + 19, rowY + 10);
+          ctx.fillStyle = '#3a3a3e'; ctx.font = '5px Arial, sans-serif';
+          ctx.fillText(sp.name.replace('Sennheiser ', '').toUpperCase(), x + 19, rowY + 16);
+          // big round power button on the stripe (right)
+          ctx.fillStyle = '#17171a';
+          ctx.beginPath(); ctx.arc(x + w - 18, rowY + h * 0.62, 7, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#4a4a50'; ctx.lineWidth = 1; ctx.stroke();
+        } else if (isSenn) {
+          // AC41-style: dark navy, S badge, vent louvres, DC LEDs, red power
+          ctx.fillStyle = '#e8e8ec'; ctx.fillRect(x + 7, rowY + 4, 8, 7);
+          ctx.fillStyle = '#20242e'; ctx.font = 'bold 6px Arial, sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('S', x + 11, rowY + 7.8);
+          // vent louvres
+          const ventX0 = x + 55, ventN = Math.min(14, Math.floor((w * 0.4) / 9));
+          for (let v = 0; v < ventN; v++) {
+            ctx.fillStyle = '#07080c';
+            const vx = ventX0 + v * 9;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(vx, rowY + 7, 3.5, h - 14, 2) : ctx.rect(vx, rowY + 7, 3.5, h - 14);
+            ctx.fill();
+          }
+          // DC LEDs 1-4 (yellow)
+          const dcX = x + w - 92;
+          ctx.font = '4.5px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+          for (let l = 0; l < Math.min(4, sp.ways); l++) {
+            const ly = rowY + 7 + l * ((h - 14) / 3.2);
+            ctx.fillStyle = '#e8c030';
+            ctx.beginPath(); ctx.arc(dcX, ly, 1.8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#8a8a92';
+            ctx.fillText(String(l + 1), dcX + 5, ly);
+          }
+          ctx.fillStyle = '#8a8a92'; ctx.font = '4.5px monospace';
+          ctx.fillText('DC', dcX - 2, rowY + 5);
+          // red round power button + green LED
+          ctx.fillStyle = '#17171a';
+          ctx.beginPath(); ctx.arc(x + w - 60, rowY + h / 2, 6.5, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#c02020'; ctx.lineWidth = 1.4; ctx.stroke();
+          ctx.strokeStyle = '#e04040'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(x + w - 60, rowY + h / 2 + 0.5, 2.6, -Math.PI * 0.34, Math.PI * 1.34); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x + w - 60, rowY + h / 2 - 3); ctx.lineTo(x + w - 60, rowY + h / 2 - 0.5); ctx.stroke();
+          ctx.fillStyle = '#35d24a';
+          ctx.beginPath(); ctx.arc(x + w - 42, rowY + h - 8, 1.8, 0, Math.PI * 2); ctx.fill();
+          // model + wordmark bottom-right
+          ctx.fillStyle = '#dcdce2'; ctx.font = 'bold 5.5px Arial, sans-serif';
+          ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(`${sp.name.replace('Sennheiser ', '')}  SENNHEISER`, x + w - 4, rowY + h - 5);
+        } else {
+          // Shure/Wisycom/generic: dark panel + brand + status LEDs
+          if (isShure) {
+            ctx.fillStyle = '#f0f0f0'; ctx.font = 'italic bold 8.5px Arial, sans-serif';
+          } else if (isWisy) {
+            ctx.fillStyle = '#f08020'; ctx.font = 'bold 8px Arial, sans-serif';
+          } else {
+            ctx.fillStyle = '#b8b8c0'; ctx.font = 'bold 7.5px Arial, sans-serif';
+          }
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(isShure ? 'SHURE' : isWisy ? 'WISYCOM' : 'RF', x + 10, rowY + 13);
+          ctx.fillStyle = '#9a9aa0'; ctx.font = 'bold 6.5px monospace';
+          ctx.fillText(sp.name.replace(/^(Shure|Wisycom|Sennheiser|AT|RF Venue|Lectrosonics|Glensound)\s*/i, ''), x + 10, rowY + 22);
+          ctx.fillStyle = '#63636a'; ctx.font = '6px monospace';
+          ctx.fillText(sp.active ? 'ACTIVE' : 'PASSIVE', x + 10, rowY + 30);
+          // per-output status LEDs
+          const ledN = Math.min(sp.ways, 8);
+          for (let l = 0; l < ledN; l++) {
+            ctx.fillStyle = sp.active ? '#35d24a' : '#3a4a3a';
+            ctx.beginPath(); ctx.arc(x + w * 0.42 + l * 10, rowY + h / 2, 2, 0, Math.PI * 2); ctx.fill();
+          }
+          // power rocker (active units)
+          if (sp.active) {
+            ctx.fillStyle = '#0a0a0c';
+            ctx.fillRect(x + w - 18, rowY + h / 2 - 8, 10, 16);
+            ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1;
+            ctx.strokeRect(x + w - 18, rowY + h / 2 - 8, 10, 16);
+          }
+        }
+
+        // dB / cable info label (right side, silkscreen)
+        ctx.fillStyle = silver ? '#3a3a3e' : (sp.active ? '#40c880' : '#e8a040');
+        ctx.font = 'bold 7px monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(rightLabel, x + w - (isSenn && !silver ? 100 : 30), rowY + 10);
+        ctx.textAlign = 'left';
+      }
+
       for (const sNode of diagConn.splitters) {
         const sp = SPLITTERS[sNode.splitterKey];
         if (!sp) { diagRU++; continue; }
         const rowY = rackY + diagRU * RU_H;
-        ctx.fillStyle = sp.active ? '#0a2218' : '#0f1a0f';
-        ctx.fillRect(moduleX, rowY, moduleW, RU_H);
-        ctx.strokeStyle = sp.active ? '#1a6a35' : '#2a4a2a'; ctx.lineWidth = 1;
-        ctx.strokeRect(moduleX, rowY, moduleW, RU_H);
-        ctx.fillStyle = sp.active ? '#20c060' : '#70a070';
-        ctx.beginPath(); ctx.arc(moduleX + 10, rowY + RU_H / 2, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(`SPLITTER  ${sp.name}`, moduleX + 22, rowY + RU_H / 2);
-        const lbl = sp.active ? `+${sp.gain} dB (active)` : `-${sp.loss} dB`;
-        ctx.fillStyle = sp.active ? '#40c880' : '#e8a040'; ctx.font = '9px monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(lbl, moduleX + moduleW - 6, rowY + RU_H / 2);
+        const lbl = sp.active ? `+${sp.gain} dB` : `-${sp.loss} dB`;
+        drawSplitterHW(sNode.splitterKey, rowY, lbl);
         diagRU++;
       }
 
@@ -5972,21 +6085,9 @@
       if (showAntDist) {
         const sp = SPLITTERS[group.splitter] || SPLITTERS['none'];
         const aduY = rackY + diagRU * RU_H;
-        const aduH = RU_H;
-        ctx.fillStyle = '#0a2a14';
-        ctx.fillRect(moduleX, aduY, moduleW, aduH);
-        ctx.strokeStyle = '#1a5a2a'; ctx.lineWidth = 1;
-        ctx.strokeRect(moduleX, aduY, moduleW, aduH);
-        ctx.fillStyle = '#20c060';
-        ctx.beginPath(); ctx.arc(moduleX + 10, aduY + aduH / 2, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#6de89a'; ctx.font = 'bold 9px monospace';
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(`ANT DIST  ${sp.name}`, moduleX + 22, aduY + aduH / 2);
-        const cableLoss = (CABLE_LOSS_PER_M[group.cableType] || 0.05) * group.cableLen;
-        ctx.fillStyle = '#4a8a60'; ctx.font = '9px monospace';
-        ctx.textAlign = 'right';
         const netLoss = sp.active ? -(sp.gain) : sp.loss;
-        ctx.fillText(`${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : ''}${Math.abs(netLoss).toFixed(1)}dB`, moduleX + moduleW - 6, aduY + aduH / 2);
+        const lbl = `${group.cableType} ${group.cableLen}m | ${netLoss >= 0 ? '-' : '+'}${Math.abs(netLoss).toFixed(1)}dB`;
+        drawSplitterHW(group.splitter, aduY, lbl);
       }
 
       // --- Receiver modules ---
@@ -6003,18 +6104,20 @@
 
         // ── Realistic hardware front panel (per-model look & width) ──
         const fp = _fpSpec(group.modelKey || '', m);
-        const unitW = Math.round(moduleW * (fp.hw || 1));
+        const col = unitIdx % perRow;
+        const uX = moduleX + col * Math.floor(moduleW / perRow);
+        const unitW = Math.floor(moduleW / perRow);
         ctx.save();
         ctx.globalAlpha = group.muted ? 0.45 : 1;
 
-        // Blank filler panel for half-rack units
-        if (unitW < moduleW - 4) {
+        // Blank filler panel when an odd half-rack unit leaves the right slot empty
+        if (perRow === 2 && col === 0 && unitIdx === numUnits - 1) {
           ctx.fillStyle = '#101013';
-          ctx.fillRect(moduleX + unitW, modY, moduleW - unitW, slotH);
+          ctx.fillRect(uX + unitW, modY, moduleW - unitW, slotH);
           ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-          ctx.strokeRect(moduleX + unitW, modY, moduleW - unitW, slotH);
+          ctx.strokeRect(uX + unitW, modY, moduleW - unitW, slotH);
           ctx.fillStyle = '#1e1e22';
-          for (const fx of [moduleX + unitW + 12, moduleX + moduleW - 12]) {
+          for (const fx of [uX + unitW + 12, moduleX + moduleW - 12]) {
             ctx.beginPath(); ctx.arc(fx, modY + slotH / 2, 2, 0, Math.PI * 2); ctx.fill();
           }
         }
@@ -6027,20 +6130,20 @@
         fpGrad.addColorStop(0.9, fp.panel[1]);
         fpGrad.addColorStop(1, '#040405');
         ctx.fillStyle = fpGrad;
-        ctx.fillRect(moduleX, modY, unitW, slotH);
+        ctx.fillRect(uX, modY, unitW, slotH);
         // brushed texture lines
         ctx.strokeStyle = fp.silver ? 'rgba(0,0,0,0.045)' : 'rgba(255,255,255,0.025)'; ctx.lineWidth = 0.5;
         for (let ly = modY + 3.5; ly < modY + slotH - 2; ly += 3) {
-          ctx.beginPath(); ctx.moveTo(moduleX + 2, ly); ctx.lineTo(moduleX + unitW - 2, ly); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(uX + 2, ly); ctx.lineTo(uX + unitW - 2, ly); ctx.stroke();
         }
         ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-        ctx.strokeRect(moduleX, modY, unitW, slotH);
+        ctx.strokeRect(uX, modY, unitW, slotH);
         ctx.strokeStyle = 'rgba(255,255,255,0.09)';
-        ctx.beginPath(); ctx.moveTo(moduleX + 1, modY + 1.5); ctx.lineTo(moduleX + unitW - 1, modY + 1.5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(uX + 1, modY + 1.5); ctx.lineTo(uX + unitW - 1, modY + 1.5); ctx.stroke();
 
         // Group colour tag (left edge stripe)
         ctx.fillStyle = group.color || m.color;
-        ctx.fillRect(moduleX + 1, modY + 2, 3, slotH - 4);
+        ctx.fillRect(uX + 1, modY + 2, 3, slotH - 4);
 
         // Shared per-unit state
         const power = (group.unitPowers || [])[unitIdx];
@@ -6059,56 +6162,56 @@
           if (fp.silver && fp.stripe) {
             const stY = modY + slotH * 0.44, stH = slotH * 0.32;
             ctx.fillStyle = fp.stripe;
-            ctx.fillRect(moduleX + 1, stY, unitW - 2, stH);
+            ctx.fillRect(uX + 1, stY, unitW - 2, stH);
             ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 0.5;
-            ctx.strokeRect(moduleX + 1, stY, unitW - 2, stH);
+            ctx.strokeRect(uX + 1, stY, unitW - 2, stH);
           }
 
           if (fp.silver) {
             // Black S-square + full SENNHEISER wordmark in dark ink (top-left)
             ctx.fillStyle = '#141416';
-            ctx.fillRect(moduleX + 7, modY + 3.5, 9, 7.5);
+            ctx.fillRect(uX + 7, modY + 3.5, 9, 7.5);
             ctx.fillStyle = '#f0f0ea'; ctx.font = 'bold 6px Arial, sans-serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('S', moduleX + 11.5, modY + 7.5);
+            ctx.fillText('S', uX + 11.5, modY + 7.5);
             ctx.fillStyle = '#17171a'; ctx.font = 'bold 7px Arial, sans-serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-            ctx.fillText('SENNHEISER', moduleX + 19, modY + 9.5);
+            ctx.fillText('SENNHEISER', uX + 19, modY + 9.5);
             ctx.fillStyle = '#4a4a4e'; ctx.font = '4.5px Arial, sans-serif';
-            ctx.fillText(isIEM ? 'STEREO TRANSMITTER' : 'TRUE DIVERSITY RECEIVER', moduleX + 19, modY + 15);
+            ctx.fillText(isIEM ? 'STEREO TRANSMITTER' : 'TRUE DIVERSITY RECEIVER', uX + 19, modY + 15);
             // model badge (top-right, like "ew 300 IEM G3")
             ctx.fillStyle = '#2a2a2e'; ctx.font = 'bold 5.5px Arial, sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText(m.name, moduleX + unitW - 26, modY + 9);
+            ctx.fillText(m.name, uX + unitW - 26, modY + 9);
             ctx.textAlign = 'left';
           } else {
             // "S" logo badge (top-left)
             ctx.fillStyle = '#e8e8ec';
-            ctx.fillRect(moduleX + 7, modY + 4, 8, 8);
+            ctx.fillRect(uX + 7, modY + 4, 8, 8);
             ctx.fillStyle = '#26272b'; ctx.font = 'bold 7px Arial, sans-serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('S', moduleX + 11, modY + 8.5);
+            ctx.fillText('S', uX + 11, modY + 8.5);
             // model name under logo
             ctx.fillStyle = '#c0c1c8'; ctx.font = 'bold 6px monospace';
             ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-            ctx.fillText(m.name, moduleX + 6, modY + slotH - 5);
+            ctx.fillText(m.name, uX + 6, modY + slotH - 5);
           }
 
-          let dispX = moduleX + 40;
+          let dispX = uX + 40;
           if (isIEM) {
             // Headphone jack + volume knob
             const jy = modY + slotH / 2 - 2;
             ctx.fillStyle = '#0a0a0c';
-            ctx.beginPath(); ctx.arc(moduleX + 26, jy, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(uX + 26, jy, 5, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1.2; ctx.stroke();
             ctx.strokeStyle = '#333338'; ctx.lineWidth = 0.8;
-            ctx.beginPath(); ctx.arc(moduleX + 26, jy, 2, 0, Math.PI * 2); ctx.stroke();
-            const vg = ctx.createRadialGradient(moduleX + 40 - 1, jy - 2, 0.5, moduleX + 40, jy, 5);
+            ctx.beginPath(); ctx.arc(uX + 26, jy, 2, 0, Math.PI * 2); ctx.stroke();
+            const vg = ctx.createRadialGradient(uX + 40 - 1, jy - 2, 0.5, uX + 40, jy, 5);
             vg.addColorStop(0, '#4a4a50'); vg.addColorStop(1, '#0e0e10');
             ctx.fillStyle = vg;
-            ctx.beginPath(); ctx.arc(moduleX + 40, jy, 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(uX + 40, jy, 4.5, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.8; ctx.stroke();
-            dispX = moduleX + 52;
+            dispX = uX + 52;
           }
           if (fp.silver) {
             // small "sync" button left of the display
@@ -6119,9 +6222,9 @@
           }
 
           // Right-side controls: jog wheel, ESC/SYNC, power button
-          const pwrCX = moduleX + unitW - 13, pwrCY = modY + slotH / 2;
-          const btnCX = moduleX + unitW - 30;
-          const jogCX = moduleX + unitW - 48, jogCY = modY + slotH / 2;
+          const pwrCX = uX + unitW - 13, pwrCY = modY + slotH / 2;
+          const btnCX = uX + unitW - 30;
+          const jogCX = uX + unitW - 48, jogCY = modY + slotH / 2;
           const dispX1u = jogCX - 12;
 
           // Display(s) — white-on-black with integrated PEAK meters
@@ -6210,14 +6313,14 @@
           if (!fp.silver) {
             ctx.fillStyle = '#dcdce2'; ctx.font = 'bold 5.5px Arial, sans-serif';
             ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-            ctx.fillText('SENNHEISER', moduleX + unitW - 24, modY + slotH - 4);
+            ctx.fillText('SENNHEISER', uX + unitW - 24, modY + slotH - 4);
           }
 
         } else {
           // ═══ Standard layout (Shure/Wisycom/SD): silkscreen + clusters + knob + rocker ═══
 
           // Brand + model + channel range (silkscreen)
-          const brandX = moduleX + 12;
+          const brandX = uX + 12;
           ctx.fillStyle = fp.logo.color; ctx.font = fp.logo.font;
           ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
           ctx.fillText(fp.logo.text, brandX, modY + 13);
@@ -6231,8 +6334,8 @@
           const hasInfo = !!(powerLabel || cascadeLabel);
           const ctlW = fp.knob === 'none' ? 30 : 52;
           const infoW = hasInfo ? 44 : 0;
-          const dispX0 = moduleX + 78;
-          const dispX1 = moduleX + unitW - ctlW - infoW;
+          const dispX0 = uX + 78;
+          const dispX1 = uX + unitW - ctlW - infoW;
 
           // Per-channel display clusters: blue RF LED + L/R meters + display + buttons
           const btnW = fp.btns === 'none' ? 0 : 10;
@@ -6340,7 +6443,7 @@
 
           // Control knob (style per model)
           if (fp.knob !== 'none') {
-            const knobCX = moduleX + unitW - 36, knobCY = modY + slotH / 2;
+            const knobCX = uX + unitW - 36, knobCY = modY + slotH / 2;
             const kr = fp.knob === 'big' ? 8.5 : 6;
             const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, kr + 0.5);
             kg.addColorStop(0, '#6a6a70');
@@ -6354,7 +6457,7 @@
           }
 
           // Power rocker switch
-          const swX = moduleX + unitW - 20, swY = modY + slotH / 2 - 9.5;
+          const swX = uX + unitW - 20, swY = modY + slotH / 2 - 9.5;
           ctx.fillStyle = '#0a0a0c';
           ctx.fillRect(swX, swY, 12, 19);
           ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1;
@@ -6365,12 +6468,12 @@
 
           // Status LED (top-right corner)
           ctx.fillStyle = group.muted ? '#d03030' : '#35d24a';
-          ctx.beginPath(); ctx.arc(moduleX + unitW - 7, modY + 6, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(uX + unitW - 7, modY + 6, 2, 0, Math.PI * 2); ctx.fill();
         }
 
         ctx.restore();
 
-        ruOffset++;
+        if (col === perRow - 1 || unitIdx === numUnits - 1) ruOffset++;
         unitIdx++;
       }
 
