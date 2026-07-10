@@ -5774,8 +5774,8 @@
       const recvRU0 = (showAntDist ? 1 : 0) + diagRows;
       const totalRU = numUnits + (showAntDist ? 1 : 0) + (showPSU ? 1 : 0) + diagRows;
 
-      const RU_H = 28;           // pixels per rack unit
-      const rackW = Math.min(480, W - 90);
+      const RU_H = 36;           // pixels per rack unit
+      const rackW = Math.min(560, W - 90);
       const rackH = totalRU * RU_H + 10;
       const rackX = Math.max(55, (W - rackW) / 2);
       const rackY = Math.max(35, (H - rackH) / 2);
@@ -5934,40 +5934,146 @@
         const slotH = RU_H * m.ru;
         const modY = rackY + ruOffset * RU_H;
 
-        // Module background — use group color tinted
-        ctx.fillStyle = group.color || m.color;
-        ctx.globalAlpha = group.muted ? 0.3 : 0.85;
+        // ── Realistic hardware front panel ──
+        ctx.save();
+        ctx.globalAlpha = group.muted ? 0.45 : 1;
+
+        // Brushed black metal faceplate
+        const fpGrad = ctx.createLinearGradient(0, modY, 0, modY + slotH);
+        fpGrad.addColorStop(0, '#313135');
+        fpGrad.addColorStop(0.1, '#1d1d20');
+        fpGrad.addColorStop(0.5, '#151517');
+        fpGrad.addColorStop(0.9, '#1c1c1f');
+        fpGrad.addColorStop(1, '#050506');
+        ctx.fillStyle = fpGrad;
         ctx.fillRect(moduleX, modY, moduleW, slotH);
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
+        // brushed texture lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 0.5;
+        for (let ly = modY + 3.5; ly < modY + slotH - 2; ly += 3) {
+          ctx.beginPath(); ctx.moveTo(moduleX + 2, ly); ctx.lineTo(moduleX + moduleW - 2, ly); ctx.stroke();
+        }
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
         ctx.strokeRect(moduleX, modY, moduleW, slotH);
+        ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+        ctx.beginPath(); ctx.moveTo(moduleX + 1, modY + 1.5); ctx.lineTo(moduleX + moduleW - 1, modY + 1.5); ctx.stroke();
 
-        // LED
-        const ledColor = group.muted ? '#c03030' : '#30c060';
-        ctx.fillStyle = ledColor;
-        ctx.beginPath(); ctx.arc(moduleX + 10, modY + slotH / 2, 4, 0, Math.PI * 2); ctx.fill();
+        // Group colour tag (left edge stripe)
+        ctx.fillStyle = group.color || m.color;
+        ctx.fillRect(moduleX + 1, modY + 2, 3, slotH - 4);
 
-        // Model name
-        ctx.fillStyle = '#ddd'; ctx.font = 'bold 9px monospace';
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        // Brand + model + channel range (silkscreen)
+        const brandX = moduleX + 12;
+        ctx.fillStyle = '#ececec'; ctx.font = 'italic bold 9px Arial, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText((m.brand || 'RF').toUpperCase(), brandX, modY + 13);
+        ctx.fillStyle = '#9a9aa0'; ctx.font = 'bold 7.5px monospace';
+        ctx.fillText(m.name, brandX, modY + 22);
         const chNums = (chEnd - chStart) <= 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
-        ctx.fillText(`${m.name}  ${chNums}`, moduleX + 22, modY + slotH / 2);
+        ctx.fillStyle = '#63636a'; ctx.font = '6.5px monospace';
+        ctx.fillText(chNums, brandX, modY + 30);
 
-        // Frequency + TX power + Cascade on right
+        // Layout zones: displays | info (mW/CAS) | controls (knob+switch)
         const power = (group.unitPowers || [])[unitIdx];
         const hasPowers = m.txPowers && m.txPowers.length;
-        const powerLabel = hasPowers ? (power != null ? `${power}mW` : '— mW') : '';
+        const powerLabel = hasPowers ? (power != null ? `${power} mW` : '— mW') : '';
         const casOn = !!((group.unitCascades || [])[unitIdx]);
-        const cascadeLabel = m.cascadeOut ? (casOn ? `CAS▲` : `cas○`) : '';
+        const cascadeLabel = m.cascadeOut ? (casOn ? 'CAS ▲' : 'cas ○') : '';
+        const hasInfo = !!(powerLabel || cascadeLabel);
+        const ctlW = 52;
+        const infoW = hasInfo ? 44 : 0;
+        const dispX0 = moduleX + 78;
+        const dispX1 = moduleX + moduleW - ctlW - infoW;
+
+        // Per-channel display clusters: blue RF LED + L/R meters + LCD
         const chSlice = group.channels.slice(chStart, chEnd);
-        const freqLabels = chSlice.length > 4
-          ? chSlice.slice(0, 4).map(c => c.freq.toFixed(3)).join(' / ') + ' / … (' + chSlice.length + ' ch)'
-          : chSlice.map(c => c.freq.toFixed(3) + ' MHz').join(' / ');
-        const parts = [powerLabel, cascadeLabel, freqLabels].filter(Boolean);
-        const rightLabel = parts.join('  |  ');
-        ctx.fillStyle = (power != null || casOn) ? '#e8c040' : 'rgba(200,220,255,0.4)';
-        ctx.font = '9px monospace'; ctx.textAlign = 'right';
-        ctx.fillText(rightLabel, moduleX + moduleW - 6, modY + slotH / 2);
+        const CLW = 98;
+        const maxClusters = Math.max(1, Math.floor((dispX1 - dispX0) / CLW));
+        const shownN = chSlice.length <= maxClusters ? chSlice.length
+          : Math.max(1, Math.floor((dispX1 - dispX0 - 24) / CLW));
+        for (let ci = 0; ci < shownN; ci++) {
+          const c = chSlice[ci];
+          const cx0 = dispX0 + ci * CLW;
+          const meterH = 22, mtY = modY + (slotH - meterH) / 2;
+          // Blue RF LED
+          ctx.fillStyle = group.muted ? '#26262c' : '#3a7cf0';
+          ctx.beginPath(); ctx.arc(cx0 + 2.5, mtY + 2, 1.7, 0, Math.PI * 2); ctx.fill();
+          // LED meters: 2 columns (L/R) × 6 segments, top segment amber
+          for (let col = 0; col < 2; col++) {
+            for (let row = 0; row < 6; row++) {
+              const lit = !group.muted && row >= 2;
+              ctx.fillStyle = lit ? (row === 2 ? '#e8c040' : '#35d24a')
+                : (row === 0 ? '#3a2e14' : '#16301a');
+              ctx.fillRect(cx0 + 7 + col * 5.5, mtY + row * 3.7, 3.4, 2.6);
+            }
+          }
+          // LCD window (backlit yellow-green)
+          const lcdX = cx0 + 22, lcdW = CLW - 27;
+          const lcdY = modY + 4, lcdH = slotH - 9;
+          ctx.fillStyle = '#0a1100';
+          ctx.fillRect(lcdX, lcdY, lcdW, lcdH);
+          ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+          ctx.strokeRect(lcdX, lcdY, lcdW, lcdH);
+          ctx.strokeStyle = 'rgba(200,230,60,0.18)';
+          ctx.strokeRect(lcdX + 1, lcdY + 1, lcdW - 2, lcdH - 2);
+          // LCD text
+          const lcdInk = group.muted ? '#57621f' : '#cde23a';
+          ctx.fillStyle = lcdInk;
+          ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 12);
+          ctx.font = '5.5px monospace';
+          ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 12);
+          ctx.font = '6.5px monospace';
+          ctx.fillText(`G:01 Ch:${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 5);
+        }
+        if (chSlice.length > shownN) {
+          ctx.fillStyle = '#8a8a90'; ctx.font = 'bold 7px monospace';
+          ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+          ctx.fillText(`+${chSlice.length - shownN}ch`, dispX0 + shownN * CLW + 3, modY + slotH / 2);
+        }
+
+        // Info column (TX power / cascade)
+        if (hasInfo) {
+          const ix = dispX1 + infoW - 6;
+          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          if (powerLabel) {
+            ctx.fillStyle = power != null ? '#e8c040' : '#77772f';
+            ctx.font = 'bold 7.5px monospace';
+            ctx.fillText(powerLabel, ix, modY + (cascadeLabel ? 12 : slotH / 2));
+          }
+          if (cascadeLabel) {
+            ctx.fillStyle = casOn ? '#e8c040' : '#5a5a60';
+            ctx.font = '7px monospace';
+            ctx.fillText(cascadeLabel, ix, powerLabel ? modY + slotH - 11 : modY + slotH / 2);
+          }
+        }
+
+        // Control knob (metallic)
+        const knobCX = moduleX + moduleW - 36, knobCY = modY + slotH / 2;
+        const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, 9);
+        kg.addColorStop(0, '#6a6a70');
+        kg.addColorStop(0.5, '#2e2e32');
+        kg.addColorStop(1, '#0c0c0e');
+        ctx.fillStyle = kg;
+        ctx.beginPath(); ctx.arc(knobCX, knobCY, 8.5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.strokeStyle = '#c8c8cc'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(knobCX, knobCY - 3.5); ctx.lineTo(knobCX, knobCY - 7); ctx.stroke();
+
+        // Power rocker switch
+        const swX = moduleX + moduleW - 20, swY = modY + slotH / 2 - 9.5;
+        ctx.fillStyle = '#0a0a0c';
+        ctx.fillRect(swX, swY, 12, 19);
+        ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1;
+        ctx.strokeRect(swX, swY, 12, 19);
+        ctx.strokeStyle = '#b0b0b6'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(swX + 6, swY + 3.5); ctx.lineTo(swX + 6, swY + 7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(swX + 6, swY + 13, 2.6, 0, Math.PI * 2); ctx.stroke();
+
+        // Status LED (top-right corner)
+        ctx.fillStyle = group.muted ? '#d03030' : '#35d24a';
+        ctx.beginPath(); ctx.arc(moduleX + moduleW - 7, modY + 6, 2, 0, Math.PI * 2); ctx.fill();
+
+        ctx.restore();
 
         ruOffset++;
         unitIdx++;
