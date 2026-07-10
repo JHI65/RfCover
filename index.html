@@ -5799,9 +5799,13 @@
           return { ...base, hw: 0.5, disp: { type: 'oled', bg: '#050507', ink: '#f0f2f6' } };
         if (/avx/.test(k))
           return { ...base, hw: 0.5, disp: { type: 'oled', bg: '#06070a', ink: '#dce4f0' } };
+        if (/g3|g2/.test(k))
+          return { ...base, hw: 0.5, silver: true, stripe: '#2f9a94', ring: '#b48cb4',
+            panel: ['#e2dfd6', '#c8c5ba'],
+            disp: { type: 'lcd', bg: '#b06818', ink: '#241505' } }; // silver + teal stripe + amber LCD
         if (/g4/.test(k))
           return { ...base, hw: 0.5, disp: { type: 'lcd', bg: '#0a0b0e', ink: '#eef1f6' } };
-        return { ...base, hw: 0.5, disp: { type: 'lcd', bg: '#100c04', ink: '#f0b028' } }; // G2/G3/XSW
+        return { ...base, hw: 0.5, disp: { type: 'lcd', bg: '#100c04', ink: '#f0b028' } }; // XSW
       }
       if (k.startsWith('wisycom_')) {
         const logo = { text: 'WISYCOM', color: '#f08020', font: 'bold 8.5px Arial, sans-serif' };
@@ -6025,7 +6029,7 @@
         ctx.fillStyle = fpGrad;
         ctx.fillRect(moduleX, modY, unitW, slotH);
         // brushed texture lines
-        ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 0.5;
+        ctx.strokeStyle = fp.silver ? 'rgba(0,0,0,0.045)' : 'rgba(255,255,255,0.025)'; ctx.lineWidth = 0.5;
         for (let ly = modY + 3.5; ly < modY + slotH - 2; ly += 3) {
           ctx.beginPath(); ctx.moveTo(moduleX + 2, ly); ctx.lineTo(moduleX + unitW - 2, ly); ctx.stroke();
         }
@@ -6051,16 +6055,44 @@
           //     integrated PEAK meters, jog wheel, ESC/SYNC, round power ═══
           const isIEM = m.type === 'IEM';
 
-          // "S" logo badge (top-left)
-          ctx.fillStyle = '#e8e8ec';
-          ctx.fillRect(moduleX + 7, modY + 4, 8, 8);
-          ctx.fillStyle = '#26272b'; ctx.font = 'bold 7px Arial, sans-serif';
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText('S', moduleX + 11, modY + 8.5);
-          // model name under logo
-          ctx.fillStyle = '#c0c1c8'; ctx.font = 'bold 6px monospace';
-          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-          ctx.fillText(m.name, moduleX + 6, modY + slotH - 5);
+          // Teal stripe across the panel (G2/G3 silver era)
+          if (fp.silver && fp.stripe) {
+            const stY = modY + slotH * 0.44, stH = slotH * 0.32;
+            ctx.fillStyle = fp.stripe;
+            ctx.fillRect(moduleX + 1, stY, unitW - 2, stH);
+            ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 0.5;
+            ctx.strokeRect(moduleX + 1, stY, unitW - 2, stH);
+          }
+
+          if (fp.silver) {
+            // Black S-square + full SENNHEISER wordmark in dark ink (top-left)
+            ctx.fillStyle = '#141416';
+            ctx.fillRect(moduleX + 7, modY + 3.5, 9, 7.5);
+            ctx.fillStyle = '#f0f0ea'; ctx.font = 'bold 6px Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('S', moduleX + 11.5, modY + 7.5);
+            ctx.fillStyle = '#17171a'; ctx.font = 'bold 7px Arial, sans-serif';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText('SENNHEISER', moduleX + 19, modY + 9.5);
+            ctx.fillStyle = '#4a4a4e'; ctx.font = '4.5px Arial, sans-serif';
+            ctx.fillText(isIEM ? 'STEREO TRANSMITTER' : 'TRUE DIVERSITY RECEIVER', moduleX + 19, modY + 15);
+            // model badge (top-right, like "ew 300 IEM G3")
+            ctx.fillStyle = '#2a2a2e'; ctx.font = 'bold 5.5px Arial, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(m.name, moduleX + unitW - 26, modY + 9);
+            ctx.textAlign = 'left';
+          } else {
+            // "S" logo badge (top-left)
+            ctx.fillStyle = '#e8e8ec';
+            ctx.fillRect(moduleX + 7, modY + 4, 8, 8);
+            ctx.fillStyle = '#26272b'; ctx.font = 'bold 7px Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('S', moduleX + 11, modY + 8.5);
+            // model name under logo
+            ctx.fillStyle = '#c0c1c8'; ctx.font = 'bold 6px monospace';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText(m.name, moduleX + 6, modY + slotH - 5);
+          }
 
           let dispX = moduleX + 40;
           if (isIEM) {
@@ -6077,6 +6109,13 @@
             ctx.beginPath(); ctx.arc(moduleX + 40, jy, 4.5, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.8; ctx.stroke();
             dispX = moduleX + 52;
+          }
+          if (fp.silver) {
+            // small "sync" button left of the display
+            dispX += 6;
+            ctx.fillStyle = '#101013';
+            ctx.beginPath(); ctx.arc(dispX - 8, modY + slotH / 2, 2.8, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = fp.ring; ctx.lineWidth = 1; ctx.stroke();
           }
 
           // Right-side controls: jog wheel, ESC/SYNC, power button
@@ -6097,7 +6136,9 @@
             ctx.fillRect(dx, dy, dW, dh);
             ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
             ctx.strokeRect(dx, dy, dW, dh);
-            const ink = group.muted ? 'rgba(180,190,200,0.3)' : d.ink;
+            const ink = group.muted
+              ? (fp.silver ? 'rgba(60,50,40,0.35)' : 'rgba(180,190,200,0.3)')
+              : d.ink;
             if (d.type === 'tft' && !group.muted) {
               ctx.fillStyle = d.accent;
               ctx.fillRect(dx + 1, dy + 1, dW - 2, 2.5);
@@ -6106,7 +6147,7 @@
             for (let col = 0; col < 2; col++) {
               for (let row = 0; row < 5; row++) {
                 const lit = !group.muted && row >= 2;
-                ctx.fillStyle = lit ? ink : 'rgba(160,170,180,0.14)';
+                ctx.fillStyle = lit ? ink : (fp.silver ? 'rgba(40,25,5,0.15)' : 'rgba(160,170,180,0.14)');
                 ctx.fillRect(dx + 3 + col * 4.5, dy + 4 + row * 4, 3, 2.5);
               }
             }
@@ -6117,7 +6158,7 @@
             ctx.fillText(`B.Ch: U1.${chStart + ci + 1}`, tx0, dy + 7);
             if (powerLabel || cascadeLabel) {
               ctx.textAlign = 'right';
-              ctx.fillStyle = group.muted ? ink : '#e8c040';
+              ctx.fillStyle = group.muted ? ink : (fp.silver ? '#4a2606' : '#e8c040');
               ctx.fillText(powerLabel || cascadeLabel, dx + dW - 3, dy + 7);
               ctx.textAlign = 'left';
             }
@@ -6148,26 +6189,29 @@
           ctx.fillStyle = '#84848c';
           ctx.beginPath(); ctx.arc(jogCX, jogCY, 1.2, 0, Math.PI * 2); ctx.fill();
 
-          // ESC / SYNC buttons
+          // ESC / SYNC buttons (lilac ring on G2/G3 silver era)
+          const btnRing = fp.silver ? fp.ring : '#45454b';
           for (const [bi, by] of [[0, modY + slotH / 2 - 8], [1, modY + slotH / 2 + 8]]) {
             ctx.fillStyle = '#101013';
             ctx.beginPath(); ctx.arc(btnCX, by, 4.2, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.8; ctx.stroke();
+            ctx.strokeStyle = btnRing; ctx.lineWidth = fp.silver ? 1.2 : 0.8; ctx.stroke();
           }
 
-          // Round power button with red ring
+          // Round power button (red ring; lilac on silver era)
           ctx.fillStyle = '#141417';
           ctx.beginPath(); ctx.arc(pwrCX, pwrCY, 7, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1; ctx.stroke();
-          const pwrCol = group.muted ? '#6a3a3a' : '#e03830';
+          ctx.strokeStyle = fp.silver ? fp.ring : '#3c3c42'; ctx.lineWidth = fp.silver ? 1.5 : 1; ctx.stroke();
+          const pwrCol = group.muted ? '#6a3a3a' : (fp.silver ? '#c8c8cc' : '#e03830');
           ctx.strokeStyle = pwrCol; ctx.lineWidth = 1.2;
           ctx.beginPath(); ctx.arc(pwrCX, pwrCY + 0.5, 3, -Math.PI * 0.34, Math.PI * 1.34); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(pwrCX, pwrCY - 3.5); ctx.lineTo(pwrCX, pwrCY - 0.5); ctx.stroke();
 
-          // SENNHEISER wordmark (bottom-right)
-          ctx.fillStyle = '#dcdce2'; ctx.font = 'bold 5.5px Arial, sans-serif';
-          ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-          ctx.fillText('SENNHEISER', moduleX + unitW - 24, modY + slotH - 4);
+          // SENNHEISER wordmark bottom-right (dark panels only; silver has it top-left)
+          if (!fp.silver) {
+            ctx.fillStyle = '#dcdce2'; ctx.font = 'bold 5.5px Arial, sans-serif';
+            ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText('SENNHEISER', moduleX + unitW - 24, modY + slotH - 4);
+          }
 
         } else {
           // ═══ Standard layout (Shure/Wisycom/SD): silkscreen + clusters + knob + rocker ═══
