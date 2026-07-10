@@ -5763,46 +5763,59 @@
       if (k.startsWith('shure_')) {
         const logo = { text: 'SHURE', color: '#f0f0f0', font: 'italic bold 9px Arial, sans-serif' };
         if (/^shure_ad|^shure_adx/.test(k))
-          return { logo, panel: ['#2b2b2f', '#101012'], disp: { type: 'tft', bg: '#0a1018', ink: '#e8f2ff', accent: '#28a0e8' }, btns: 'row', knob: 'big' };
+          return { logo, hw: 1, panel: ['#2b2b2f', '#101012'], disp: { type: 'tft', bg: '#0a1018', ink: '#e8f2ff', accent: '#28a0e8' }, btns: 'row', knob: 'big' };
         if (/^shure_psm(9|10)/.test(k))
-          return { logo, panel: ['#313135', '#0c0c0e'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
+          return { logo, hw: 1, panel: ['#313135', '#0c0c0e'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
         if (/^shure_psm[67]/.test(k))
-          return { logo, panel: ['#303034', '#0b0b0d'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'none', knob: 'small' };
+          return { logo, hw: 0.5, panel: ['#303034', '#0b0b0d'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'none', knob: 'small' };
         if (/^shure_psm/.test(k))
-          return { logo, panel: ['#303034', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'small' };
+          return { logo, hw: 0.5, panel: ['#303034', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'small' };
+        if (/^shure_ulxd4$/.test(k))
+          return { logo, hw: 0.5, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'row', knob: 'small' };
         if (/^shure_ulxd/.test(k))
-          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'row', knob: 'small' };
+          return { logo, hw: 1, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'row', knob: 'small' };
         if (/^shure_qlxd/.test(k))
-          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'row', knob: 'small' };
+          return { logo, hw: 0.5, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'lcd', bg: '#071008', ink: '#58e888' }, btns: 'row', knob: 'small' };
+        if (/^shure_slxd4$/.test(k))
+          return { logo, hw: 0.5, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'oled', bg: '#050507', ink: '#e8eaf0' }, btns: 'row', knob: 'small' };
         if (/^shure_slxd/.test(k))
-          return { logo, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'oled', bg: '#050507', ink: '#e8eaf0' }, btns: 'row', knob: 'small' };
+          return { logo, hw: 1, panel: ['#2e2e32', '#0a0a0c'], disp: { type: 'oled', bg: '#050507', ink: '#e8eaf0' }, btns: 'row', knob: 'small' };
         if (/^shure_blx|^shure_pgxd/.test(k))
-          return { logo, panel: ['#2a2a2e', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'none' };
-        return { logo, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' }; // UR4…
+          return { logo, hw: 0.5, panel: ['#2a2a2e', '#0b0b0d'], disp: { type: 'seg', bg: '#120404', ink: '#f24434' }, btns: 'none', knob: 'none' };
+        return { logo, hw: 1, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' }; // UR4…
       }
       if (k.startsWith('senn_')) {
+        // Dedicated Sennheiser layout: graphite panel, single display with
+        // integrated PEAK meters, jog wheel, ESC/SYNC buttons, round power button.
         const logo = { text: 'SENNHEISER', color: '#e8e8ec', font: 'bold 7.5px Arial, sans-serif' };
+        const base = { logo, layout: 'senn', panel: ['#4a4b51', '#33343a'], btns: 'row', knob: 'jog' };
         if (/spectera/.test(k))
-          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'tft', bg: '#081420', ink: '#d8ecff', accent: '#20b0f0' }, btns: 'row', knob: 'jog' };
+          return { ...base, hw: 1, disp: { type: 'tft', bg: '#081420', ink: '#d8ecff', accent: '#20b0f0' } };
+        if (/9000|9046|6000|3731|3732|sr2050|sr2000|em2050|em2000/.test(k))
+          return { ...base, hw: 1, disp: { type: 'oled', bg: '#06070a', ink: '#dce4f0' } };
+        if (/ewdx_em4d/.test(k))
+          return { ...base, hw: 1, disp: { type: 'oled', bg: '#050507', ink: '#f0f2f6' } };
         if (/ewdx|ewd_/.test(k))
-          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'oled', bg: '#050507', ink: '#f0f2f6' }, btns: 'row', knob: 'jog' };
-        if (/9000|6000|3731|3732|2050|2000|avx/.test(k))
-          return { logo, panel: ['#26272b', '#0e0e10'], disp: { type: 'oled', bg: '#06070a', ink: '#dce4f0' }, btns: 'row', knob: 'jog' };
+          return { ...base, hw: 0.5, disp: { type: 'oled', bg: '#050507', ink: '#f0f2f6' } };
+        if (/avx/.test(k))
+          return { ...base, hw: 0.5, disp: { type: 'oled', bg: '#06070a', ink: '#dce4f0' } };
         if (/g4/.test(k))
-          return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'lcd', bg: '#0a0e14', ink: '#cfe0f8' }, btns: 'row', knob: 'jog' };
-        return { logo, panel: ['#232428', '#0d0d0f'], disp: { type: 'lcd', bg: '#181004', ink: '#f0b028' }, btns: 'row', knob: 'jog' }; // G2/G3/XSW
+          return { ...base, hw: 0.5, disp: { type: 'lcd', bg: '#0a0b0e', ink: '#eef1f6' } };
+        return { ...base, hw: 0.5, disp: { type: 'lcd', bg: '#100c04', ink: '#f0b028' } }; // G2/G3/XSW
       }
       if (k.startsWith('wisycom_')) {
         const logo = { text: 'WISYCOM', color: '#f08020', font: 'bold 8.5px Arial, sans-serif' };
         if (/mtk/.test(k))
-          return { logo, panel: ['#28282c', '#0b0b0d'], disp: { type: 'tft', bg: '#0c0e16', ink: '#f0f4fa', accent: '#f08020' }, btns: 'row', knob: 'small' };
-        return { logo, panel: ['#28282c', '#0b0b0d'], disp: { type: 'oled', bg: '#050608', ink: '#e8ecf4' }, btns: 'row', knob: 'small' };
+          return { logo, hw: 0.5, panel: ['#28282c', '#0b0b0d'], disp: { type: 'tft', bg: '#0c0e16', ink: '#f0f4fa', accent: '#f08020' }, btns: 'row', knob: 'small' };
+        if (/mcr|mpr/.test(k))
+          return { logo, hw: 0.5, panel: ['#28282c', '#0b0b0d'], disp: { type: 'oled', bg: '#050608', ink: '#e8ecf4' }, btns: 'row', knob: 'small' };
+        return { logo, hw: 1, panel: ['#28282c', '#0b0b0d'], disp: { type: 'oled', bg: '#050608', ink: '#e8ecf4' }, btns: 'row', knob: 'small' };
       }
       if (k.startsWith('sd_')) {
         const logo = { text: 'SOUND DEVICES', color: '#e8e8e8', font: 'bold 6.5px Arial, sans-serif' };
-        return { logo, panel: ['#242427', '#08080a'], disp: { type: 'tft', bg: '#0a1410', ink: '#e0f4e8', accent: '#28c860' }, btns: 'row', knob: 'big' };
+        return { logo, hw: 1, panel: ['#242427', '#08080a'], disp: { type: 'tft', bg: '#0a1410', ink: '#e0f4e8', accent: '#28c860' }, btns: 'row', knob: 'big' };
       }
-      return { logo: { text: (m.brand || 'RF').toUpperCase(), color: '#ececec', font: 'italic bold 9px Arial, sans-serif' }, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
+      return { logo: { text: (m.brand || 'RF').toUpperCase(), color: '#ececec', font: 'italic bold 9px Arial, sans-serif' }, hw: 1, panel: ['#2c2c30', '#0a0a0c'], disp: { type: 'lcd', bg: '#0a1100', ink: '#cde23a' }, btns: 'col', knob: 'big' };
     }
 
     function drawRack(group) {
@@ -5984,10 +5997,23 @@
         const slotH = RU_H * m.ru;
         const modY = rackY + ruOffset * RU_H;
 
-        // ── Realistic hardware front panel (per-model look) ──
+        // ── Realistic hardware front panel (per-model look & width) ──
         const fp = _fpSpec(group.modelKey || '', m);
+        const unitW = Math.round(moduleW * (fp.hw || 1));
         ctx.save();
         ctx.globalAlpha = group.muted ? 0.45 : 1;
+
+        // Blank filler panel for half-rack units
+        if (unitW < moduleW - 4) {
+          ctx.fillStyle = '#101013';
+          ctx.fillRect(moduleX + unitW, modY, moduleW - unitW, slotH);
+          ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+          ctx.strokeRect(moduleX + unitW, modY, moduleW - unitW, slotH);
+          ctx.fillStyle = '#1e1e22';
+          for (const fx of [moduleX + unitW + 12, moduleX + moduleW - 12]) {
+            ctx.beginPath(); ctx.arc(fx, modY + slotH / 2, 2, 0, Math.PI * 2); ctx.fill();
+          }
+        }
 
         // Brushed metal faceplate in the model's tone
         const fpGrad = ctx.createLinearGradient(0, modY, 0, modY + slotH);
@@ -5997,185 +6023,306 @@
         fpGrad.addColorStop(0.9, fp.panel[1]);
         fpGrad.addColorStop(1, '#040405');
         ctx.fillStyle = fpGrad;
-        ctx.fillRect(moduleX, modY, moduleW, slotH);
+        ctx.fillRect(moduleX, modY, unitW, slotH);
         // brushed texture lines
         ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 0.5;
         for (let ly = modY + 3.5; ly < modY + slotH - 2; ly += 3) {
-          ctx.beginPath(); ctx.moveTo(moduleX + 2, ly); ctx.lineTo(moduleX + moduleW - 2, ly); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(moduleX + 2, ly); ctx.lineTo(moduleX + unitW - 2, ly); ctx.stroke();
         }
         ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-        ctx.strokeRect(moduleX, modY, moduleW, slotH);
+        ctx.strokeRect(moduleX, modY, unitW, slotH);
         ctx.strokeStyle = 'rgba(255,255,255,0.09)';
-        ctx.beginPath(); ctx.moveTo(moduleX + 1, modY + 1.5); ctx.lineTo(moduleX + moduleW - 1, modY + 1.5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(moduleX + 1, modY + 1.5); ctx.lineTo(moduleX + unitW - 1, modY + 1.5); ctx.stroke();
 
         // Group colour tag (left edge stripe)
         ctx.fillStyle = group.color || m.color;
         ctx.fillRect(moduleX + 1, modY + 2, 3, slotH - 4);
 
-        // Brand + model + channel range (silkscreen)
-        const brandX = moduleX + 12;
-        ctx.fillStyle = fp.logo.color; ctx.font = fp.logo.font;
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillText(fp.logo.text, brandX, modY + 13);
-        ctx.fillStyle = '#9a9aa0'; ctx.font = 'bold 7.5px monospace';
-        ctx.fillText(m.name, brandX, modY + 22);
-        const chNums = (chEnd - chStart) <= 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
-        ctx.fillStyle = '#63636a'; ctx.font = '6.5px monospace';
-        ctx.fillText(chNums, brandX, modY + 30);
-
-        // Layout zones: displays | info (mW/CAS) | controls (knob+switch)
+        // Shared per-unit state
         const power = (group.unitPowers || [])[unitIdx];
         const hasPowers = m.txPowers && m.txPowers.length;
         const powerLabel = hasPowers ? (power != null ? `${power} mW` : '— mW') : '';
         const casOn = !!((group.unitCascades || [])[unitIdx]);
         const cascadeLabel = m.cascadeOut ? (casOn ? 'CAS ▲' : 'cas ○') : '';
-        const hasInfo = !!(powerLabel || cascadeLabel);
-        const ctlW = fp.knob === 'none' ? 30 : 52;
-        const infoW = hasInfo ? 44 : 0;
-        const dispX0 = moduleX + 78;
-        const dispX1 = moduleX + moduleW - ctlW - infoW;
-
-        // Per-channel display clusters: blue RF LED + L/R meters + display + buttons
         const chSlice = group.channels.slice(chStart, chEnd);
-        const btnW = fp.btns === 'none' ? 0 : 10;
-        const CLW = 98;
-        const maxClusters = Math.max(1, Math.floor((dispX1 - dispX0) / CLW));
-        const shownN = chSlice.length <= maxClusters ? chSlice.length
-          : Math.max(1, Math.floor((dispX1 - dispX0 - 24) / CLW));
-        for (let ci = 0; ci < shownN; ci++) {
-          const c = chSlice[ci];
-          const cx0 = dispX0 + ci * CLW;
-          const meterH = 22, mtY = modY + (slotH - meterH) / 2;
-          // Blue RF LED
-          ctx.fillStyle = group.muted ? '#26262c' : '#3a7cf0';
-          ctx.beginPath(); ctx.arc(cx0 + 2.5, mtY + 2, 1.7, 0, Math.PI * 2); ctx.fill();
-          // LED meters: 2 columns (L/R) × 6 segments, peak segment amber
-          for (let col = 0; col < 2; col++) {
-            for (let row = 0; row < 6; row++) {
-              const lit = !group.muted && row >= 2;
-              ctx.fillStyle = lit ? (row === 2 ? '#e8c040' : '#35d24a')
-                : (row === 0 ? '#3a2e14' : '#16301a');
-              ctx.fillRect(cx0 + 7 + col * 5.5, mtY + row * 3.7, 3.4, 2.6);
-            }
+
+        if (fp.layout === 'senn') {
+          // ═══ Sennheiser layout: S-logo, jack+volume (IEM), display with
+          //     integrated PEAK meters, jog wheel, ESC/SYNC, round power ═══
+          const isIEM = m.type === 'IEM';
+
+          // "S" logo badge (top-left)
+          ctx.fillStyle = '#e8e8ec';
+          ctx.fillRect(moduleX + 7, modY + 4, 8, 8);
+          ctx.fillStyle = '#26272b'; ctx.font = 'bold 7px Arial, sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('S', moduleX + 11, modY + 8.5);
+          // model name under logo
+          ctx.fillStyle = '#c0c1c8'; ctx.font = 'bold 6px monospace';
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(m.name, moduleX + 6, modY + slotH - 5);
+
+          let dispX = moduleX + 40;
+          if (isIEM) {
+            // Headphone jack + volume knob
+            const jy = modY + slotH / 2 - 2;
+            ctx.fillStyle = '#0a0a0c';
+            ctx.beginPath(); ctx.arc(moduleX + 26, jy, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1.2; ctx.stroke();
+            ctx.strokeStyle = '#333338'; ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.arc(moduleX + 26, jy, 2, 0, Math.PI * 2); ctx.stroke();
+            const vg = ctx.createRadialGradient(moduleX + 40 - 1, jy - 2, 0.5, moduleX + 40, jy, 5);
+            vg.addColorStop(0, '#4a4a50'); vg.addColorStop(1, '#0e0e10');
+            ctx.fillStyle = vg;
+            ctx.beginPath(); ctx.arc(moduleX + 40, jy, 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.8; ctx.stroke();
+            dispX = moduleX + 52;
           }
-          // Display window (style per model)
-          const lcdX = cx0 + 22, lcdW = CLW - 27 - btnW;
-          const lcdY = modY + 4, lcdH = slotH - 9;
+
+          // Right-side controls: jog wheel, ESC/SYNC, power button
+          const pwrCX = moduleX + unitW - 13, pwrCY = modY + slotH / 2;
+          const btnCX = moduleX + unitW - 30;
+          const jogCX = moduleX + unitW - 48, jogCY = modY + slotH / 2;
+          const dispX1u = jogCX - 12;
+
+          // Display(s) — white-on-black with integrated PEAK meters
           const d = fp.disp;
-          ctx.fillStyle = d.bg;
-          ctx.fillRect(lcdX, lcdY, lcdW, lcdH);
-          ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
-          ctx.strokeRect(lcdX, lcdY, lcdW, lcdH);
-          const ink = group.muted ? 'rgba(150,160,150,0.35)' : d.ink;
-          if (d.type === 'tft') {
-            // colour TFT: accent header bar + white text
-            ctx.fillStyle = group.muted ? 'rgba(120,120,130,0.3)' : d.accent;
-            ctx.fillRect(lcdX + 1, lcdY + 1, lcdW - 2, 3);
+          const nDisp = Math.max(1, Math.min(chSlice.length || 1, Math.floor((dispX1u - dispX) / 84)) || 1);
+          const dW = Math.min(120, (dispX1u - dispX - (nDisp - 1) * 5) / nDisp);
+          for (let ci = 0; ci < nDisp; ci++) {
+            const c = chSlice[ci];
+            const dx = dispX + ci * (dW + 5);
+            const dy = modY + 4, dh = slotH - 9;
+            ctx.fillStyle = d.bg;
+            ctx.fillRect(dx, dy, dW, dh);
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+            ctx.strokeRect(dx, dy, dW, dh);
+            const ink = group.muted ? 'rgba(180,190,200,0.3)' : d.ink;
+            if (d.type === 'tft' && !group.muted) {
+              ctx.fillStyle = d.accent;
+              ctx.fillRect(dx + 1, dy + 1, dW - 2, 2.5);
+            }
+            // PEAK meter columns inside display (left)
+            for (let col = 0; col < 2; col++) {
+              for (let row = 0; row < 5; row++) {
+                const lit = !group.muted && row >= 2;
+                ctx.fillStyle = lit ? ink : 'rgba(160,170,180,0.14)';
+                ctx.fillRect(dx + 3 + col * 4.5, dy + 4 + row * 4, 3, 2.5);
+              }
+            }
+            const tx0 = dx + 15;
+            // top line: B.Ch + power
+            ctx.fillStyle = ink; ctx.font = '5.5px monospace';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+            ctx.fillText(`B.Ch: U1.${chStart + ci + 1}`, tx0, dy + 7);
+            if (powerLabel || cascadeLabel) {
+              ctx.textAlign = 'right';
+              ctx.fillStyle = group.muted ? ink : '#e8c040';
+              ctx.fillText(powerLabel || cascadeLabel, dx + dW - 3, dy + 7);
+              ctx.textAlign = 'left';
+            }
+            // big frequency
             ctx.fillStyle = ink;
-            ctx.font = 'bold 9.5px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 15);
-            ctx.font = '5.5px monospace';
-            ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 15);
-            ctx.fillStyle = group.muted ? ink : d.accent;
+            ctx.font = 'bold 10.5px monospace';
+            const freqTxt = c ? c.freq.toFixed(3) : '---.---';
+            const freqW = ctx.measureText(freqTxt).width;
+            ctx.fillText(freqTxt, tx0, dy + 17);
+            ctx.font = '5px monospace';
+            ctx.fillText('MHz', tx0 + freqW + 2, dy + 17);
+            // bottom line
             ctx.font = '6px monospace';
-            ctx.fillText(`CH ${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 4);
-          } else if (d.type === 'seg') {
-            // red 7-segment readout, digits only
-            ctx.fillStyle = ink;
-            ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + lcdW / 2, lcdY + lcdH / 2);
-          } else {
-            // lcd / oled: freq + G/Ch line
-            if (d.type === 'lcd') {
-              ctx.strokeStyle = 'rgba(200,230,120,0.15)';
-              ctx.strokeRect(lcdX + 1, lcdY + 1, lcdW - 2, lcdH - 2);
-            }
-            ctx.fillStyle = ink;
-            ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-            ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 12);
-            ctx.font = '5.5px monospace';
-            ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 12);
-            ctx.font = '6.5px monospace';
-            ctx.fillText(`G:01 Ch:${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 5);
+            ctx.fillText((c && c.name) ? c.name.substring(0, 14) : m.name.substring(0, 14), tx0, dy + dh - 4);
           }
-          // Buttons next to display
-          if (fp.btns === 'col') {
-            // 4-button nav stack (PSM1000 style)
-            for (let b = 0; b < 4; b++) {
-              const by = lcdY + 1 + b * (lcdH - 2) / 4;
-              ctx.fillStyle = '#222226';
-              ctx.fillRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
-              ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5;
-              ctx.strokeRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
-            }
-          } else if (fp.btns === 'row') {
-            // 3 round buttons
-            for (let b = 0; b < 3; b++) {
-              const by = lcdY + lcdH / 2 + (b - 1) * 8;
-              ctx.fillStyle = '#222226';
-              ctx.beginPath(); ctx.arc(lcdX + lcdW + 6, by, 2.6, 0, Math.PI * 2); ctx.fill();
-              ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5; ctx.stroke();
-            }
+          if (chSlice.length > nDisp) {
+            ctx.fillStyle = '#c0c1c8'; ctx.font = 'bold 6.5px monospace';
+            ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+            ctx.fillText(`+${chSlice.length - nDisp}ch`, dispX1u - 2, modY + 8);
           }
-        }
-        if (chSlice.length > shownN) {
-          ctx.fillStyle = '#8a8a90'; ctx.font = 'bold 7px monospace';
-          ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-          ctx.fillText(`+${chSlice.length - shownN}ch`, dispX0 + shownN * CLW + 3, modY + slotH / 2);
-        }
 
-        // Info column (TX power / cascade)
-        if (hasInfo) {
-          const ix = dispX1 + infoW - 6;
-          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-          if (powerLabel) {
-            ctx.fillStyle = power != null ? '#e8c040' : '#77772f';
-            ctx.font = 'bold 7.5px monospace';
-            ctx.fillText(powerLabel, ix, modY + (cascadeLabel ? 12 : slotH / 2));
-          }
-          if (cascadeLabel) {
-            ctx.fillStyle = casOn ? '#e8c040' : '#5a5a60';
-            ctx.font = '7px monospace';
-            ctx.fillText(cascadeLabel, ix, powerLabel ? modY + slotH - 11 : modY + slotH / 2);
-          }
-        }
+          // Jog wheel
+          const jg = ctx.createRadialGradient(jogCX - 2, jogCY - 2, 1, jogCX, jogCY, 9);
+          jg.addColorStop(0, '#3c3c42'); jg.addColorStop(1, '#08080a');
+          ctx.fillStyle = jg;
+          ctx.beginPath(); ctx.arc(jogCX, jogCY, 8.5, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#4c4c53'; ctx.lineWidth = 1; ctx.stroke();
+          ctx.fillStyle = '#84848c';
+          ctx.beginPath(); ctx.arc(jogCX, jogCY, 1.2, 0, Math.PI * 2); ctx.fill();
 
-        // Control knob (style per model)
-        if (fp.knob !== 'none') {
-          const knobCX = moduleX + moduleW - 36, knobCY = modY + slotH / 2;
-          const kr = fp.knob === 'big' ? 8.5 : fp.knob === 'jog' ? 7.5 : 6;
-          const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, kr + 0.5);
-          kg.addColorStop(0, '#6a6a70');
-          kg.addColorStop(0.5, '#2e2e32');
-          kg.addColorStop(1, '#0c0c0e');
-          ctx.fillStyle = kg;
-          ctx.beginPath(); ctx.arc(knobCX, knobCY, kr, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1; ctx.stroke();
-          if (fp.knob === 'jog') {
-            // Sennheiser-style jog wheel: outer ring + centre dot
-            ctx.strokeStyle = '#75757c'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.arc(knobCX, knobCY, kr - 2.5, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = '#9a9aa2';
-            ctx.beginPath(); ctx.arc(knobCX, knobCY, 1.3, 0, Math.PI * 2); ctx.fill();
-          } else {
+          // ESC / SYNC buttons
+          for (const [bi, by] of [[0, modY + slotH / 2 - 8], [1, modY + slotH / 2 + 8]]) {
+            ctx.fillStyle = '#101013';
+            ctx.beginPath(); ctx.arc(btnCX, by, 4.2, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.8; ctx.stroke();
+          }
+
+          // Round power button with red ring
+          ctx.fillStyle = '#141417';
+          ctx.beginPath(); ctx.arc(pwrCX, pwrCY, 7, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1; ctx.stroke();
+          const pwrCol = group.muted ? '#6a3a3a' : '#e03830';
+          ctx.strokeStyle = pwrCol; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(pwrCX, pwrCY + 0.5, 3, -Math.PI * 0.34, Math.PI * 1.34); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(pwrCX, pwrCY - 3.5); ctx.lineTo(pwrCX, pwrCY - 0.5); ctx.stroke();
+
+          // SENNHEISER wordmark (bottom-right)
+          ctx.fillStyle = '#dcdce2'; ctx.font = 'bold 5.5px Arial, sans-serif';
+          ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText('SENNHEISER', moduleX + unitW - 24, modY + slotH - 4);
+
+        } else {
+          // ═══ Standard layout (Shure/Wisycom/SD): silkscreen + clusters + knob + rocker ═══
+
+          // Brand + model + channel range (silkscreen)
+          const brandX = moduleX + 12;
+          ctx.fillStyle = fp.logo.color; ctx.font = fp.logo.font;
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(fp.logo.text, brandX, modY + 13);
+          ctx.fillStyle = '#9a9aa0'; ctx.font = 'bold 7.5px monospace';
+          ctx.fillText(m.name, brandX, modY + 22);
+          const chNums = (chEnd - chStart) <= 1 ? `Ch ${chStart + 1}` : `Ch ${chStart + 1}-${chEnd}`;
+          ctx.fillStyle = '#63636a'; ctx.font = '6.5px monospace';
+          ctx.fillText(chNums, brandX, modY + 30);
+
+          // Layout zones: displays | info (mW/CAS) | controls (knob+switch)
+          const hasInfo = !!(powerLabel || cascadeLabel);
+          const ctlW = fp.knob === 'none' ? 30 : 52;
+          const infoW = hasInfo ? 44 : 0;
+          const dispX0 = moduleX + 78;
+          const dispX1 = moduleX + unitW - ctlW - infoW;
+
+          // Per-channel display clusters: blue RF LED + L/R meters + display + buttons
+          const btnW = fp.btns === 'none' ? 0 : 10;
+          const CLW = 98;
+          const maxClusters = Math.max(1, Math.floor((dispX1 - dispX0) / CLW));
+          const shownN = chSlice.length <= maxClusters ? chSlice.length
+            : Math.max(1, Math.floor((dispX1 - dispX0 - 24) / CLW));
+          for (let ci = 0; ci < shownN; ci++) {
+            const c = chSlice[ci];
+            const cx0 = dispX0 + ci * CLW;
+            const meterH = 22, mtY = modY + (slotH - meterH) / 2;
+            // Blue RF LED
+            ctx.fillStyle = group.muted ? '#26262c' : '#3a7cf0';
+            ctx.beginPath(); ctx.arc(cx0 + 2.5, mtY + 2, 1.7, 0, Math.PI * 2); ctx.fill();
+            // LED meters: 2 columns (L/R) × 6 segments, peak segment amber
+            for (let col = 0; col < 2; col++) {
+              for (let row = 0; row < 6; row++) {
+                const lit = !group.muted && row >= 2;
+                ctx.fillStyle = lit ? (row === 2 ? '#e8c040' : '#35d24a')
+                  : (row === 0 ? '#3a2e14' : '#16301a');
+                ctx.fillRect(cx0 + 7 + col * 5.5, mtY + row * 3.7, 3.4, 2.6);
+              }
+            }
+            // Display window (style per model)
+            const lcdX = cx0 + 22, lcdW = CLW - 27 - btnW;
+            const lcdY = modY + 4, lcdH = slotH - 9;
+            const d = fp.disp;
+            ctx.fillStyle = d.bg;
+            ctx.fillRect(lcdX, lcdY, lcdW, lcdH);
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+            ctx.strokeRect(lcdX, lcdY, lcdW, lcdH);
+            const ink = group.muted ? 'rgba(150,160,150,0.35)' : d.ink;
+            if (d.type === 'tft') {
+              // colour TFT: accent header bar + white text
+              ctx.fillStyle = group.muted ? 'rgba(120,120,130,0.3)' : d.accent;
+              ctx.fillRect(lcdX + 1, lcdY + 1, lcdW - 2, 3);
+              ctx.fillStyle = ink;
+              ctx.font = 'bold 9.5px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+              ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 15);
+              ctx.font = '5.5px monospace';
+              ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 15);
+              ctx.fillStyle = group.muted ? ink : d.accent;
+              ctx.font = '6px monospace';
+              ctx.fillText(`CH ${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 4);
+            } else if (d.type === 'seg') {
+              // red 7-segment readout, digits only
+              ctx.fillStyle = ink;
+              ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+              ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + lcdW / 2, lcdY + lcdH / 2);
+            } else {
+              // lcd / oled: freq + G/Ch line
+              if (d.type === 'lcd') {
+                ctx.strokeStyle = 'rgba(200,230,120,0.15)';
+                ctx.strokeRect(lcdX + 1, lcdY + 1, lcdW - 2, lcdH - 2);
+              }
+              ctx.fillStyle = ink;
+              ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+              ctx.fillText(c ? c.freq.toFixed(3) : '---.---', lcdX + 4, lcdY + 12);
+              ctx.font = '5.5px monospace';
+              ctx.fillText('MHz', lcdX + lcdW - 16, lcdY + 12);
+              ctx.font = '6.5px monospace';
+              ctx.fillText(`G:01 Ch:${String(chStart + ci + 1).padStart(2, '0')}`, lcdX + 4, lcdY + lcdH - 5);
+            }
+            // Buttons next to display
+            if (fp.btns === 'col') {
+              // 4-button nav stack (PSM1000 style)
+              for (let b = 0; b < 4; b++) {
+                const by = lcdY + 1 + b * (lcdH - 2) / 4;
+                ctx.fillStyle = '#222226';
+                ctx.fillRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
+                ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5;
+                ctx.strokeRect(lcdX + lcdW + 3, by + 1, 6, (lcdH - 2) / 4 - 2);
+              }
+            } else if (fp.btns === 'row') {
+              // 3 round buttons
+              for (let b = 0; b < 3; b++) {
+                const by = lcdY + lcdH / 2 + (b - 1) * 8;
+                ctx.fillStyle = '#222226';
+                ctx.beginPath(); ctx.arc(lcdX + lcdW + 6, by, 2.6, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 0.5; ctx.stroke();
+              }
+            }
+          }
+          if (chSlice.length > shownN) {
+            ctx.fillStyle = '#8a8a90'; ctx.font = 'bold 7px monospace';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText(`+${chSlice.length - shownN}ch`, dispX0 + shownN * CLW + 3, modY + slotH / 2);
+          }
+
+          // Info column (TX power / cascade)
+          if (hasInfo) {
+            const ix = dispX1 + infoW - 6;
+            ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+            if (powerLabel) {
+              ctx.fillStyle = power != null ? '#e8c040' : '#77772f';
+              ctx.font = 'bold 7.5px monospace';
+              ctx.fillText(powerLabel, ix, modY + (cascadeLabel ? 12 : slotH / 2));
+            }
+            if (cascadeLabel) {
+              ctx.fillStyle = casOn ? '#e8c040' : '#5a5a60';
+              ctx.font = '7px monospace';
+              ctx.fillText(cascadeLabel, ix, powerLabel ? modY + slotH - 11 : modY + slotH / 2);
+            }
+          }
+
+          // Control knob (style per model)
+          if (fp.knob !== 'none') {
+            const knobCX = moduleX + unitW - 36, knobCY = modY + slotH / 2;
+            const kr = fp.knob === 'big' ? 8.5 : 6;
+            const kg = ctx.createRadialGradient(knobCX - 2, knobCY - 3, 1, knobCX, knobCY, kr + 0.5);
+            kg.addColorStop(0, '#6a6a70');
+            kg.addColorStop(0.5, '#2e2e32');
+            kg.addColorStop(1, '#0c0c0e');
+            ctx.fillStyle = kg;
+            ctx.beginPath(); ctx.arc(knobCX, knobCY, kr, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#55555c'; ctx.lineWidth = 1; ctx.stroke();
             ctx.strokeStyle = '#c8c8cc'; ctx.lineWidth = 1.2;
             ctx.beginPath(); ctx.moveTo(knobCX, knobCY - kr * 0.4); ctx.lineTo(knobCX, knobCY - kr * 0.85); ctx.stroke();
           }
+
+          // Power rocker switch
+          const swX = moduleX + unitW - 20, swY = modY + slotH / 2 - 9.5;
+          ctx.fillStyle = '#0a0a0c';
+          ctx.fillRect(swX, swY, 12, 19);
+          ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1;
+          ctx.strokeRect(swX, swY, 12, 19);
+          ctx.strokeStyle = '#b0b0b6'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(swX + 6, swY + 3.5); ctx.lineTo(swX + 6, swY + 7); ctx.stroke();
+          ctx.beginPath(); ctx.arc(swX + 6, swY + 13, 2.6, 0, Math.PI * 2); ctx.stroke();
+
+          // Status LED (top-right corner)
+          ctx.fillStyle = group.muted ? '#d03030' : '#35d24a';
+          ctx.beginPath(); ctx.arc(moduleX + unitW - 7, modY + 6, 2, 0, Math.PI * 2); ctx.fill();
         }
-
-        // Power rocker switch
-        const swX = moduleX + moduleW - 20, swY = modY + slotH / 2 - 9.5;
-        ctx.fillStyle = '#0a0a0c';
-        ctx.fillRect(swX, swY, 12, 19);
-        ctx.strokeStyle = '#3c3c42'; ctx.lineWidth = 1;
-        ctx.strokeRect(swX, swY, 12, 19);
-        ctx.strokeStyle = '#b0b0b6'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(swX + 6, swY + 3.5); ctx.lineTo(swX + 6, swY + 7); ctx.stroke();
-        ctx.beginPath(); ctx.arc(swX + 6, swY + 13, 2.6, 0, Math.PI * 2); ctx.stroke();
-
-        // Status LED (top-right corner)
-        ctx.fillStyle = group.muted ? '#d03030' : '#35d24a';
-        ctx.beginPath(); ctx.arc(moduleX + moduleW - 7, modY + 6, 2, 0, Math.PI * 2); ctx.fill();
 
         ctx.restore();
 
