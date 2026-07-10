@@ -4316,10 +4316,10 @@
       const color = document.getElementById('rgColor').value;
       const freqStart = 606.0;
       const freqStep = 0.25;
-      const antRuns = parseInt(document.getElementById('rgAntRuns').value) || 1;
-      const splitter = document.getElementById('rgSplitter').value;
-      const cableType = document.getElementById('rgCableType').value;
-      const cableLen = parseFloat(document.getElementById('rgCableLen').value) || 10;
+      const antRuns = parseInt(document.getElementById('rgAntRuns')?.value) || 1;
+      const splitter = document.getElementById('rgSplitter')?.value || 'none';
+      const cableType = document.getElementById('rgCableType')?.value || 'RG58';
+      const cableLen = parseFloat(document.getElementById('rgCableLen')?.value) || 10;
 
       const channels = [];
       for (let i = 0; i < numCh; i++) {
